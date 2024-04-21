@@ -18,7 +18,7 @@ object DataBinder {
     @JvmStatic
     fun <T> getBindModel(parent: Parent, clazz: Class<T>): T? {
         try {
-            val t = clazz.newInstance()
+            val t = clazz.getConstructor().newInstance()
             val pClazz: Class<out Parent> = parent.javaClass
             val bindingField = Arrays.stream(pClazz.getDeclaredFields())
                 .filter { f: Field ->

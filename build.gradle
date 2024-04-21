@@ -4,7 +4,9 @@ import io.github.fvarrui.javapackager.model.WindowsConfig
 
 buildscript {
     repositories {
-        mavenLocal()
+        mavenLocal {
+            url = uri('file://D:/Runtime/Repo/mvn_repo')
+        }
         mavenCentral()
     }
     dependencies {
@@ -39,7 +41,9 @@ compileKotlin {
 
 
 repositories {
-    mavenLocal()
+    mavenLocal {
+        url = uri('file://D:/Runtime/Repo/mvn_repo')
+    }
     mavenCentral()
 }
 
@@ -60,6 +64,7 @@ dependencies {
     implementation 'cn.hutool:hutool-db:5.8.25'
     // https://mvnrepository.com/artifact/com.googlecode.juniversalchardet/juniversalchardet
     implementation 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
+    implementation 'io.github.nonoas:jfx-flat-ui:1.0.1'
 
     implementation 'org.openjfx:javafx-controls:17.0.0.1'
     implementation 'org.openjfx:javafx-fxml:17.0.0.1'

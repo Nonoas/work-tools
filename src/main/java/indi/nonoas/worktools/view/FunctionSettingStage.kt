@@ -10,6 +10,7 @@ import indi.nonoas.worktools.utils.BeanUtil
 import indi.nonoas.worktools.utils.DBUtil
 import javafx.event.EventHandler
 import javafx.geometry.HPos
+import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.control.Label
@@ -36,7 +37,7 @@ class FunctionSettingStage : BaseStage() {
     private fun initView() {
         val gp = GridPane().apply {
             vgap = 10.0
-            padding = CommonInsets.PADDING_20
+            padding = Insets(40.0, 20.0, 20.0, 20.0)
         }
 
         val gpCol1 = ColumnConstraints()
@@ -61,13 +62,13 @@ class FunctionSettingStage : BaseStage() {
         btnCancel.onAction = EventHandler { onCancel() }
 
         val hBox = HBox(10.0, btnApply, btnCancel)
-            .apply {
-                padding = CommonInsets.PADDING_T20
-                alignment = Pos.CENTER_RIGHT
-            }
+                .apply {
+                    padding = CommonInsets.PADDING_T20
+                    alignment = Pos.CENTER_RIGHT
+                }
 
         gp.add(hBox, 1, i)
-        scene = UIFactory.getBaseScene(gp)
+        setContentView(gp)
     }
 
     /**
@@ -75,21 +76,21 @@ class FunctionSettingStage : BaseStage() {
      */
     private fun onApply() {
         TaskHandler<Int?>()
-            .whenCall {
-                var result = 0
-                val conn = DBUtil.getConnection()
-                conn.autoCommit = false
-                val dao = FuncSettingDao(conn)
-                result += dao.deleteAll()
-                result += Arrays.stream(dao.insertBatch(vos)).sum()
-                conn.commit()
-                if (result != 0) result else null
-            }
-            .andThen {
-                this.close()
-                MainStage.instance?.reInit()
-            }
-            .handle()
+                .whenCall {
+                    var result = 0
+                    val conn = DBUtil.getConnection()
+                    conn.autoCommit = false
+                    val dao = FuncSettingDao(conn)
+                    result += dao.deleteAll()
+                    result += Arrays.stream(dao.insertBatch(vos)).sum()
+                    conn.commit()
+                    if (result != 0) result else null
+                }
+                .andThen {
+                    this.close()
+                    MainStage.instance?.reInit()
+                }
+                .handle()
     }
 
     private fun onCancel() {
@@ -100,8 +101,8 @@ class FunctionSettingStage : BaseStage() {
         val settingList = FuncSettingDao(DBUtil.getConnection()).getAll()
 
         vos = settingList.stream()
-            .map { dto -> BeanUtil.map(dto, FuncSettingVo::class.java) }
-            .collect(Collectors.toList())
+                .map { dto -> BeanUtil.map(dto, FuncSettingVo::class.java) }
+                .collect(Collectors.toList())
 
         toggles = arrayOfNulls(vos.size)
 
@@ -112,11 +113,13 @@ class FunctionSettingStage : BaseStage() {
     }
 
     init {
-        title = "功能设置"
-        isResizable = false
-        isAlwaysOnTop = true
-        width = 300.0
-        initModality(Modality.APPLICATION_MODAL)
+        setTitle("功能设置")
+        stage.apply {
+            isResizable = false
+            isAlwaysOnTop = true
+            width = 300.0
+            initModality(Modality.APPLICATION_MODAL)
+        }
         initView()
     }
 }

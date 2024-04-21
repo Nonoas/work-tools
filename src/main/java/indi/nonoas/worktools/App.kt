@@ -1,6 +1,7 @@
 package indi.nonoas.worktools
 
 import com.melloware.jintellitype.JIntellitype
+import github.nonoas.jfx.flat.ui.stage.AppStage
 import indi.nonoas.worktools.common.Identifier
 import indi.nonoas.worktools.config.DBConfigEnum
 import indi.nonoas.worktools.config.FlyWayMigration
@@ -165,9 +166,9 @@ class App : Application() {
         }
 
         systemTray = SystemTray.getSystemTray()
-            .apply {
-                add(trayIcon)
-            }
+                .apply {
+                    add(trayIcon)
+                }
 
 
     }
@@ -191,9 +192,9 @@ class App : Application() {
      */
     private fun setGlobalHotKeys(stage: BaseStage) {
         jIntellitype!!.registerHotKey(
-            Identifier.A_S_M,
-            JIntellitype.MOD_ALT + JIntellitype.MOD_SHIFT,
-            'M'.code
+                Identifier.A_S_M,
+                JIntellitype.MOD_ALT + JIntellitype.MOD_SHIFT,
+                'M'.code
         )
         jIntellitype!!.addHotKeyListener { identifier ->
             if (Identifier.A_S_M == identifier) {

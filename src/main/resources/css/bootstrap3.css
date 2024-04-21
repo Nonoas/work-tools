@@ -996,3 +996,11 @@ VBox > .split-menu-button.last > .arrow-button {
 .swing-node {
     -fx-text-fill: #111;
 }
+
+.sys-btn-box .button{
+    -fx-border-width: 0;
+}
+
+.sys-button:pressed {
+    -fx-border-width: 0;
+}

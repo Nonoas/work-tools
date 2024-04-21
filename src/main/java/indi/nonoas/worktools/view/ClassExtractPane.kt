@@ -66,7 +66,7 @@ class ClassExtractPane private constructor() : VBox(16.0) {
      */
     private fun onOutPutBrow() {
         val chooser = DirectoryChooser()
-        val file = chooser.showDialog(MainStage.instance) ?: return
+        val file = chooser.showDialog(MainStage.instance?.stage) ?: return
         tfOutPutPath.text = file.absolutePath
     }
 

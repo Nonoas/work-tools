@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.view
 
 import indi.nonoas.worktools.common.CommonInsets
+import indi.nonoas.worktools.dao.FuncSettingDao
 import indi.nonoas.worktools.ext.PluginLoader
 import indi.nonoas.worktools.global.FuncManager
 import indi.nonoas.worktools.pojo.dto.FuncSettingDto
@@ -8,10 +9,8 @@ import indi.nonoas.worktools.pojo.params.FuncSettingQry
 import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.service.impl.FuncSettingService
 import indi.nonoas.worktools.ui.Reinitializable
-import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.ui.component.PopupTextField
-import indi.nonoas.worktools.dao.FuncSettingDao
 import indi.nonoas.worktools.utils.DBUtil
 import javafx.event.EventHandler
 import javafx.scene.control.*
@@ -25,8 +24,7 @@ import javafx.scene.layout.VBox
 import javafx.util.Callback
 import org.apache.commons.lang3.mutable.MutableObject
 
-class MainStage private constructor() : BaseStage(),
-    Reinitializable {
+class MainStage private constructor() : BaseStage(), Reinitializable {
 
     private val rootPane = BorderPane()
     private var toolBar = ToolBar()
@@ -58,19 +56,20 @@ class MainStage private constructor() : BaseStage(),
     }
 
     private fun initView() {
-        isAlwaysOnTop = true
-        minHeight = 550.0
-        minWidth = 630.0
+        setAlwaysOnTop(true)
+        setResizable(true)
+        setMinHeight(550)
+        setMinWidth(630)
 
         // 监听宽高的变化，保存到静态变量
-        widthProperty().addListener { _, _, newValue ->
+        stage.widthProperty().addListener { _, _, newValue ->
             MainStage.width = newValue.toDouble()
         }
-        heightProperty().addListener { _, _, newValue ->
+        stage.heightProperty().addListener { _, _, newValue ->
             MainStage.height = newValue.toDouble()
         }
         // 监听窗口显示
-        showingProperty().addListener { _, _, newValue ->
+        stage.showingProperty().addListener { _, _, newValue ->
             if (newValue) {
                 tfSearch.requestFocus()
             }
@@ -88,10 +87,10 @@ class MainStage private constructor() : BaseStage(),
     }
 
     private fun initScene() {
-
         val kcToggleFunc = KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN)
 
-        val scene = UIFactory.getBaseScene(rootPane).apply {
+
+        stage.scene.apply {
             accelerators[kcToggleFunc] = Runnable {
                 val keys = funcEnabledMap.keys.toList()
                 routeCenter(keys[++currFuncIndex % keys.size])
@@ -102,8 +101,10 @@ class MainStage private constructor() : BaseStage(),
         rootPane.apply {
             top = VBox(menuBar, toolBar)
             center = fpFuncList
+            prefHeight = 550.0
+            prefWidth = 630.0
         }
-        setScene(scene)
+        setContentView(rootPane)
     }
 
     /**
@@ -137,7 +138,7 @@ class MainStage private constructor() : BaseStage(),
 
         menuHelp.items.addAll(itemAbout, itemUpgrade)
         menuBar.menus.addAll(menuSetting, menuPlugin, menuHelp)
-
+        registryDragger(menuBar)
     }
 
     /**
@@ -148,7 +149,6 @@ class MainStage private constructor() : BaseStage(),
         val btnListFunc = Button("功能列表")
         btnListFunc.onAction = EventHandler {
             rootPane.center = fpFuncList
-            title = TITLE
         }
         toolBar.items.add(btnListFunc)
 
@@ -160,19 +160,18 @@ class MainStage private constructor() : BaseStage(),
         // 置顶按钮
         rbSetTop.apply {
             isSelected = true
-            selectedProperty().addListener { _, _, isSelected -> isAlwaysOnTop = isSelected }
+            selectedProperty().addListener { _, _, isSelected -> setAlwaysOnTop(isSelected) }
         }
 
         toolBar.items.add(rbSetTop)
 
-        lbTips.tooltip = Tooltip(
-            """
+        lbTips.tooltip = Tooltip("""
             快捷键：
             Ctrl+Q  切换界面
             Alt+Shift+M  显示/隐藏窗口
-        """.trimIndent()
-        )
+        """.trimIndent())
         toolBar.items.add(lbTips)
+        registryDragger(toolBar)
     }
 
     /**
@@ -291,7 +290,7 @@ class MainStage private constructor() : BaseStage(),
         }
         val rootView = FuncManager.getRootView(funcCode) ?: return
         rootPane.center = rootView
-        title = "$TITLE-${funcEnabledMap[funcCode]?.funcName}"
+        setTitle("${TITLE}-${funcEnabledMap[funcCode]?.funcName}")
     }
 
     /**
@@ -312,8 +311,8 @@ class MainStage private constructor() : BaseStage(),
      * 使窗口显示出来，并显示为上一次窗口隐藏时的大小
      */
     override fun display() {
-        width = MainStage.width
-        height = MainStage.height
+        stage.width = width
+        stage.height = height
         super.display()
     }
 

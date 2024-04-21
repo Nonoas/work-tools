@@ -128,7 +128,7 @@ public class ModifyListView extends ListView<ModifyItemVo> {
                 }
                 TextInputDialog dialog = new TextInputDialog(item.getDesc()) {{
                     setHeaderText(null);
-                    initOwner(MainStage.Companion.getInstance());
+                    initOwner(MainStage.Companion.getInstance().getStage());
                 }};
                 dialog.showAndWait().ifPresent(s -> renameItem(item, path, s));
             });
