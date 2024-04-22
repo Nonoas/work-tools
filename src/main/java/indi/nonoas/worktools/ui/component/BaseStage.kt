@@ -17,7 +17,7 @@ open class BaseStage : AppStage() {
 
     init {
         setTitle(TITLE)
-        stage.scene.stylesheets.addAll("css/bootstrap3.css")
+//        stage.scene.stylesheets.addAll("css/bootstrap3.css")
         addIcons(Collections.singleton(Image("image/logo.png")))
     }
 
