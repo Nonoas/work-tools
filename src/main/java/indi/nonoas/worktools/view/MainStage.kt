@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.view
 
+import github.nonoas.jfx.flat.ui.control.SVGButton
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.FuncSettingDao
 import indi.nonoas.worktools.ext.PluginLoader
@@ -13,6 +14,7 @@ import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.ui.component.PopupTextField
 import indi.nonoas.worktools.utils.DBUtil
 import javafx.event.EventHandler
+import javafx.geometry.Pos
 import javafx.scene.control.*
 import javafx.scene.control.skin.VirtualFlow
 import javafx.scene.input.KeyCode
@@ -99,7 +101,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
 
         rootPane.apply {
-            top = VBox(menuBar, toolBar)
+            top = VBox(toolBar)
             center = fpFuncList
             prefHeight = 550.0
             prefWidth = 630.0
@@ -112,12 +114,12 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      */
     private fun initMenuBar() {
         // 设置
-        val menuSetting = Menu("设置")
+        val menuSetting = Menu(null, SVGButton("A"))
+
         val itemFunc = MenuItem("功能")
         itemFunc.onAction = EventHandler {
             FunctionSettingStage().show()
         }
-        menuSetting.items.addAll(itemFunc)
 
         // 插件
         val menuPlugin = Menu("插件")
@@ -129,15 +131,19 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             menuPlugin.items.add(item)
         }
 
-        // 帮助
-        val menuHelp = Menu("帮助")
         val itemAbout = MenuItem("关于")
         val itemUpgrade = MenuItem("更新")
         itemAbout.onAction = EventHandler { AboutAlerts.instance?.show() }
         itemUpgrade.onAction = EventHandler { /* todo */ }
 
-        menuHelp.items.addAll(itemAbout, itemUpgrade)
-        menuBar.menus.addAll(menuSetting, menuPlugin, menuHelp)
+        menuSetting.items.addAll(itemFunc, menuPlugin, itemUpgrade, itemAbout)
+
+        menuBar.menus.addAll(menuSetting)
+        menuBar.isFocusTraversable = false
+        menuBar.styleClass.add("sys-button")
+
+        systemButtons.add(0, menuBar)
+
         registryDragger(menuBar)
     }
 
@@ -165,11 +171,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
         toolBar.items.add(rbSetTop)
 
-        lbTips.tooltip = Tooltip("""
+        lbTips.tooltip = Tooltip(
+            """
             快捷键：
             Ctrl+Q  切换界面
             Alt+Shift+M  显示/隐藏窗口
-        """.trimIndent())
+        """.trimIndent()
+        )
         toolBar.items.add(lbTips)
         registryDragger(toolBar)
     }

@@ -1,0 +1,35 @@
+/*******************************************************************************
+ *                                                                             *
+ * custom                                                                      *
+ *                                                                             *
+ ******************************************************************************/
+.dialog-pane .content {
+    -fx-text-fill: #111;
+}
+
+.swing-node {
+    -fx-text-fill: #111;
+}
+
+.sys-btn-box .button {
+    -fx-border-width: 0;
+}
+
+.sys-button:pressed {
+    -fx-border-width: 0;
+}
+
+
+.menu-bar.sys-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-effect: none;
+    -fx-border-color: none;
+}
+
+.menu-bar.sys-button .menu-button.menu {
+    -fx-background-color: transparent !important;
+    -fx-effect: none;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}

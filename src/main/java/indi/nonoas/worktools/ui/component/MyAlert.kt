@@ -16,7 +16,7 @@ open class MyAlert(alertType: AlertType?, contentText: String?, vararg buttons: 
         headerText = null
         val image = Image("image/logo.png")
         val pane = dialogPane
-        pane.stylesheets.add("css/bootstrap3.css")
+        pane.stylesheets.add("css/style.css")
         val stage = pane.scene.window as Stage
         stage.isAlwaysOnTop = true
         stage.icons.add(image)

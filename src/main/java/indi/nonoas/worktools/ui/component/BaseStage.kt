@@ -2,7 +2,6 @@ package indi.nonoas.worktools.ui.component
 
 import github.nonoas.jfx.flat.ui.stage.AppStage
 import javafx.scene.image.Image
-import javafx.stage.Stage
 import java.util.*
 
 /**
@@ -17,7 +16,7 @@ open class BaseStage : AppStage() {
 
     init {
         setTitle(TITLE)
-//        stage.scene.stylesheets.addAll("css/bootstrap3.css")
+        stage.scene.stylesheets.addAll("css/style.css")
         addIcons(Collections.singleton(Image("image/logo.png")))
     }
 

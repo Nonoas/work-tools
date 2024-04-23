@@ -19,7 +19,7 @@ object UIFactory {
      */
     fun getBaseScene(parent: Parent?): Scene {
         val scene = Scene(parent)
-        scene.stylesheets.add("css/bootstrap3.css")
+        scene.stylesheets.add("css/style.css")
         return scene
     }
 

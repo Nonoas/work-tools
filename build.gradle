@@ -5,7 +5,7 @@ import io.github.fvarrui.javapackager.model.WindowsConfig
 buildscript {
     repositories {
         mavenLocal {
-            url = uri('file://D:/Runtime/Repo/mvn_repo')
+            url = uri('file://D:\\MyCode\\Maven_repository')
         }
         mavenCentral()
     }
@@ -42,7 +42,7 @@ compileKotlin {
 
 repositories {
     mavenLocal {
-        url = uri('file://D:/Runtime/Repo/mvn_repo')
+        url = uri('file://D:\\MyCode\\Maven_repository')
     }
     mavenCentral()
 }
@@ -88,7 +88,7 @@ tasks.register('packageMyApp', PackageTask) {
     // mandatory
     mainClass = mainClassName
     // optional
-    bundleJre = false
+    bundleJre = true
 
     generateInstaller = false
     administratorRequired = false
