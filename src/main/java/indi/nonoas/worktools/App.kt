@@ -1,7 +1,6 @@
 package indi.nonoas.worktools
 
 import com.melloware.jintellitype.JIntellitype
-import github.nonoas.jfx.flat.ui.stage.AppStage
 import indi.nonoas.worktools.common.Identifier
 import indi.nonoas.worktools.config.DBConfigEnum
 import indi.nonoas.worktools.config.FlyWayMigration

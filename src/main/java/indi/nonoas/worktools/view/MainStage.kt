@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.view
 
 import github.nonoas.jfx.flat.ui.control.SVGButton
+import github.nonoas.jfx.flat.ui.control.UIFactory
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.FuncSettingDao
 import indi.nonoas.worktools.ext.PluginLoader
@@ -114,7 +115,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      */
     private fun initMenuBar() {
         // 设置
-        val menuSetting = Menu(null, SVGButton("A"))
+        val menuSetting = Menu(null, UIFactory.createSettingButton())
 
         val itemFunc = MenuItem("功能")
         itemFunc.onAction = EventHandler {
