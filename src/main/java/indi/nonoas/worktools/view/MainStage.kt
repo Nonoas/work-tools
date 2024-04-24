@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.view
 
+import cn.hutool.core.collection.CollectionUtil
 import github.nonoas.jfx.flat.ui.control.SVGButton
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import indi.nonoas.worktools.common.CommonInsets
@@ -14,6 +15,8 @@ import indi.nonoas.worktools.ui.Reinitializable
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.ui.component.PopupTextField
 import indi.nonoas.worktools.utils.DBUtil
+import javafx.application.ConditionalFeature
+import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.control.*
@@ -24,6 +27,7 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.VBox
+import javafx.stage.StageStyle
 import javafx.util.Callback
 import org.apache.commons.lang3.mutable.MutableObject
 
@@ -35,7 +39,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private val tfSearch = PopupTextField().apply { promptText = "输入关键字，回车搜索" }
 
     private val fpFuncList = FlowPane(10.0, 10.0).apply { padding = CommonInsets.PADDING_20 }
-    private var rbSetTop = RadioButton("窗口置顶")
 
     /**
      * 小提示标签
@@ -78,6 +81,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             }
         }
 
+        stage.isAlwaysOnTop = true
+
         // 菜单栏
         initMenuBar()
         // 工具栏
@@ -115,7 +120,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      */
     private fun initMenuBar() {
         // 设置
-        val menuSetting = Menu(null, UIFactory.createSettingButton())
+        val menuSetting = Menu(null, UIFactory.createMenuButton())
 
         val itemFunc = MenuItem("功能")
         itemFunc.onAction = EventHandler {
@@ -143,7 +148,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         menuBar.isFocusTraversable = false
         menuBar.styleClass.add("sys-button")
 
-        systemButtons.add(0, menuBar)
+        val pinButton = UIFactory.createPinButton(stage)
+        systemButtons.addAll(0, CollectionUtil.toList(pinButton, menuBar))
 
         registryDragger(menuBar)
     }
@@ -162,15 +168,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         // 搜索框
         initSearchTextField()
         toolBar.items.add(tfSearch)
-
-
-        // 置顶按钮
-        rbSetTop.apply {
-            isSelected = true
-            selectedProperty().addListener { _, _, isSelected -> setAlwaysOnTop(isSelected) }
-        }
-
-        toolBar.items.add(rbSetTop)
 
         lbTips.tooltip = Tooltip(
             """
