@@ -64,8 +64,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private fun initView() {
         setAlwaysOnTop(true)
         setResizable(true)
-        setMinHeight(550)
-        setMinWidth(630)
+        setMinHeight(400)
+        setMinWidth(500)
 
         // 监听宽高的变化，保存到静态变量
         stage.widthProperty().addListener { _, _, newValue ->
@@ -109,8 +109,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         rootPane.apply {
             top = VBox(toolBar)
             center = fpFuncList
-            prefHeight = 550.0
-            prefWidth = 630.0
+            prefHeight = 500.0
+            prefWidth = 600.0
         }
         setContentView(rootPane)
     }
@@ -176,6 +176,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             Alt+Shift+M  显示/隐藏窗口
         """.trimIndent()
         )
+        toolBar.padding = CommonInsets.PADDING_20
         toolBar.items.add(lbTips)
         registryDragger(toolBar)
     }
@@ -227,7 +228,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                     return@setOnKeyReleased
                 }
                 val selectedItem = selectionModel.selectedItem
-                routeCenter((selectedItem ?: items[0].getFuncCode()) as String?)
+
+                val funcCode = if (null == selectedItem) {
+                    items[0].getFuncCode()
+                } else {
+                    selectedItem.getFuncCode()
+                }
+                routeCenter(funcCode)
                 tfSearch.hidePopup()
             }
 
