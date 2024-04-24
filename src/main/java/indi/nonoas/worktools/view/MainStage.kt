@@ -1,7 +1,7 @@
 package indi.nonoas.worktools.view
 
 import cn.hutool.core.collection.CollectionUtil
-import github.nonoas.jfx.flat.ui.control.SVGButton
+import github.nonoas.jfx.flat.ui.control.PopupTextField
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.FuncSettingDao
@@ -13,12 +13,8 @@ import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.service.impl.FuncSettingService
 import indi.nonoas.worktools.ui.Reinitializable
 import indi.nonoas.worktools.ui.component.BaseStage
-import indi.nonoas.worktools.ui.component.PopupTextField
 import indi.nonoas.worktools.utils.DBUtil
-import javafx.application.ConditionalFeature
-import javafx.application.Platform
 import javafx.event.EventHandler
-import javafx.geometry.Pos
 import javafx.scene.control.*
 import javafx.scene.control.skin.VirtualFlow
 import javafx.scene.input.KeyCode
@@ -27,7 +23,6 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.VBox
-import javafx.stage.StageStyle
 import javafx.util.Callback
 import org.apache.commons.lang3.mutable.MutableObject
 
@@ -149,9 +144,9 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         menuBar.styleClass.add("sys-button")
 
         val pinButton = UIFactory.createPinButton(stage)
+        val tooltip = Tooltip("窗口置顶")
+        Tooltip.install(pinButton, tooltip)
         systemButtons.addAll(0, CollectionUtil.toList(pinButton, menuBar))
-
-        registryDragger(menuBar)
     }
 
     /**
@@ -169,13 +164,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         initSearchTextField()
         toolBar.items.add(tfSearch)
 
-        lbTips.tooltip = Tooltip(
-            """
+        Tooltip.install(lbTips, Tooltip(
+                """
             快捷键：
             Ctrl+Q  切换界面
             Alt+Shift+M  显示/隐藏窗口
         """.trimIndent()
-        )
+        ))
         toolBar.padding = CommonInsets.PADDING_20
         toolBar.items.add(lbTips)
         registryDragger(toolBar)
@@ -218,6 +213,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             funcName = tfSearch.text
         }
         return ListView<FuncSettingVo>().apply {
+            styleClass.add("list-view")
             placeholder = Label("无查询结果")
             // 需要确保高度不超过单页查询大小，否则滚动条不出现无法触发滚动翻页查询
             prefHeight = 150.0

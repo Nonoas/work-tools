@@ -4,9 +4,7 @@ import io.github.fvarrui.javapackager.model.WindowsConfig
 
 buildscript {
     repositories {
-        mavenLocal {
-            url = uri('file://D:\\MyCode\\Maven_repository')
-        }
+        mavenLocal()
         mavenCentral()
     }
     dependencies {
@@ -41,16 +39,21 @@ compileKotlin {
 
 
 repositories {
-    mavenLocal {
-        url = uri('file://D:\\MyCode\\Maven_repository')
-    }
+    mavenLocal()
     mavenCentral()
 }
 
+ext {
+    versions = [
+            'jfx': '22'
+    ]
+}
+
 javafx {
-    version = "22"
+    version = "${versions.jfx}"
     modules = ['javafx.controls', 'javafx.swing']
 }
+
 
 dependencies {
     implementation 'com.melloware:jintellitype:1.4.0'
@@ -66,8 +69,8 @@ dependencies {
     implementation 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
     implementation 'io.github.nonoas:jfx-flat-ui:1.0.1'
 
-    implementation 'org.openjfx:javafx-controls:22'
-    implementation 'org.openjfx:javafx-fxml:22'
+    implementation "org.openjfx:javafx-controls:${versions.jfx}"
+    implementation "org.openjfx:javafx-fxml:${versions.jfx}"
 
 }
 

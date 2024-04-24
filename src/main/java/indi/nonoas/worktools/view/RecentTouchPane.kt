@@ -65,20 +65,20 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private fun initFromDB() {
         TaskHandler<ResultSet>()
-            .whenCall {
-                val conn = DBUtil.getConnection()
-                val psInit = conn.prepareStatement("select LINK from RTP_LINKLIST")
-                psInit.executeQuery()
-            }
-            .andThen(Consumer { rs ->
-                while (rs.next()) {
-                    val link = rs.getString("link")
-                    val file = File(link)
-                    if (file.exists()) {
-                        openerBtnList.add(OpenerBtn(file))
-                    }
+                .whenCall {
+                    val conn = DBUtil.getConnection()
+                    val psInit = conn.prepareStatement("select LINK from RTP_LINKLIST")
+                    psInit.executeQuery()
                 }
-            }).handle()
+                .andThen(Consumer { rs ->
+                    while (rs.next()) {
+                        val link = rs.getString("link")
+                        val file = File(link)
+                        if (file.exists()) {
+                            openerBtnList.add(OpenerBtn(file))
+                        }
+                    }
+                }).handle()
     }
 
     /**
@@ -86,31 +86,31 @@ class RecentTouchPane private constructor() : VBox(10.0) {
      */
     private fun saveToDB() {
         TaskHandler<Any>()
-            .whenCall {
-                val conn = DBUtil.getConnection()
-                val psDel = conn.prepareStatement("delete from RTP_LINKLIST where 1=1")
-                val psAdd = conn.prepareStatement("insert into RTP_LINKLIST(name, link) values (?,? )")
-                psDel?.executeUpdate()
+                .whenCall {
+                    val conn = DBUtil.getConnection()
+                    val psDel = conn.prepareStatement("delete from RTP_LINKLIST where 1=1")
+                    val psAdd = conn.prepareStatement("insert into RTP_LINKLIST(name, link) values (?,? )")
+                    psDel?.executeUpdate()
 
-                for (btn in openerBtnList) {
-                    val openerBtn = btn as OpenerBtn
-                    psAdd.setString(1, btn.text)
-                    psAdd.setString(2, openerBtn.getLinkString())
-                    psAdd.addBatch()
+                    for (btn in openerBtnList) {
+                        val openerBtn = btn as OpenerBtn
+                        psAdd.setString(1, btn.text)
+                        psAdd.setString(2, openerBtn.getLinkString())
+                        psAdd.addBatch()
+                    }
+                    try {
+                        val array = psAdd.executeBatch()
+                        return@whenCall array
+                    } catch (e: SQLException) {
+                        ExceptionAlter(e).show()
+                    } finally {
+                        psAdd.close()
+                        psDel.close()
+                    }
                 }
-                try {
-                    val array = psAdd.executeBatch()
-                    return@whenCall array
-                } catch (e: SQLException) {
-                    ExceptionAlter(e).show()
-                } finally {
-                    psAdd.close()
-                    psDel.close()
-                }
-            }
-            .andThen {
-                MyAlert(AlertType.INFORMATION, "保存成功").show()
-            }.handle()
+                .andThen {
+                    MyAlert(AlertType.INFORMATION, "保存成功").show()
+                }.handle()
 
 
     }
@@ -155,11 +155,11 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
         init {
             val fsv = FileSystemView.getFileSystemView()
-            val icon = fsv.getSystemIcon(file) as ImageIcon
+            val icon = fsv.getSystemIcon(file, 32, 32) as ImageIcon
             val fxImage = UIUtil.convertImageIconToFXImage(icon)
             graphic = ImageView(fxImage).apply {
-                fitWidth = 16.0
-                fitHeight = 16.0
+                fitWidth = 24.0
+                fitHeight = 24.0
                 isPreserveRatio = true
                 isSmooth = true
             }
@@ -172,7 +172,7 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             }
             val menuClose = MenuItem("删除")
             menuClose.onAction =
-                EventHandler { (parent as FlowPane).children.remove(this@OpenerBtn) }
+                    EventHandler { (parent as FlowPane).children.remove(this@OpenerBtn) }
             val cMenu = ContextMenu(menuClose)
             contextMenu = cMenu
         }
