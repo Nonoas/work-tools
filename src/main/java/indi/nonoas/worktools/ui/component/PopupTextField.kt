@@ -31,7 +31,7 @@ class PopupTextField : TextField() {
             popup!!.content.setAll(node)
             val bounds = getScreeBounds(this@PopupTextField)
             if (!popup!!.isShowing) {
-                popup!!.show(this@PopupTextField, bounds.minX + 10, bounds.maxY - 9)
+                popup!!.show(this@PopupTextField, bounds.minX, bounds.maxY)
             }
             if (newValue.isEmpty()) {
                 popup!!.hide()
@@ -42,8 +42,12 @@ class PopupTextField : TextField() {
     private fun updatePopupContent(newValue: String): Node {
         val vBox: VBox = object : VBox() {
             init {
-                style = "-fx-border-width:1px;" +
-                        "-fx-border-color:#aaa;" + "-fx-background-color:white;"
+                style = """
+                    -fx-border-width:1px;
+                    -fx-border-color:#aaa;
+                    -fx-background-color:white;
+                    -fx-effect: none
+                 """.trimIndent()
                 prefWidth = this@PopupTextField.width
             }
         }
