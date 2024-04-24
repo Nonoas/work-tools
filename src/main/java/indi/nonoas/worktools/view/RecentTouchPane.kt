@@ -6,6 +6,7 @@ import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.ExceptionAlter
 import indi.nonoas.worktools.ui.component.MyAlert
 import indi.nonoas.worktools.utils.DBUtil
+import indi.nonoas.worktools.utils.UIUtil
 import javafx.collections.ObservableList
 import javafx.embed.swing.SwingNode
 import javafx.event.EventHandler
@@ -15,6 +16,7 @@ import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Button
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
+import javafx.scene.image.ImageView
 import javafx.scene.input.DragEvent
 import javafx.scene.input.TransferMode
 import javafx.scene.layout.FlowPane
@@ -25,8 +27,10 @@ import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.sql.ResultSet
+import java.sql.SQLException
 import java.util.function.Consumer
 import javax.swing.ImageIcon
+import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 import javax.swing.filechooser.FileSystemView
@@ -94,10 +98,15 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                     psAdd.setString(2, openerBtn.getLinkString())
                     psAdd.addBatch()
                 }
-                val array = psAdd.executeBatch()
-                psAdd.close()
-                psDel.close()
-                return@whenCall array
+                try {
+                    val array = psAdd.executeBatch()
+                    return@whenCall array
+                } catch (e: SQLException) {
+                    ExceptionAlter(e).show()
+                } finally {
+                    psAdd.close()
+                    psDel.close()
+                }
             }
             .andThen {
                 MyAlert(AlertType.INFORMATION, "保存成功").show()
@@ -147,10 +156,13 @@ class RecentTouchPane private constructor() : VBox(10.0) {
         init {
             val fsv = FileSystemView.getFileSystemView()
             val icon = fsv.getSystemIcon(file) as ImageIcon
-            val jLabel = JLabel(icon, SwingConstants.CENTER)
-            val sn = SwingNode()
-            sn.content = jLabel
-            graphic = sn
+            val fxImage = UIUtil.convertImageIconToFXImage(icon)
+            graphic = ImageView(fxImage).apply {
+                fitWidth = 16.0
+                fitHeight = 16.0
+                isPreserveRatio = true
+                isSmooth = true
+            }
             onAction = EventHandler {
                 try {
                     Desktop.getDesktop().open(file)

@@ -1,11 +1,17 @@
 package indi.nonoas.worktools.utils
 
 import indi.nonoas.worktools.ui.component.MyAlert
+import javafx.embed.swing.SwingFXUtils
 import javafx.geometry.Bounds
 import javafx.scene.Node
 import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.ButtonType
+import java.awt.Image
+import java.awt.image.BufferedImage
 import java.util.*
+import javax.swing.ImageIcon
+import javafx.scene.image.Image as FXImage
+
 
 /**
  * @author Nonoas
@@ -34,5 +40,25 @@ object UIUtil {
 
     fun showMyAlter(type: AlertType?, msg: String?): Optional<ButtonType> {
         return MyAlert(type, msg).showAndWait()
+    }
+
+    fun convertImageIconToFXImage(icon: ImageIcon): FXImage {
+        // 获取 ImageIcon 中的 Image 对象
+        val image: Image = icon.image
+
+        // 将 Image 转换为 BufferedImage
+        val bufferedImage = BufferedImage(
+            image.getWidth(null),
+            image.getHeight(null),
+            BufferedImage.TYPE_INT_ARGB
+        )
+        // 绘制 Image 到 BufferedImage 上
+        bufferedImage.graphics.drawImage(image, 0, 0, null)
+
+        // 将 BufferedImage 转换为 WritableImage
+        val fxImage: FXImage = SwingFXUtils.toFXImage(bufferedImage, null)
+
+        // 返回转换后的 FXImage
+        return fxImage
     }
 }

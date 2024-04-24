@@ -8,7 +8,8 @@ create table if not exists page_params
         primary key (ID)
 );
 
-alter table page_params add column if not exists last_use_timestamp numeric(13) default 0 not null;
+alter table page_params
+    add column if not exists last_use_timestamp numeric(13) default 0 not null;
 
 -- 系统参数表
 create table if not exists sys_param
@@ -18,6 +19,15 @@ create table if not exists sys_param
     constraint pk_sys_param primary key (param_code)
 );
 comment on table sys_param is '系统参数表';
+
+create table if not exists rtp_linklist
+(
+    id   int auto_increment,
+    name varchar not null comment '文件名',
+    link varchar not null comment '文件路径',
+    constraint pk_rtp_linklist primary key (id)
+);
+comment on table rtp_linklist is '最近链接表';
 
 -- 功能配置表
 create table if not exists func_setting
@@ -30,13 +40,20 @@ create table if not exists func_setting
 comment on table func_setting is '功能配置表';
 
 truncate table func_setting;
-insert into func_setting (func_code, func_name, enable_flag) values ('Lcpt', 'Lcpt', true);
-insert into func_setting (func_code, func_name, enable_flag) values ('TextReplace', '文本替换', true);
-insert into func_setting (func_code, func_name, enable_flag) values ('RecentTouch', '最近', true);
-insert into func_setting (func_code, func_name, enable_flag) values ('SQLExtraction', 'SQL提取', true);
-insert into func_setting (func_code, func_name, enable_flag) values ('FileEncode', '文件编码', true);
+insert into func_setting (func_code, func_name, enable_flag)
+values ('Lcpt', 'Lcpt', true);
+insert into func_setting (func_code, func_name, enable_flag)
+values ('TextReplace', '文本替换', true);
+insert into func_setting (func_code, func_name, enable_flag)
+values ('RecentTouch', '最近', true);
+insert into func_setting (func_code, func_name, enable_flag)
+values ('SQLExtraction', 'SQL提取', true);
+insert into func_setting (func_code, func_name, enable_flag)
+values ('FileEncode', '文件编码', true);
 
-update func_setting set func_code = 'batRunner', func_name = 'bat脚本启动'
+update func_setting
+set func_code = 'batRunner',
+    func_name = 'bat脚本启动'
 where func_code = 'Lcpt';
 
 
