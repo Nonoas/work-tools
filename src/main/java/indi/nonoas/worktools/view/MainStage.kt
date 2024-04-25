@@ -213,7 +213,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             funcName = tfSearch.text
         }
         return ListView<FuncSettingVo>().apply {
-            styleClass.add("list-view")
+            styleClass.add("popup-list-view")
             placeholder = Label("无查询结果")
             // 需要确保高度不超过单页查询大小，否则滚动条不出现无法触发滚动翻页查询
             prefHeight = 150.0
