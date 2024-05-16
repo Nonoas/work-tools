@@ -23,4 +23,9 @@ class RtpLinkListDao {
     fun delById(id: String): Int {
         return Db.use().del(TABLE_NAME, "id", id)
     }
+
+    fun getAll(): MutableList<RtpLinkListPo> {
+        return Db.use().query("select id,name,link,last_use_timestamp from rtp_linklist order by last_use_timestamp",
+                RtpLinkListPo::class.java)
+    }
 }

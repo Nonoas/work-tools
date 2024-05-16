@@ -31,7 +31,9 @@ compileJava {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+
 compileKotlin {
+    destinationDir = compileJava.destinationDir
     kotlinOptions {
         jvmTarget = "17"
     }
@@ -47,6 +49,10 @@ ext {
     versions = [
             'jfx': '22'
     ]
+}
+
+java {
+    modularity.inferModulePath = true
 }
 
 javafx {
@@ -65,14 +71,13 @@ dependencies {
     implementation 'com.alibaba.fastjson2:fastjson2:2.0.47'
     implementation 'net.sf.dozer:dozer:5.4.0'
     implementation 'org.freemarker:freemarker:2.3.30'
-    implementation 'org.flywaydb:flyway-core:10.10.0'
+    implementation 'org.flywaydb:flyway-core:10.12.0'
     implementation 'cn.hutool:hutool-db:5.8.25'
     // https://mvnrepository.com/artifact/com.googlecode.juniversalchardet/juniversalchardet
     implementation 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
     implementation 'io.github.nonoas:jfx-flat-ui:1.0.1'
 
     implementation "org.openjfx:javafx-controls:${versions.jfx}"
-    implementation "org.openjfx:javafx-fxml:${versions.jfx}"
 
 }
 
@@ -93,6 +98,8 @@ tasks.register('packageMyApp', PackageTask) {
     mainClass = mainClassName
     // optional
     bundleJre = true
+
+    print("${this.name}项目录${projectDir}")
 
     generateInstaller = false
     administratorRequired = false

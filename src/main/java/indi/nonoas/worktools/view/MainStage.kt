@@ -64,10 +64,10 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
         // 监听宽高的变化，保存到静态变量
         stage.widthProperty().addListener { _, _, newValue ->
-            MainStage.width = newValue.toDouble()
+            width = newValue.toDouble()
         }
         stage.heightProperty().addListener { _, _, newValue ->
-            MainStage.height = newValue.toDouble()
+            height = newValue.toDouble()
         }
         // 监听窗口显示
         stage.showingProperty().addListener { _, _, newValue ->

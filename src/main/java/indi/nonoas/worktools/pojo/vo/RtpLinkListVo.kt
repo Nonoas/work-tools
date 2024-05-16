@@ -1,7 +1,7 @@
-package indi.nonoas.worktools.pojo.po
+package indi.nonoas.worktools.pojo.vo
 
 import cn.hutool.core.bean.BeanUtil
-import indi.nonoas.worktools.pojo.vo.RtpLinkListVo
+import indi.nonoas.worktools.pojo.po.RtpLinkListPo
 
 /**
  * 最近
@@ -9,13 +9,13 @@ import indi.nonoas.worktools.pojo.vo.RtpLinkListVo
  * @date 2024/5/16 10:11
  */
 
-class RtpLinkListPo {
+class RtpLinkListVo {
     var id: String? = null
     var name: String? = null
     var link: String? = null
     var lastUseTimestamp: Long = 0
 
-    fun covertVo(): RtpLinkListVo {
-        return BeanUtil.copyProperties(this, RtpLinkListVo::class.java)
+    fun covertPo(): RtpLinkListPo {
+        return BeanUtil.copyProperties(this, RtpLinkListPo::class.java)
     }
 }

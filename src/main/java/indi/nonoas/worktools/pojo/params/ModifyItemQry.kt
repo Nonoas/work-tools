@@ -6,7 +6,7 @@ import javafx.beans.property.SimpleBooleanProperty
  * @author Nonoas
  * @date 2022/5/9
  */
-open class ModifyItemQry : PageQry() {
+class ModifyItemQry : PageQry() {
 
 	private val selected = SimpleBooleanProperty()
 

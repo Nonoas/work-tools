@@ -3,11 +3,10 @@ package indi.nonoas.worktools.view
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.RtpLinkListDao
 import indi.nonoas.worktools.pojo.po.RtpLinkListPo
+import indi.nonoas.worktools.pojo.vo.RtpLinkListVo
 import indi.nonoas.worktools.ui.TaskHandler
-import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.ExceptionAlter
 import indi.nonoas.worktools.ui.component.MyAlert
-import indi.nonoas.worktools.utils.DBUtil
 import indi.nonoas.worktools.utils.UIUtil
 import javafx.collections.ObservableList
 import javafx.event.EventHandler
@@ -23,13 +22,11 @@ import javafx.scene.input.TransferMode
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
+import org.apache.log4j.Logger
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.util.function.Consumer
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
 
@@ -44,7 +41,10 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private val flowPane: FlowPane = FlowPane(10.0, 10.0)
     private val openerBtnList: ObservableList<Node> = flowPane.children
-    private val btnSave = UIFactory.getPrimaryButton("保存")
+
+    private val rtpLinkListDao = RtpLinkListDao()
+
+    private val logger = Logger.getLogger(RecentTouchPane::class.java)
 
     private fun initView() {
         alignment = Pos.BOTTOM_RIGHT
@@ -53,65 +53,21 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             onDragOver = dragOverHandler
             onDragDropped = dragDropHandler
         }
-        btnSave.onAction = EventHandler {
-            saveToDB()
-        }
-        children.addAll(flowPane, btnSave)
+        children.addAll(flowPane)
         setVgrow(flowPane, Priority.ALWAYS)
         initFromDB()
     }
 
     private fun initFromDB() {
-        TaskHandler<ResultSet>()
-            .whenCall {
-                val conn = DBUtil.getConnection()
-                val psInit = conn.prepareStatement("select LINK from RTP_LINKLIST")
-                psInit.executeQuery()
-            }
-            .andThen(Consumer { rs ->
-                while (rs.next()) {
-                    val link = rs.getString("link")
-                    val file = File(link)
-                    if (file.exists()) {
-                        openerBtnList.add(OpenerBtn(file))
+        TaskHandler<MutableList<RtpLinkListPo>>()
+                .whenCall { rtpLinkListDao.getAll() }
+                .andThen { pos ->
+                    for (po in pos) {
+                        openerBtnList.add(OpenerBtn(po.covertVo()))
                     }
-                }
-            }).handle()
+                }.handle()
     }
 
-    /**
-     * 保存当前布局到数据库
-     */
-    private fun saveToDB() {
-        TaskHandler<Any>()
-            .whenCall {
-                val conn = DBUtil.getConnection()
-                val psDel = conn.prepareStatement("delete from RTP_LINKLIST where 1=1")
-                val psAdd = conn.prepareStatement("insert into RTP_LINKLIST(name, link) values (?,? )")
-                psDel?.executeUpdate()
-
-                for (btn in openerBtnList) {
-                    val openerBtn = btn as OpenerBtn
-                    psAdd.setString(1, btn.text)
-                    psAdd.setString(2, openerBtn.getLinkString())
-                    psAdd.addBatch()
-                }
-                try {
-                    val array = psAdd.executeBatch()
-                    return@whenCall array
-                } catch (e: SQLException) {
-                    ExceptionAlter(e).show()
-                } finally {
-                    psAdd.close()
-                    psDel.close()
-                }
-            }
-            .andThen {
-                MyAlert(AlertType.INFORMATION, "保存成功").show()
-            }.handle()
-
-
-    }
 
     /**
      * 文件拖入模式设置
@@ -127,44 +83,41 @@ class RecentTouchPane private constructor() : VBox(10.0) {
      */
     private val dragDropHandler = EventHandler { event: DragEvent ->
         val dragboard = event.dragboard
-        if (dragboard.hasFiles()) {
-            try {
-                val files = dragboard.files
-                for (f in files) {
-                    addOpenerBtn(f)
+        if (!dragboard.hasFiles()) return@EventHandler
+        try {
+            for (f in dragboard.files) {
+                val po = RtpLinkListVo().apply {
+                    name = f.name
+                    link = f.absolutePath
+                    lastUseTimestamp = System.currentTimeMillis()
                 }
-            } catch (e: Exception) {
-                ExceptionAlter(e).showAndWait()
-                e.printStackTrace()
+                addOpenerBtn(po)
             }
+        } catch (e: Exception) {
+            ExceptionAlter(e).showAndWait()
+            logger.error("添加按钮出错", e)
         }
     }
 
-    private fun addOpenerBtn(f: File): Boolean {
-        val btn = OpenerBtn(f)
+    private fun addOpenerBtn(vo: RtpLinkListVo): Boolean {
+        val btn = OpenerBtn(vo)
         for (node in openerBtnList) {
             if (node == btn) {
                 return false
             }
         }
         openerBtnList.add(btn)
-        val po = RtpLinkListPo().apply {
-            name = f.name
-            link = f.absolutePath
-            lastUseTimestamp = System.currentTimeMillis()
-        }
         TaskHandler<Int>()
-            .whenCall { RtpLinkListDao().add(po) }
-            .andThen {}
-            .handle()
+                .whenCall { RtpLinkListDao().add(vo.covertPo()) }
+                .andThen {}
+                .handle()
 
         return true
     }
 
-    // todo 入参改用 vo，需要保存id
-    private class OpenerBtn(private val file: File) : Button(file.name) {
-
+    private class OpenerBtn(private val vo: RtpLinkListVo) : Button(vo.name) {
         init {
+            val file = vo.link?.let { File(it) }
             val fsv = FileSystemView.getFileSystemView()
             val icon = fsv.getSystemIcon(file, 32, 32) as ImageIcon
             val fxImage = UIUtil.convertImageIconToFXImage(icon)
@@ -174,9 +127,14 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                 isPreserveRatio = true
                 isSmooth = true
             }
+
             onAction = EventHandler {
                 try {
                     Desktop.getDesktop().open(file)
+
+                    val flowPane = parent as FlowPane
+                    flowPane.children.remove(this@OpenerBtn)
+                    flowPane.children.add(0, this@OpenerBtn)
                 } catch (e: IOException) {
                     MyAlert(AlertType.ERROR, "文件打开失败！").show()
                 }
@@ -184,29 +142,30 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             val menuClose = MenuItem("删除")
             menuClose.onAction = EventHandler {
                 TaskHandler<Int>()
-                    .whenCall { RtpLinkListDao().delById("") }
-                    .andThen {
-                        (parent as FlowPane).children.remove(this@OpenerBtn)
-                    }
-                    .handle()
+                        .whenCall { RtpLinkListDao().delById(vo.id!!) }
+                        .andThen {
+                            val flowPane = parent as FlowPane
+                            flowPane.children.remove(this@OpenerBtn)
+                        }
+                        .handle()
             }
             val cMenu = ContextMenu(menuClose)
             contextMenu = cMenu
         }
 
-        fun getLinkString(): String {
-            return file.absolutePath
+        fun getLinkString(): String? {
+            return vo.link
         }
 
         override fun equals(other: Any?): Boolean {
             if (other !is OpenerBtn) {
                 return false
             }
-            return file.absolutePath == other.file.absolutePath
+            return vo.link == other.vo.link
         }
 
         override fun hashCode(): Int {
-            return file.absolutePath.hashCode()
+            return vo.link.hashCode()
         }
     }
 

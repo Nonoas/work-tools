@@ -1,189 +1,169 @@
-package indi.nonoas.worktools.view.workspace;
+package indi.nonoas.worktools.view.workspace
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.db.Db;
-import cn.hutool.db.Entity;
-import indi.nonoas.worktools.pojo.po.ModifyItemPo;
-import indi.nonoas.worktools.pojo.vo.ModifyItemVo;
-import indi.nonoas.worktools.ui.TaskHandler;
-import indi.nonoas.worktools.ui.component.ExceptionAlter;
-import indi.nonoas.worktools.ui.component.MyAlert;
-import indi.nonoas.worktools.utils.DesktopUtil;
-import indi.nonoas.worktools.utils.FileUtil;
-import indi.nonoas.worktools.pojo.po.ModifyItemPo;
-import indi.nonoas.worktools.pojo.vo.ModifyItemVo;
-import indi.nonoas.worktools.ui.TaskHandler;
-import indi.nonoas.worktools.ui.component.ExceptionAlter;
-import indi.nonoas.worktools.ui.component.MyAlert;
-import indi.nonoas.worktools.utils.DesktopUtil;
-import indi.nonoas.worktools.utils.FileUtil;
-import indi.nonoas.worktools.view.MainStage;
-import javafx.event.EventHandler;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.*;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.io.File;
-import java.lang.ref.WeakReference;
-import java.sql.SQLException;
-import java.util.Objects;
+import cn.hutool.core.util.StrUtil
+import cn.hutool.db.Db
+import cn.hutool.db.Entity
+import indi.nonoas.worktools.pojo.vo.ModifyItemVo
+import indi.nonoas.worktools.ui.TaskHandler
+import indi.nonoas.worktools.ui.component.ExceptionAlter.Companion.error
+import indi.nonoas.worktools.ui.component.MyAlert
+import indi.nonoas.worktools.utils.DesktopUtil.open
+import indi.nonoas.worktools.utils.FileUtil.deleteFile
+import indi.nonoas.worktools.view.MainStage.Companion.instance
+import javafx.event.ActionEvent
+import javafx.event.EventHandler
+import javafx.scene.control.*
+import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseEvent
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
+import java.awt.datatransfer.Transferable
+import java.io.File
+import java.lang.ref.WeakReference
+import java.sql.SQLException
+import java.util.*
 
 /**
  * @author Nonoas
  * @date 2022/3/18
  */
-public class ModifyListView extends ListView<ModifyItemVo> {
+open class ModifyListView : ListView<ModifyItemVo?>() {
+    private var onItemDelete: OnItemDelete? = null
 
-    private OnItemDelete onItemDelete;
-
-    public ModifyListView() {
-        setPlaceholder(new Label("没有数据"));
-        setCellFactory(param -> new ModifyListCell());
-        getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    init {
+        placeholder = Label("没有数据")
+        setCellFactory { ModifyListCell() }
+        selectionModel.selectionMode = SelectionMode.MULTIPLE
     }
 
-    public void setOnItemDelete(OnItemDelete onItemDelete) {
-        this.onItemDelete = onItemDelete;
+    fun setOnItemDelete(onItemDelete: OnItemDelete?) {
+        this.onItemDelete = onItemDelete
     }
 
-    public interface OnItemDelete {
-        void apply(ListCell<ModifyItemVo> cell);
+    interface OnItemDelete {
+        fun apply(cell: ListCell<ModifyItemVo?>?)
     }
 
     /**
      * 列表单元格
      */
-    protected static class ModifyListCell extends ListCell<ModifyItemVo> {
-
-        public ModifyListCell() {
-
-        }
-
+    protected class ModifyListCell : ListCell<ModifyItemVo?>() {
         /**
          * 双击事件处理
          */
-        private final EventHandler<MouseEvent> doubleClickHandler = new WeakReference<EventHandler<MouseEvent>>(
-                event -> {
+        private val doubleClickHandler = WeakReference(
+                EventHandler { event: MouseEvent ->
                     // 鼠标左键双击事件
-                    if (2 == event.getClickCount() && event.getButton() == MouseButton.PRIMARY) {
-                        event.consume();
-                        DesktopUtil.open(
-                                new File(Objects.requireNonNull(ModifyListCell.this.getItem().getAbsolutePath()))
-                        );
+                    if (2 == event.clickCount && event.button == MouseButton.PRIMARY) {
+                        event.consume()
+                        open(
+                                File(Objects.requireNonNull(item!!.absolutePath))
+                        )
                     }
                 }
-        ).get();
+        ).get()!!
 
-        @Override
-        protected void updateItem(ModifyItemVo item, boolean empty) {
-            super.updateItem(item, empty);
+        override fun updateItem(p0: ModifyItemVo?, empty: Boolean) {
+            super.updateItem(item, empty)
             if (!empty || null != item) {
-                setText(item.toString());
-                initContextMenu();
-                removeEventHandler(MouseEvent.MOUSE_CLICKED, doubleClickHandler);
-                addEventHandler(MouseEvent.MOUSE_CLICKED, doubleClickHandler);
+                text = item.toString()
+                initContextMenu()
+                removeEventHandler(MouseEvent.MOUSE_CLICKED, doubleClickHandler)
+                addEventHandler(MouseEvent.MOUSE_CLICKED, doubleClickHandler)
             } else {
                 // 移除监听和右键菜单
-                removeEventHandler(MouseEvent.MOUSE_CLICKED, doubleClickHandler);
-                ContextMenu contextMenu = getContextMenu();
-                if (contextMenu != null) {
-                    contextMenu.getItems().clear();
-                }
+                removeEventHandler(MouseEvent.MOUSE_CLICKED, doubleClickHandler)
+                val contextMenu = contextMenu
+                contextMenu?.items?.clear()
                 // 设置图像和文字为 null
-                setText(null);
-                setGraphic(null);
+                text = null
+                graphic = null
             }
         }
 
         /**
          * 初始化右键菜单
          */
-        private void initContextMenu() {
+        private fun initContextMenu() {
+            val miOpenDescFile = MenuItem("修改说明")
+            miOpenDescFile.onAction = EventHandler { event: ActionEvent? -> open(File(item!!.absolutePath + File.separator + "0-修改说明.md")) }
 
-            MenuItem miOpenDescFile = new MenuItem("修改说明");
-            miOpenDescFile.setOnAction(event ->
-                    DesktopUtil.open(new File(getItem().getAbsolutePath() + File.separator + "0-修改说明.md"))
-            );
-
-            MenuItem mCopyNum = new MenuItem("复制单号");
-            mCopyNum.setOnAction(event -> {
-                Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();
-                Transferable tText = new StringSelection(getItem().getModifyNum());
-                clip.setContents(tText, null);
-            });
+            val mCopyNum = MenuItem("复制单号")
+            mCopyNum.onAction = EventHandler { event: ActionEvent? ->
+                val clip = Toolkit.getDefaultToolkit().systemClipboard
+                val tText: Transferable = StringSelection(item!!.modifyNum)
+                clip.setContents(tText, null)
+            }
 
 
-            MenuItem miRename = new MenuItem("重命名");
-            miRename.setOnAction(event -> {
-                ModifyItemVo item = getItem();
-                String path = item.getAbsolutePath();
+            val miRename = MenuItem("重命名")
+            miRename.onAction = EventHandler {
+                val item = item
+                val path = item!!.absolutePath
                 if (StrUtil.isBlank(path)) {
-                    return;
+                    return@EventHandler
                 }
-                TextInputDialog dialog = new TextInputDialog(item.getDesc()) {{
-                    setHeaderText(null);
-                    initOwner(MainStage.Companion.getInstance().getStage());
-                }};
-                dialog.showAndWait().ifPresent(s -> renameItem(item, path, s));
-            });
+                val dialog: TextInputDialog = object : TextInputDialog(item.desc) {
+                    init {
+                        headerText = null
+                        initOwner(instance!!.stage)
+                    }
+                }
+                dialog.showAndWait().ifPresent { s: String -> renameItem(item, path, s) }
+            }
 
-            MenuItem miDel = new MenuItem("删除");
-            miDel.setOnAction(event -> new TaskHandler<Integer>()
-                    .whenCall(() -> {
-                        try {
-                            String absolutePath = getItem().getAbsolutePath();
-                            FileUtil.deleteFile(new File(Objects.requireNonNull(absolutePath)));
-                            return Db.use().del("modify_items", "modify_num", getItem().getModifyNum());
-                        } catch (SQLException e) {
-                            ExceptionAlter.error(e);
-                        }
-                        return null;
-                    }).andThen(integer -> {
-                        ModifyListView lv = (ModifyListView) getListView();
-                        if (lv.onItemDelete != null) {
-                            lv.onItemDelete.apply(ModifyListCell.this);
-                        }
-                    }).handle());
-            ContextMenu menu = new ContextMenu(miOpenDescFile, mCopyNum, miRename, miDel);
-            setContextMenu(menu);
+            val miDel = MenuItem("删除")
+            miDel.onAction = EventHandler { event: ActionEvent? ->
+                TaskHandler<Int?>()
+                        .whenCall {
+                            try {
+                                val absolutePath = item!!.absolutePath
+                                deleteFile(File(Objects.requireNonNull(absolutePath)))
+                                return@whenCall Db.use().del("modify_items", "modify_num", item!!.modifyNum)
+                            } catch (e: SQLException) {
+                                error(e)
+                            }
+                            null
+                        }.andThen { integer: Int? ->
+                            val lv = listView as ModifyListView
+                            if (lv.onItemDelete != null) {
+                                lv.onItemDelete!!.apply(this@ModifyListCell)
+                            }
+                        }.handle()
+            }
+            val menu = ContextMenu(miOpenDescFile, mCopyNum, miRename, miDel)
+            contextMenu = menu
         }
 
-        private void renameItem(ModifyItemVo item, String path, String desc) {
-            String newName = String.format("%s-%s-%s", item.getModifyNum(), desc, item.getVersionNO());
-            String newPath = path.substring(0, path.lastIndexOf(File.separator) + 1) + newName;
-            boolean b = new File(path).renameTo(new File(newPath));
+        private fun renameItem(item: ModifyItemVo?, path: String?, desc: String) {
+            val newName = String.format("%s-%s-%s", item!!.modifyNum, desc, item.versionNO)
+            val newPath = path!!.substring(0, path.lastIndexOf(File.separator) + 1) + newName
+            val b = File(path).renameTo(File(newPath))
             if (!b) {
-                new MyAlert(Alert.AlertType.ERROR, "重命名失败").showAndWait();
+                MyAlert(Alert.AlertType.ERROR, "重命名失败").showAndWait()
             } else {
-                item.setModifyReason(desc);
-                item.setDesc(desc);
-                item.setAbsolutePath(newPath);
-                updateToDB(item);
+                item.setModifyReason(desc)
+                item.desc = desc
+                item.absolutePath = newPath
+                updateToDB(item)
                 // 更新当前 item 内容
-                updateItem(item, false);
+                updateItem(item, false)
             }
         }
 
-        private void updateToDB(ModifyItemVo item) {
-            ModifyItemPo po = item.convertPo();
-            po.setModifyTime(System.currentTimeMillis());
-            Entity entity = Entity.create("modify_items")
-                    .set("absolute_path", po.getAbsolutePath())
+        private fun updateToDB(item: ModifyItemVo?) {
+            val po = item!!.convertPo()
+            po.modifyTime = System.currentTimeMillis()
+            val entity = Entity.create("modify_items")
+                    .set("absolute_path", po.absolutePath)
                     .set("modify_time", System.currentTimeMillis())
-                    .set("desc", po.getDesc());
-            Entity where = Entity.create(entity.getTableName()).set("modify_num", po.getModifyNum());
+                    .set("desc", po.desc)
+            val where = Entity.create(entity.tableName).set("modify_num", po.modifyNum)
             try {
-                Db.use().update(entity, where);
-            } catch (SQLException e) {
-                ExceptionAlter.error(e);
+                Db.use().update(entity, where)
+            } catch (e: SQLException) {
+                error(e)
             }
         }
     }
-
 }
