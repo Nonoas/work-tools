@@ -25,7 +25,8 @@ class RtpLinkListDao {
     }
 
     fun getAll(): MutableList<RtpLinkListPo> {
-        return Db.use().query("select id,name,link,last_use_timestamp from rtp_linklist order by last_use_timestamp",
+        return Db.use().query("select id,name,link,last_use_timestamp " +
+                "from rtp_linklist order by last_use_timestamp desc",
                 RtpLinkListPo::class.java)
     }
 }
