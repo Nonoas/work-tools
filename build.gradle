@@ -56,6 +56,8 @@ javafx {
 
 
 dependencies {
+    // https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
+    implementation 'org.quartz-scheduler:quartz:2.3.2'
     implementation 'com.melloware:jintellitype:1.4.0'
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
     implementation 'com.h2database:h2:2.2.220'
@@ -81,7 +83,6 @@ jar {
     manifest {
         attributes 'Main-Class': 'indi.nonoas.worktools.MainKt'
     }
-    from configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
 }
 
 tasks.register('packageMyApp', PackageTask) {

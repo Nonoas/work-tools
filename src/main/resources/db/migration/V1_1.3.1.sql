@@ -22,9 +22,10 @@ comment on table sys_param is '系统参数表';
 
 create table if not exists rtp_linklist
 (
-    id   int auto_increment,
-    name varchar not null comment '文件名',
-    link varchar not null comment '文件路径',
+    id                 int auto_increment,
+    name               varchar               not null comment '文件名',
+    link               varchar               not null comment '文件路径',
+    last_use_timestamp numeric(13) default 0 not null comment '最后使用时间',
     constraint pk_rtp_linklist primary key (id)
 );
 comment on table rtp_linklist is '最近链接表';
@@ -50,6 +51,8 @@ insert into func_setting (func_code, func_name, enable_flag)
 values ('SQLExtraction', 'SQL提取', true);
 insert into func_setting (func_code, func_name, enable_flag)
 values ('FileEncode', '文件编码', true);
+insert into func_setting (func_code, func_name, enable_flag)
+values ('TodoList', '待办事项', true);
 
 update func_setting
 set func_code = 'batRunner',

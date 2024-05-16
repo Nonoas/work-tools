@@ -1,6 +1,8 @@
 package indi.nonoas.worktools.view
 
 import indi.nonoas.worktools.common.CommonInsets
+import indi.nonoas.worktools.dao.RtpLinkListDao
+import indi.nonoas.worktools.pojo.po.RtpLinkListPo
 import indi.nonoas.worktools.ui.TaskHandler
 import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.ExceptionAlter
@@ -8,7 +10,6 @@ import indi.nonoas.worktools.ui.component.MyAlert
 import indi.nonoas.worktools.utils.DBUtil
 import indi.nonoas.worktools.utils.UIUtil
 import javafx.collections.ObservableList
-import javafx.embed.swing.SwingNode
 import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -30,9 +31,6 @@ import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.function.Consumer
 import javax.swing.ImageIcon
-import javax.swing.JButton
-import javax.swing.JLabel
-import javax.swing.SwingConstants
 import javax.swing.filechooser.FileSystemView
 
 
@@ -65,20 +63,20 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private fun initFromDB() {
         TaskHandler<ResultSet>()
-                .whenCall {
-                    val conn = DBUtil.getConnection()
-                    val psInit = conn.prepareStatement("select LINK from RTP_LINKLIST")
-                    psInit.executeQuery()
-                }
-                .andThen(Consumer { rs ->
-                    while (rs.next()) {
-                        val link = rs.getString("link")
-                        val file = File(link)
-                        if (file.exists()) {
-                            openerBtnList.add(OpenerBtn(file))
-                        }
+            .whenCall {
+                val conn = DBUtil.getConnection()
+                val psInit = conn.prepareStatement("select LINK from RTP_LINKLIST")
+                psInit.executeQuery()
+            }
+            .andThen(Consumer { rs ->
+                while (rs.next()) {
+                    val link = rs.getString("link")
+                    val file = File(link)
+                    if (file.exists()) {
+                        openerBtnList.add(OpenerBtn(file))
                     }
-                }).handle()
+                }
+            }).handle()
     }
 
     /**
@@ -86,31 +84,31 @@ class RecentTouchPane private constructor() : VBox(10.0) {
      */
     private fun saveToDB() {
         TaskHandler<Any>()
-                .whenCall {
-                    val conn = DBUtil.getConnection()
-                    val psDel = conn.prepareStatement("delete from RTP_LINKLIST where 1=1")
-                    val psAdd = conn.prepareStatement("insert into RTP_LINKLIST(name, link) values (?,? )")
-                    psDel?.executeUpdate()
+            .whenCall {
+                val conn = DBUtil.getConnection()
+                val psDel = conn.prepareStatement("delete from RTP_LINKLIST where 1=1")
+                val psAdd = conn.prepareStatement("insert into RTP_LINKLIST(name, link) values (?,? )")
+                psDel?.executeUpdate()
 
-                    for (btn in openerBtnList) {
-                        val openerBtn = btn as OpenerBtn
-                        psAdd.setString(1, btn.text)
-                        psAdd.setString(2, openerBtn.getLinkString())
-                        psAdd.addBatch()
-                    }
-                    try {
-                        val array = psAdd.executeBatch()
-                        return@whenCall array
-                    } catch (e: SQLException) {
-                        ExceptionAlter(e).show()
-                    } finally {
-                        psAdd.close()
-                        psDel.close()
-                    }
+                for (btn in openerBtnList) {
+                    val openerBtn = btn as OpenerBtn
+                    psAdd.setString(1, btn.text)
+                    psAdd.setString(2, openerBtn.getLinkString())
+                    psAdd.addBatch()
                 }
-                .andThen {
-                    MyAlert(AlertType.INFORMATION, "保存成功").show()
-                }.handle()
+                try {
+                    val array = psAdd.executeBatch()
+                    return@whenCall array
+                } catch (e: SQLException) {
+                    ExceptionAlter(e).show()
+                } finally {
+                    psAdd.close()
+                    psDel.close()
+                }
+            }
+            .andThen {
+                MyAlert(AlertType.INFORMATION, "保存成功").show()
+            }.handle()
 
 
     }
@@ -133,24 +131,37 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             try {
                 val files = dragboard.files
                 for (f in files) {
-                    addOpenerBtn(OpenerBtn(f))
+                    addOpenerBtn(f)
                 }
             } catch (e: Exception) {
                 ExceptionAlter(e).showAndWait()
+                e.printStackTrace()
             }
         }
     }
 
-    private fun addOpenerBtn(btn: OpenerBtn): Boolean {
+    private fun addOpenerBtn(f: File): Boolean {
+        val btn = OpenerBtn(f)
         for (node in openerBtnList) {
             if (node == btn) {
                 return false
             }
         }
         openerBtnList.add(btn)
+        val po = RtpLinkListPo().apply {
+            name = f.name
+            link = f.absolutePath
+            lastUseTimestamp = System.currentTimeMillis()
+        }
+        TaskHandler<Int>()
+            .whenCall { RtpLinkListDao().add(po) }
+            .andThen {}
+            .handle()
+
         return true
     }
 
+    // todo 入参改用 vo，需要保存id
     private class OpenerBtn(private val file: File) : Button(file.name) {
 
         init {
@@ -171,8 +182,14 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                 }
             }
             val menuClose = MenuItem("删除")
-            menuClose.onAction =
-                    EventHandler { (parent as FlowPane).children.remove(this@OpenerBtn) }
+            menuClose.onAction = EventHandler {
+                TaskHandler<Int>()
+                    .whenCall { RtpLinkListDao().delById("") }
+                    .andThen {
+                        (parent as FlowPane).children.remove(this@OpenerBtn)
+                    }
+                    .handle()
+            }
             val cMenu = ContextMenu(menuClose)
             contextMenu = cMenu
         }

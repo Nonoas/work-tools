@@ -972,16 +972,13 @@ VBox > .split-menu-button.last > .arrow-button {
 .slider:vertical .track {
     -fx-pref-width: 5;
 }
+
 /*******************************************************************************
  *                                                                             *
  * custom                                                                      *
  *                                                                             *
  ******************************************************************************/
 .dialog-pane .content {
-    -fx-text-fill: #111;
-}
-
-.swing-node {
     -fx-text-fill: #111;
 }
 
@@ -992,7 +989,6 @@ VBox > .split-menu-button.last > .arrow-button {
 .sys-button:pressed {
     -fx-border-width: 0;
 }
-
 
 .menu-bar.sys-button {
     -fx-padding: 0;
@@ -1014,7 +1010,15 @@ VBox > .split-menu-button.last > .arrow-button {
     -fx-background-color: transparent;
 }
 
-.list-cell:hover{
+.list-view .list-cell:selected,
+.list-cell:hover {
     -fx-background-color: #d4e2ff;
-    -fx-text-fill: black;
+    -fx-text-fill: black !important;
+}
+
+.list-cell {
+    -fx-border-width: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-border-color: transparent;
 }
