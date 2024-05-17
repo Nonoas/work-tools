@@ -99,8 +99,6 @@ tasks.register('packageMyApp', PackageTask) {
     // optional
     bundleJre = true
 
-    print("${this.name}项目录${projectDir}")
-
     generateInstaller = false
     administratorRequired = false
     additionalResources = [file('func/')]
