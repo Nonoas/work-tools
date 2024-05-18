@@ -1,10 +1,11 @@
 package indi.nonoas.worktools.view
 
+import github.nonoas.jfx.flat.ui.control.Switch
 import indi.nonoas.worktools.common.CommonInsets
-import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.dao.FuncSettingDao
 import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.ui.TaskHandler
+import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.utils.BeanUtil
 import indi.nonoas.worktools.utils.DBUtil
@@ -14,7 +15,6 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.control.Label
-import javafx.scene.control.ToggleButton
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
@@ -31,7 +31,7 @@ import java.util.stream.Collectors
 class FunctionSettingStage : BaseStage() {
 
     private var vos: List<FuncSettingVo>
-    private val toggles: Array<ToggleButton?>
+    private val toggles: Array<Switch?>
 
 
     private fun initView() {
@@ -107,7 +107,7 @@ class FunctionSettingStage : BaseStage() {
         toggles = arrayOfNulls(vos.size)
 
         for (i in toggles.indices) {
-            toggles[i] = UIFactory.getBaseToggleButton()
+            toggles[i] = Switch()
             toggles[i]!!.selectedProperty().bindBidirectional(vos[i].enableFlagProperty())
         }
     }

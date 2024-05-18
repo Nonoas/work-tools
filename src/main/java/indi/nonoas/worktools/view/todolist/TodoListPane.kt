@@ -1,7 +1,10 @@
-package indi.nonoas.worktools.view
+package indi.nonoas.worktools.view.todolist
 
+import indi.nonoas.worktools.common.CommonInsets
+import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.MyAlert
 import javafx.application.Platform
+import javafx.event.EventHandler
 import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.ListView
@@ -22,18 +25,23 @@ import java.time.LocalTime
  * @author huangshengsheng
  * @date 2024/5/13 17:21
  */
-class TodoListPane : VBox() {
+class TodoListPane : VBox(10.0) {
 
-    private val listView = ListView<String>()
+    private val listView = TodoListView()
 
-    private val btnAdd = Button("+").apply {
-        maxWidth= Double.MAX_VALUE
+    private val btnAdd = UIFactory.getPrimaryButton("+").apply {
+        maxWidth = Double.MAX_VALUE
     }
 
     init {
+        padding = CommonInsets.ROOT_PANE_PADDING
         isFillWidth = true
-        children.addAll(listView,btnAdd)
-//        add()
+        children.addAll(listView, btnAdd)
+
+        btnAdd.onAction = EventHandler {
+            listView.items.addAll(TodoListVo("待办事项${listView.items.size}"))
+        }
+        // add()
     }
 
     private fun add() {
@@ -41,13 +49,13 @@ class TodoListPane : VBox() {
         scheduler.start()
 
         val job = JobBuilder.newJob(MyJob::class.java)
-            .withIdentity("myJob", "group1")
-            .build()
+                .withIdentity("myJob", "group1")
+                .build()
 
         val trigger: Trigger = TriggerBuilder.newTrigger()
-            .withIdentity("myTrigger", "group1")
-            .withSchedule(CronScheduleBuilder.cronSchedule("0/3 * * * * ?")) // 每天早上9点执行
-            .build()
+                .withIdentity("myTrigger", "group1")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0/3 * * * * ?")) // 每天早上9点执行
+                .build()
 
         scheduler.scheduleJob(job, trigger)
     }

@@ -2,8 +2,7 @@ package indi.nonoas.worktools.controller
 
 import indi.nonoas.worktools.common.FuncCode
 import indi.nonoas.worktools.ui.BaseParentController
-import indi.nonoas.worktools.view.TodoListPane
-import indi.nonoas.worktools.view.db.SQLTransfer
+import indi.nonoas.worktools.view.todolist.TodoListPane
 import javafx.scene.Parent
 
 /**
