@@ -65,7 +65,6 @@ dependencies {
     // https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
     implementation 'org.quartz-scheduler:quartz:2.3.2'
     implementation 'com.melloware:jintellitype:1.4.0'
-    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
     implementation 'com.h2database:h2:2.2.220'
 // https://mvnrepository.com/artifact/com.alibaba.fastjson2/fastjson2
     implementation 'com.alibaba.fastjson2:fastjson2:2.0.47'

@@ -3,14 +3,13 @@ package indi.nonoas.worktools.view
 import indi.nonoas.worktools.ui.component.ExceptionAlter
 import indi.nonoas.worktools.ui.component.MyAlert
 import indi.nonoas.worktools.utils.PropertiesUtil
-import java.util.*
+import java.util.Properties
 
 /**
  * @author Nonoas
  * @date 2021/9/4
  */
-class AboutAlerts private constructor(contentText: String?) :
-    MyAlert(AlertType.INFORMATION, contentText) {
+class AboutAlerts private constructor(contentText: String?) : MyAlert(AlertType.INFORMATION, contentText) {
 
     init {
         title = "关于"

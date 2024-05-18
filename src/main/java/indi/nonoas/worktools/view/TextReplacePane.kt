@@ -39,7 +39,7 @@ class TextReplacePane private constructor() : VBox(16.0) {
 
         setVgrow(textArea, Priority.ALWAYS)
         val lbBefore = Label("替换前：").apply {
-            prefWidth = 50.0
+            prefWidth = 80.0
         }
         val hbExclude = HBox(lbBefore, cbFrom)
         hbExclude.alignment = Pos.CENTER_LEFT
@@ -75,7 +75,7 @@ class TextReplacePane private constructor() : VBox(16.0) {
 
         HBox.setHgrow(cbFrom, Priority.ALWAYS)
         val labelAfter=Label("替换后：").apply {
-            prefWidth = 50.0
+            prefWidth = 80.0
         }
         val hbPrefix = HBox(labelAfter, tfTo)
         hbPrefix.alignment = Pos.CENTER_LEFT
