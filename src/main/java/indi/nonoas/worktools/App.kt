@@ -1,6 +1,7 @@
 package indi.nonoas.worktools
 
 import com.melloware.jintellitype.JIntellitype
+import github.nonoas.jfx.flat.ui.theme.LightTheme
 import indi.nonoas.worktools.common.Identifier
 import indi.nonoas.worktools.config.DBConfigEnum
 import indi.nonoas.worktools.config.FlyWayMigration
@@ -89,6 +90,7 @@ class App : Application() {
 
         jIntellitype = JIntellitype.getInstance()
 
+        setUserAgentStylesheet(LightTheme().userAgentStylesheet)
         initPrimaryStage(primaryStage)
 
         val stage: BaseStage = MainStage.instance as BaseStage

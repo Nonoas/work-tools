@@ -141,7 +141,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
         menuBar.menus.addAll(menuSetting)
         menuBar.isFocusTraversable = false
-        menuBar.styleClass.add("sys-button")
+        menuBar.styleClass.add("svg-button")
 
         val pinButton = UIFactory.createPinButton(stage)
         val tooltip = Tooltip("窗口置顶")
@@ -171,7 +171,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             Alt+Shift+M  显示/隐藏窗口
         """.trimIndent()
         ))
-        toolBar.padding = CommonInsets.PADDING_20
         toolBar.items.add(lbTips)
         registryDragger(toolBar)
     }
