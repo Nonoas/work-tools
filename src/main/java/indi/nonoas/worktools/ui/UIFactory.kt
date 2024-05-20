@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.ui
 
+import github.nonoas.jfx.flat.ui.theme.Styles
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Button
@@ -30,7 +31,7 @@ object UIFactory {
      */
     fun getPrimaryButton(text: String?): Button {
         val btn = Button(text)
-        btn.styleClass.add("primary")
+        btn.styleClass.add(Styles.ACCENT)
         return btn
     }
 

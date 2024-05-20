@@ -110,8 +110,8 @@ class SQLExtraction private constructor() : VBox(10.0) {
      * 保存页面参数
      */
     private fun savePageParam() {
-        Thread(Runnable {
-            val conn = DBUtil.getConnection() ?: return@Runnable
+        Thread {
+            val conn = DBUtil.getConnection()
             val dto = PageParamsDto().apply {
                 paramCode = PKEY_SQL_PREFIX
                 paramVal = cbSql.value.paramVal
@@ -119,7 +119,7 @@ class SQLExtraction private constructor() : VBox(10.0) {
             }
             PageParamsDao(conn).replaceInto(dto)
             initCbSqlItems()
-        }).start()
+        }.start()
     }
 
     /**
