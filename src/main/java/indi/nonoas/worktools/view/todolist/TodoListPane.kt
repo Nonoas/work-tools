@@ -1,13 +1,14 @@
 package indi.nonoas.worktools.view.todolist
 
+import com.kodedu.terminalfx.TerminalTab
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.MyAlert
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.scene.control.Alert
-import javafx.scene.control.Button
-import javafx.scene.control.ListView
+import javafx.scene.control.TabPane
+import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import org.quartz.CronScheduleBuilder
 import org.quartz.Job
@@ -36,7 +37,16 @@ class TodoListPane : VBox(10.0) {
     init {
         padding = CommonInsets.ROOT_PANE_PADDING
         isFillWidth = true
-        children.addAll(listView, btnAdd)
+
+        val terminalBuilder = com.kodedu.terminalfx.TerminalBuilder()
+        val terminal: TerminalTab = terminalBuilder.newTerminal()
+
+        val tabPane = TabPane()
+        tabPane.tabs.add(terminal)
+
+        setVgrow(tabPane,Priority.ALWAYS)
+
+        children.addAll(tabPane, btnAdd)
 
         btnAdd.onAction = EventHandler {
             listView.items.addAll(TodoListVo("待办事项${listView.items.size}"))

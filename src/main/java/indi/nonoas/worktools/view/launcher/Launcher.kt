@@ -1,7 +1,7 @@
 package indi.nonoas.worktools.view.launcher
 
+import cn.hutool.setting.dialect.Props
 import indi.nonoas.worktools.ui.component.ExceptionAlter
-import indi.nonoas.worktools.utils.PropertiesUtil
 import javafx.scene.control.TextInputControl
 import java.io.BufferedReader
 import java.io.File
@@ -19,13 +19,13 @@ class Launcher(
      */
     private val path: String
 ) {
-    private var properties: Properties? = null
+    private var properties: Props? = null
     private val port: Int
     val name: String
 
     init {
         try {
-            properties = PropertiesUtil.getProperties("$path/manifest.properties")
+            properties = Props("$path/manifest.properties")
         } catch (e: IOException) {
             ExceptionAlter(e).showAndWait()
         }

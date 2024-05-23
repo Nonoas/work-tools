@@ -119,8 +119,8 @@ class RecentTouchPane private constructor() : VBox(10.0) {
         init {
             val file = vo.link?.let { File(it) }
             val fsv = FileSystemView.getFileSystemView()
-            val icon = fsv.getSystemIcon(file, 32, 32) as ImageIcon
-            val fxImage = UIUtil.convertImageIconToFXImage(icon)
+            val icon = fsv.getSystemIcon(file, 32, 32) as ImageIcon?
+            val fxImage = icon?.let { UIUtil.convertImageIconToFXImage(it) }
             graphic = ImageView(fxImage).apply {
                 fitWidth = 24.0
                 fitHeight = 24.0

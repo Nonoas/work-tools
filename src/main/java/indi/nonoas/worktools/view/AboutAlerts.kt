@@ -1,8 +1,8 @@
 package indi.nonoas.worktools.view
 
+import cn.hutool.setting.dialect.Props
 import indi.nonoas.worktools.ui.component.ExceptionAlter
 import indi.nonoas.worktools.ui.component.MyAlert
-import indi.nonoas.worktools.utils.PropertiesUtil
 import java.util.Properties
 
 /**
@@ -36,14 +36,7 @@ class AboutAlerts private constructor(contentText: String?) : MyAlert(AlertType.
             private set
 
         private fun getDesc(): String {
-            val properties: Properties?
-            try {
-                properties = PropertiesUtil.getInnerProperties("config.properties")
-            } catch (e: Exception) {
-                ExceptionAlter(e).showAndWait()
-                throw e
-            }
-            val version = properties["app.version"]
+            val version = Props("config.properties")["app.version"]
             return """
                 
                 WorkTools
