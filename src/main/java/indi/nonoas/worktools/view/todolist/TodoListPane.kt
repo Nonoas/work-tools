@@ -38,15 +38,11 @@ class TodoListPane : VBox(10.0) {
         padding = CommonInsets.ROOT_PANE_PADDING
         isFillWidth = true
 
-        val terminalBuilder = com.kodedu.terminalfx.TerminalBuilder()
-        val terminal: TerminalTab = terminalBuilder.newTerminal()
 
-        val tabPane = TabPane()
-        tabPane.tabs.add(terminal)
 
-        setVgrow(tabPane,Priority.ALWAYS)
+        setVgrow(listView,Priority.ALWAYS)
 
-        children.addAll(tabPane, btnAdd)
+        children.addAll(listView, btnAdd)
 
         btnAdd.onAction = EventHandler {
             listView.items.addAll(TodoListVo("待办事项${listView.items.size}"))

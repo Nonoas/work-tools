@@ -14,6 +14,7 @@ import indi.nonoas.worktools.service.impl.FuncSettingService
 import indi.nonoas.worktools.ui.Reinitializable
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.utils.DBUtil
+import javafx.beans.value.ChangeListener
 import javafx.event.EventHandler
 import javafx.scene.control.*
 import javafx.scene.control.skin.VirtualFlow
@@ -31,7 +32,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private val rootPane = BorderPane()
     private var toolBar = ToolBar()
     private val menuBar = MenuBar()
-    private val tfSearch = PopupTextField().apply { promptText = "输入关键字，回车搜索" }
+    private val tfSearch = TextField().apply { promptText = "输入关键字，回车搜索" }
 
     private val fpFuncList = FlowPane(10.0, 10.0).apply { padding = CommonInsets.PADDING_20 }
 
@@ -102,7 +103,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
 
         rootPane.apply {
-            top = VBox(toolBar)
+            top = toolBar
             center = fpFuncList
             prefHeight = 500.0
             prefWidth = 600.0
@@ -179,99 +180,18 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 初始化功能搜索框
      */
     private fun initSearchTextField() {
-        val qry = FuncSettingQry().apply {
-            pageSize = 6
-            enableFlag = true
-        }
-
-        val lv = tfSearchPopupListView(qry)
-
-        tfSearch.setPopupContentFactory {
-            qry.apply {
-                pageNo = 0
-                funcCode = tfSearch.text
-                funcName = tfSearch.text
+        tfSearch.textProperty().addListener { ob, o, n ->
+            val search = funcService.search(FuncSettingQry().apply {
+                funcCode = n
+                funcName = n
+                enableFlag = true
+                pageSize = 10
+            })
+            println(search)
+            fpFuncList.children.clear()
+            if (search != null) {
+                fpFuncList.children.addAll(search.map { e -> Button(e.getFuncName()) })
             }
-            val result = funcService.search(qry) ?: return@setPopupContentFactory lv
-            lv.apply {
-                items.clear()
-                items.addAll(result)
-            }
-        }
-    }
-
-    /**
-     * 构造功能搜索框搜索结果的 ListView
-     * @param qry 查询参数
-     */
-    @Suppress("UNCHECKED_CAST")
-    private fun tfSearchPopupListView(qry: FuncSettingQry): ListView<FuncSettingVo> {
-        qry.apply {
-            pageNo = 0
-            funcCode = tfSearch.text
-            funcName = tfSearch.text
-        }
-        return ListView<FuncSettingVo>().apply {
-            styleClass.add("popup-list-view")
-            placeholder = Label("无查询结果")
-            // 需要确保高度不超过单页查询大小，否则滚动条不出现无法触发滚动翻页查询
-            prefHeight = 150.0
-            cellFactory = Callback { searchResultListCell() }
-            // 回车触发跳转
-            setOnKeyReleased {
-                if (it.code != KeyCode.ENTER || items.isEmpty()) {
-                    return@setOnKeyReleased
-                }
-                val selectedItem = selectionModel.selectedItem
-
-                val funcCode = if (null == selectedItem) {
-                    items[0].getFuncCode()
-                } else {
-                    selectedItem.getFuncCode()
-                }
-                routeCenter(funcCode)
-                tfSearch.hidePopup()
-            }
-
-            val vfMt = MutableObject<VirtualFlow<ListCell<FuncSettingVo>>>()
-            onScroll = EventHandler {
-                val vf: VirtualFlow<ListCell<FuncSettingVo>>
-                if (null != vfMt.value) {
-                    vf = vfMt.value
-                } else {
-                    vf = (lookup("VirtualFlow") ?: return@EventHandler) as VirtualFlow<ListCell<FuncSettingVo>>
-                    vfMt.value = vf
-                }
-
-                if (vf.position < 1) return@EventHandler
-                if (vf.lastVisibleCell.index == items.size - 1) {
-                    qry.pageNo++
-                    val result = funcService.search(qry) ?: return@EventHandler
-                    if (items.size == result.total) {
-                        qry.pageNo--
-                        return@EventHandler
-                    }
-                    items.addAll(result)
-                }
-            }
-        }
-    }
-
-    /**
-     * 搜索框自定义单元格
-     */
-    private fun searchResultListCell() = object : ListCell<FuncSettingVo?>() {
-        init {
-            // 搜索结果点击事件：跳转页面并关闭popup窗口
-            setOnMouseClicked {
-                routeCenter(item?.getFuncCode())
-                tfSearch.hidePopup()
-            }
-        }
-
-        override fun updateItem(item: FuncSettingVo?, empty: Boolean) {
-            super.updateItem(item, empty)
-            text = if (empty || item == null) null else item.getFuncName()
         }
     }
 
