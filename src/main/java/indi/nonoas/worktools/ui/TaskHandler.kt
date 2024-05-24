@@ -16,14 +16,13 @@ import java.util.function.Supplier
 class TaskHandler<T> {
     private var whenCall: Supplier<T>? = null
     private var andThen: Consumer<T>? = null
-    private val task: Task<T>
+    private val task: Task<T> = object : Task<T>() {
+        override fun call(): T {
+            return whenCall!!.get()
+        }
+    }
 
     init {
-        task = object : Task<T>() {
-            override fun call(): T {
-                return whenCall!!.get()
-            }
-        }
         task.valueProperty().addListener { _: ObservableValue<out T>?, _: T, newValue: T ->
             if (null != andThen) {
                 andThen!!.accept(newValue)

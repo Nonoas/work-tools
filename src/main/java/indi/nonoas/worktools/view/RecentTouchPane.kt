@@ -60,12 +60,12 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private fun initFromDB() {
         TaskHandler<MutableList<RtpLinkListPo>>()
-                .whenCall { rtpLinkListDao.getAll() }
-                .andThen { pos ->
-                    for (po in pos) {
-                        openerBtnList.add(OpenerBtn(po.covertVo()))
-                    }
-                }.handle()
+            .whenCall { rtpLinkListDao.getAll() }
+            .andThen { pos ->
+                for (po in pos) {
+                    openerBtnList.add(OpenerBtn(po.covertVo()))
+                }
+            }.handle()
     }
 
 
@@ -108,9 +108,9 @@ class RecentTouchPane private constructor() : VBox(10.0) {
         }
         openerBtnList.add(btn)
         TaskHandler<Int>()
-                .whenCall { RtpLinkListDao().add(vo.covertPo()) }
-                .andThen {}
-                .handle()
+            .whenCall { RtpLinkListDao().add(vo.covertPo()) }
+            .andThen {}
+            .handle()
 
         return true
     }
@@ -135,6 +135,12 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                     val flowPane = parent as FlowPane
                     flowPane.children.remove(this@OpenerBtn)
                     flowPane.children.add(0, this@OpenerBtn)
+
+                    vo.lastUseTimestamp = System.currentTimeMillis()
+                    TaskHandler<Unit>()
+                        .whenCall { RtpLinkListDao().replace(vo) }
+                        .andThen {}
+                        .handle()
                 } catch (e: IOException) {
                     MyAlert(AlertType.ERROR, "文件打开失败！").show()
                 }
@@ -142,12 +148,12 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             val menuClose = MenuItem("删除")
             menuClose.onAction = EventHandler {
                 TaskHandler<Int>()
-                        .whenCall { RtpLinkListDao().delById(vo.id!!) }
-                        .andThen {
-                            val flowPane = parent as FlowPane
-                            flowPane.children.remove(this@OpenerBtn)
-                        }
-                        .handle()
+                    .whenCall { RtpLinkListDao().delById(vo.id!!) }
+                    .andThen {
+                        val flowPane = parent as FlowPane
+                        flowPane.children.remove(this@OpenerBtn)
+                    }
+                    .handle()
             }
             val cMenu = ContextMenu(menuClose)
             contextMenu = cMenu

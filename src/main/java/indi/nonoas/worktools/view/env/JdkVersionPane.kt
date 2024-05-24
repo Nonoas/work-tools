@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.view.env
 
+import cn.hutool.db.Db
 import indi.nonoas.worktools.common.CommonInsets
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -17,7 +18,7 @@ class JdkVersionPane : BorderPane() {
     private val jdkVersions: ObservableList<JdkVersion> = FXCollections.observableArrayList()
 
     init {
-
+        padding = CommonInsets.PADDING_20
 
         val tableView = TableView<JdkVersion>()
         val nameColumn = TableColumn<JdkVersion, String>("Name")
@@ -41,8 +42,15 @@ class JdkVersionPane : BorderPane() {
             val path = pathField.text
             if (name.isNotEmpty() && path.isNotEmpty()) {
                 jdkVersions.add(JdkVersion(name, path))
-                nameField.clear()
-                pathField.clear()
+                EnvVarDao().insert(
+                    EnvVar(
+                        name = "JAVA_HOME",
+                        content = path,
+                        desc = name,
+                        createTimestamp = System.currentTimeMillis()
+                    )
+                )
+                clearForm(nameField, pathField)
             }
         }
 
@@ -59,12 +67,17 @@ class JdkVersionPane : BorderPane() {
                 val editedJdk = JdkVersion(nameField.text, pathField.text)
                 val index = jdkVersions.indexOf(selectedJdk)
                 jdkVersions[index] = editedJdk
-                nameField.clear()
-                pathField.clear()
+                clearForm(nameField, pathField)
             }
         }
 
         val vbox = VBox(CommonInsets.SPACING_1, nameField, pathField, addButton, editButton, deleteButton)
+        vbox.isFillWidth = true
         center = HBox(CommonInsets.SPACING_1, tableView, vbox)
+    }
+
+    private fun clearForm(nameField: TextField, pathField: TextField) {
+        nameField.clear()
+        pathField.clear()
     }
 }

@@ -17,11 +17,11 @@ create table if not exists env_var
 (
     id               int auto_increment,
     name             varchar               not null comment '变量名称',
-    val              varchar               not null comment '变量值',
+    content          varchar               not null comment '变量值',
     desc             varchar               null comment '描述',
     create_timestamp numeric(13) default 0 not null comment '创建时间',
     mod_timestamp    numeric(13) default 0 not null comment '最后修改时间',
     constraint pk_env_var primary key (id),
-    unique (name, val)
+    unique (name, content)
 );
-comment on table rtp_linklist is '环境变量';
+comment on table env_var is '环境变量';

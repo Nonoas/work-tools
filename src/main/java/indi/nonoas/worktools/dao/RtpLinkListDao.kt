@@ -3,6 +3,7 @@ package indi.nonoas.worktools.dao
 import cn.hutool.db.Db
 import cn.hutool.db.Entity
 import indi.nonoas.worktools.pojo.po.RtpLinkListPo
+import indi.nonoas.worktools.pojo.vo.RtpLinkListVo
 
 /**
  * RtpLinkListDao
@@ -18,6 +19,12 @@ class RtpLinkListDao {
         val entity = Entity.parse(po, true, true)
         entity.tableName = TABLE_NAME
         return Db.use().insert(entity)
+    }
+
+    fun replace(vo: RtpLinkListVo) {
+        val entity = Entity.parse(vo.covertPo(), true, true)
+        entity.tableName = TABLE_NAME
+        Db.use().insertOrUpdate(entity, "id")
     }
 
     fun delById(id: String): Int {
