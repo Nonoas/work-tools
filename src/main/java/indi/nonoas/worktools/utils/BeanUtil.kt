@@ -1,7 +1,6 @@
 package indi.nonoas.worktools.utils
 
 import cn.hutool.core.util.StrUtil
-import org.dozer.DozerBeanMapper
 import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -13,10 +12,6 @@ import java.lang.reflect.Method
  * @date 2022/1/26
  */
 object BeanUtil {
-    fun <T> map(obj: Any?, clzz: Class<T>?): T {
-        val mapper = DozerBeanMapper()
-        return mapper.map(obj, clzz)
-    }
 
     fun <T> mapToBean(map: Map<String, Any>, tClass: Class<T>): T? {
         val entries = map.entries

@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.view
 
+import cn.hutool.core.bean.BeanUtil
 import github.nonoas.jfx.flat.ui.control.Switch
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.FuncSettingDao
@@ -7,7 +8,6 @@ import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.ui.TaskHandler
 import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.BaseStage
-import indi.nonoas.worktools.utils.BeanUtil
 import indi.nonoas.worktools.utils.DBUtil
 import javafx.event.EventHandler
 import javafx.geometry.HPos
@@ -19,7 +19,7 @@ import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.stage.Modality
-import java.util.*
+import java.util.Arrays
 import java.util.stream.Collectors
 
 /**
@@ -101,7 +101,7 @@ class FunctionSettingStage : BaseStage() {
         val settingList = FuncSettingDao(DBUtil.getConnection()).getAll()
 
         vos = settingList.stream()
-                .map { dto -> BeanUtil.map(dto, FuncSettingVo::class.java) }
+                .map { dto -> BeanUtil.copyProperties(dto, FuncSettingVo::class.java)}
                 .collect(Collectors.toList())
 
         toggles = arrayOfNulls(vos.size)

@@ -15,7 +15,7 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.stage.DirectoryChooser
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.util.*
 
@@ -25,7 +25,7 @@ import java.util.*
  */
 class ClassExtractPane private constructor() : VBox(16.0) {
 
-    private val logger = Logger.getLogger(ClassExtractPane::class.java)
+    private val logger = LogManager.getLogger(ClassExtractPane::class.java)
 
     /**
      * 文本框：输出路径

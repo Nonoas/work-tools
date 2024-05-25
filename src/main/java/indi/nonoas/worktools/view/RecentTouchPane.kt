@@ -22,7 +22,8 @@ import javafx.scene.input.TransferMode
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException
@@ -44,7 +45,7 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private val rtpLinkListDao = RtpLinkListDao()
 
-    private val logger = Logger.getLogger(RecentTouchPane::class.java)
+    private val logger: Logger = LogManager.getLogger(RecentTouchPane::class.java)
 
     private fun initView() {
         alignment = Pos.BOTTOM_RIGHT

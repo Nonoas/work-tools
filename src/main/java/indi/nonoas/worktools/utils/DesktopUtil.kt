@@ -1,7 +1,7 @@
 package indi.nonoas.worktools.utils
 
 import indi.nonoas.worktools.ui.component.ExceptionAlter
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
 import java.io.BufferedReader
 import java.io.File
@@ -14,7 +14,7 @@ import java.io.InputStreamReader
  */
 object DesktopUtil {
 
-    private val logger = Logger.getLogger(DesktopUtil::class.java)
+    private val logger = LogManager.getLogger(DesktopUtil::class.java)
 
     @JvmStatic
     fun open(file: File?) {
