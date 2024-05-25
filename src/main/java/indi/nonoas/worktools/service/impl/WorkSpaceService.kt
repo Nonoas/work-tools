@@ -9,6 +9,7 @@ import indi.nonoas.worktools.pojo.po.ModifyItemPo
 import indi.nonoas.worktools.pojo.vo.ModifyItemVo
 import indi.nonoas.worktools.service.IWorkSpaceService
 import indi.nonoas.worktools.utils.BeanUtil
+import indi.nonoas.worktools.utils.DBUtil
 import java.util.*
 
 /**
@@ -25,7 +26,7 @@ class WorkSpaceService : IWorkSpaceService {
 
     override fun queryByWorkspace(workspace: String?): List<ModifyItemVo> {
         val entity = Entity.create("modify_items").set("workspace", workspace)
-        val pos = Db.use().findAll(entity, ModifyItemPo::class.java)
+        val pos = DBUtil.use().findAll(entity, ModifyItemPo::class.java)
         pos.sortByDescending { it.modifyTime }
         return pos.map(ModifyItemPo::convertVo).toList()
     }

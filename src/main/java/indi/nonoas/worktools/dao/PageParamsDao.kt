@@ -24,7 +24,7 @@ class PageParamsDao(conn: Connection?) : BaseDao(conn) {
      * 通过 ParamCode 获取
      */
     fun getByParamCode(code: String): List<PageParamsVo> {
-        return Db.use().query(
+        return DBUtil.use().query(
             "select * from page_params where param_code = ? order by last_use_timestamp desc",
             PageParamsPo::class.java,
             code

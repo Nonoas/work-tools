@@ -1,7 +1,12 @@
 package indi.nonoas.worktools.utils
 
+import cn.hutool.db.Db
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import indi.nonoas.worktools.config.DBConfigEnum
 import java.sql.*
 import java.util.*
+import javax.sql.DataSource
 
 /**
  * 数据库链接工具
@@ -10,20 +15,22 @@ import java.util.*
  */
 object DBUtil {
 
-    private var connection: Connection? = null
+    private lateinit var ds: DataSource
 
-    private const val URL = "jdbc:h2:./db/worktools"
-    private const val USERNAME = "worktools"
-    private const val PASSWORD = "worktools"
+    fun init(){
+        val config = HikariConfig()
+        config.jdbcUrl = DBConfigEnum.WORKTOOLS.url
+        config.username = DBConfigEnum.WORKTOOLS.username
+        config.password = DBConfigEnum.WORKTOOLS.password
+        ds = HikariDataSource(config)
+    }
+
+    fun use(): Db {
+        return Db.use(ds)
+    }
 
     fun getConnection(): Connection {
-        /*fixme 当前获取链接为单例获取，可能导致多任务执行时的事务冲突，需要修复
-        *  可以考虑连接池模式 */
-        if (null == connection || connection!!.isClosed) {
-            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)
-        }
-        return Optional.ofNullable(connection)
-            .orElseThrow { SQLException("获取数据库连接失败") }
+        return ds.connection
     }
 
     /**

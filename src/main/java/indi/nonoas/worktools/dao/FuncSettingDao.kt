@@ -38,7 +38,7 @@ class FuncSettingDao(conn: Connection?) : BaseDao(conn) {
         params["offset"] = (qry.pageNo * qry.pageSize)
         params["limit"] = qry.pageSize
 
-        val result = Db.use().query(sql.toString(), FuncSettingPo::class.java, params) ?: return null
+        val result = DBUtil.use().query(sql.toString(), FuncSettingPo::class.java, params) ?: return null
         return PageResult<FuncSettingPo>().apply {
             addAll(result)
         }

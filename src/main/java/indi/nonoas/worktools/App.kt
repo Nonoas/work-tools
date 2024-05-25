@@ -1,12 +1,17 @@
 package indi.nonoas.worktools
 
+import cn.hutool.db.Db
+import cn.hutool.db.ds.DSFactory
 import com.melloware.jintellitype.JIntellitype
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import github.nonoas.jfx.flat.ui.theme.LightTheme
 import indi.nonoas.worktools.common.Identifier
 import indi.nonoas.worktools.config.DBConfigEnum
 import indi.nonoas.worktools.config.FlyWayMigration
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.ui.component.MyAlert
+import indi.nonoas.worktools.utils.DBUtil
 import indi.nonoas.worktools.view.MainStage
 import javafx.application.Application
 import javafx.application.Platform
@@ -30,6 +35,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.channels.FileChannel
 import java.nio.channels.FileLock
+import javax.sql.DataSource
 import kotlin.system.exitProcess
 
 /**
@@ -73,7 +79,7 @@ class App : Application() {
 
     @Throws(Exception::class)
     override fun init() {
-        super.init()
+        DBUtil.init()
     }
 
     @Throws(Exception::class)

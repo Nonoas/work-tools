@@ -7,6 +7,7 @@ import indi.nonoas.worktools.pojo.vo.ModifyItemVo
 import indi.nonoas.worktools.ui.TaskHandler
 import indi.nonoas.worktools.ui.component.ExceptionAlter.Companion.error
 import indi.nonoas.worktools.ui.component.MyAlert
+import indi.nonoas.worktools.utils.DBUtil
 import indi.nonoas.worktools.utils.DesktopUtil.open
 import indi.nonoas.worktools.utils.FileUtil.deleteFile
 import indi.nonoas.worktools.view.MainStage.Companion.instance
@@ -118,8 +119,8 @@ open class ModifyListView : ListView<ModifyItemVo?>() {
                         .whenCall {
                             try {
                                 val absolutePath = item!!.absolutePath
-                                deleteFile(File(Objects.requireNonNull(absolutePath)))
-                                return@whenCall Db.use().del("modify_items", "modify_num", item!!.modifyNum)
+                                deleteFile(File(absolutePath!!))
+                                return@whenCall DBUtil.use().del("modify_items", "modify_num", item!!.modifyNum)
                             } catch (e: SQLException) {
                                 error(e)
                             }
@@ -160,7 +161,7 @@ open class ModifyListView : ListView<ModifyItemVo?>() {
                     .set("desc", po.desc)
             val where = Entity.create(entity.tableName).set("modify_num", po.modifyNum)
             try {
-                Db.use().update(entity, where)
+                DBUtil.use().update(entity, where)
             } catch (e: SQLException) {
                 error(e)
             }

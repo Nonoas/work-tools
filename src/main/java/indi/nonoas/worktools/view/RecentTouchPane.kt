@@ -61,12 +61,12 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private fun initFromDB() {
         TaskHandler<MutableList<RtpLinkListPo>>()
-            .whenCall { rtpLinkListDao.getAll() }
-            .andThen { pos ->
-                for (po in pos) {
-                    openerBtnList.add(OpenerBtn(po.covertVo()))
-                }
-            }.handle()
+                .whenCall { rtpLinkListDao.getAll() }
+                .andThen { pos ->
+                    for (po in pos) {
+                        openerBtnList.add(OpenerBtn(po.covertVo()))
+                    }
+                }.handle()
     }
 
 
@@ -109,9 +109,21 @@ class RecentTouchPane private constructor() : VBox(10.0) {
         }
         openerBtnList.add(btn)
         TaskHandler<Int>()
-            .whenCall { RtpLinkListDao().add(vo.covertPo()) }
-            .andThen {}
-            .handle()
+                .whenCall {
+                    logger.info("添加按钮${vo.name}")
+                    try {
+                        return@whenCall RtpLinkListDao().add(vo.covertPo())
+                    } catch (e: Exception) {
+                        logger.error(e)
+                        return@whenCall 0
+                    }
+                }
+                .andThen {it->
+                    if (0 == it) {
+                        UIUtil.error("添加按钮出错")
+                    }
+                }
+                .handle()
 
         return true
     }
@@ -139,9 +151,9 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
                     vo.lastUseTimestamp = System.currentTimeMillis()
                     TaskHandler<Unit>()
-                        .whenCall { RtpLinkListDao().replace(vo) }
-                        .andThen {}
-                        .handle()
+                            .whenCall { RtpLinkListDao().replace(vo) }
+                            .andThen {}
+                            .handle()
                 } catch (e: IOException) {
                     MyAlert(AlertType.ERROR, "文件打开失败！").show()
                 }
@@ -149,12 +161,12 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             val menuClose = MenuItem("删除")
             menuClose.onAction = EventHandler {
                 TaskHandler<Int>()
-                    .whenCall { RtpLinkListDao().delById(vo.id!!) }
-                    .andThen {
-                        val flowPane = parent as FlowPane
-                        flowPane.children.remove(this@OpenerBtn)
-                    }
-                    .handle()
+                        .whenCall { RtpLinkListDao().delById(vo.id!!) }
+                        .andThen {
+                            val flowPane = parent as FlowPane
+                            flowPane.children.remove(this@OpenerBtn)
+                        }
+                        .handle()
             }
             val cMenu = ContextMenu(menuClose)
             contextMenu = cMenu
@@ -192,7 +204,7 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             }
     }
 
-    //私有构造器
+    // 私有构造器
     init {
         initView()
     }

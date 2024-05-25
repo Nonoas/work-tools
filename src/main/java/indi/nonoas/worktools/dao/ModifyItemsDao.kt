@@ -8,6 +8,7 @@ import cn.hutool.db.PageResult
 import indi.nonoas.worktools.pojo.params.ModifyItemQry
 import indi.nonoas.worktools.pojo.params.MyEntity
 import indi.nonoas.worktools.pojo.po.ModifyItemPo
+import indi.nonoas.worktools.utils.DBUtil
 
 /**
  * 工作期间持久层
@@ -26,7 +27,7 @@ class ModifyItemsDao {
             likeNonNull("modify_reason", param.modifyReason)
         }
 
-        return Db.use().page(
+        return DBUtil.use().page(
             entity,
             Page(param.pageNo, param.pageSize),
         )
@@ -57,13 +58,13 @@ class ModifyItemsDao {
         }
 
         val totalSql = sql.toString()
-        val total = Db.use().count(totalSql, params)
+        val total = DBUtil.use().count(totalSql, params)
 
         sql.append("order by modify_time desc limit :limit offset :offset")
         params["offset"] = (qry.pageNo * qry.pageSize)
         params["limit"] = qry.pageSize
 
-        val result = Db.use().query(sql.toString(), ModifyItemPo::class.java, params) ?: return null
+        val result = DBUtil.use().query(sql.toString(), ModifyItemPo::class.java, params) ?: return null
         return PageResult<ModifyItemPo>().apply {
             addAll(result)
             this.total = total.toInt()
