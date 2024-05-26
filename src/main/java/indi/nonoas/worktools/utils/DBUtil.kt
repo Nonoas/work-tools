@@ -1,6 +1,8 @@
 package indi.nonoas.worktools.utils
 
 import cn.hutool.db.Db
+import cn.hutool.db.DbUtil
+import cn.hutool.log.level.Level
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import indi.nonoas.worktools.config.DBConfigEnum
@@ -18,11 +20,15 @@ object DBUtil {
     private lateinit var ds: DataSource
 
     fun init(){
+        // 数据源配置
         val config = HikariConfig()
         config.jdbcUrl = DBConfigEnum.WORKTOOLS.url
         config.username = DBConfigEnum.WORKTOOLS.username
         config.password = DBConfigEnum.WORKTOOLS.password
+        config.maximumPoolSize = 5
         ds = HikariDataSource(config)
+        // 设置全局SQL日志配置
+        DbUtil.setShowSqlGlobal(true, false, true, Level.DEBUG)
     }
 
     fun use(): Db {

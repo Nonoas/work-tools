@@ -1,9 +1,9 @@
 package indi.nonoas.worktools.view
 
-import cn.hutool.core.bean.BeanUtil
 import github.nonoas.jfx.flat.ui.control.Switch
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.FuncSettingDao
+import indi.nonoas.worktools.pojo.dto.FuncSettingDto
 import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.ui.TaskHandler
 import indi.nonoas.worktools.ui.UIFactory
@@ -19,8 +19,7 @@ import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.stage.Modality
-import java.util.Arrays
-import java.util.stream.Collectors
+import java.util.*
 
 /**
  * 功能入口：设置-功能
@@ -100,15 +99,14 @@ class FunctionSettingStage : BaseStage() {
     init {
         val settingList = FuncSettingDao(DBUtil.getConnection()).getAll()
 
-        vos = settingList.stream()
-                .map { dto -> BeanUtil.copyProperties(dto, FuncSettingVo::class.java)}
-                .collect(Collectors.toList())
+        vos = settingList.map(FuncSettingDto::convertVo)
 
         toggles = arrayOfNulls(vos.size)
 
         for (i in toggles.indices) {
-            toggles[i] = Switch()
-            toggles[i]!!.selectedProperty().bindBidirectional(vos[i].enableFlagProperty())
+            toggles[i] = Switch().apply {
+                selectedProperty().bindBidirectional(vos[i].enableFlagProperty())
+            }
         }
     }
 

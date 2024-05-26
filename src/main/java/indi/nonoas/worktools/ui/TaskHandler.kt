@@ -2,7 +2,7 @@ package indi.nonoas.worktools.ui
 
 import javafx.beans.value.ObservableValue
 import javafx.concurrent.Task
-import java.util.*
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Executors
 import java.util.function.Consumer
 import java.util.function.Supplier
@@ -14,11 +14,21 @@ import java.util.function.Supplier
  * @datetime 2022/1/8 15:02
  */
 class TaskHandler<T> {
+
+    companion object{
+        private val LOG = LogManager.getLogger(TaskHandler::class)
+    }
+
     private var whenCall: Supplier<T>? = null
     private var andThen: Consumer<T>? = null
     private val task: Task<T> = object : Task<T>() {
         override fun call(): T {
-            return whenCall!!.get()
+            try {
+                return whenCall!!.get()
+            } catch (e:Throwable) {
+                LOG.error(e)
+                throw e
+            }
         }
     }
 

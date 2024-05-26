@@ -2,14 +2,11 @@ import io.github.fvarrui.javapackager.gradle.PackageTask
 
 buildscript {
     repositories {
-        maven {
-            url "https://oss.sonatype.org/content/repositories/snapshots"
-        }
         mavenLocal()
         mavenCentral()
     }
     dependencies {
-        classpath 'io.github.fvarrui:javapackager:1.7.6-20240430.234925-8'
+        classpath 'io.github.fvarrui:javapackager:1.7.5'
     }
 }
 

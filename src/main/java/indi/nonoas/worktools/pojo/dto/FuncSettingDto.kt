@@ -1,43 +1,22 @@
-package indi.nonoas.worktools.pojo.dto;
+package indi.nonoas.worktools.pojo.dto
 
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
-
-import java.util.ArrayList;
-import java.util.List;
+import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 
 /**
  * @author Nonoas
  * @date 2022/1/26
  */
-public class FuncSettingDto {
-	
-	private String funcCode;
-	private String funcName;
-	private boolean enableFlag;
+class FuncSettingDto {
+    lateinit var funcCode: String
+    var funcName: String? = null
+    var isEnableFlag: Boolean = false
 
-	public String getFuncCode() {
-		return funcCode;
-	}
-
-	public void setFuncCode(String funcCode) {
-		this.funcCode = funcCode;
-	}
-
-	public String getFuncName() {
-		return funcName;
-	}
-
-	public void setFuncName(String funcName) {
-		this.funcName = funcName;
-	}
-
-	public boolean isEnableFlag() {
-		return enableFlag;
-	}
-
-	public void setEnableFlag(boolean enableFlag) {
-		this.enableFlag = enableFlag;
-	}
-
+    fun convertVo(): FuncSettingVo {
+        val po = this;
+        return FuncSettingVo().apply {
+            setFuncCode(po.funcCode)
+            setFuncName(po.funcName)
+            setEnableFlag(po.isEnableFlag)
+        }
+    }
 }

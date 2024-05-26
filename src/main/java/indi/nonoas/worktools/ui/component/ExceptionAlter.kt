@@ -50,7 +50,7 @@ class ExceptionAlter(e: Throwable) : Alert(AlertType.ERROR, e.message) {
         val pane = dialogPane
         pane.stylesheets.add("css/style.css")
         val stage = pane.scene.window as Stage
-        stage.setAlwaysOnTop(true)
+        stage.isAlwaysOnTop = true
         stage.minWidth = 300.0
         stage.icons.add(image)
     }

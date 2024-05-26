@@ -54,4 +54,8 @@ class FuncSettingVo {
     fun setEnableFlag(enableFlag: Boolean) {
         this.enableFlag.set(enableFlag)
     }
+
+    override fun toString(): String {
+        return "FuncSettingVo(funcCode=$funcCode, funcName=$funcName, enableFlag=$enableFlag)"
+    }
 }

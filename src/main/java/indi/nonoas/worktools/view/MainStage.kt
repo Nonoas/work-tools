@@ -1,7 +1,6 @@
 package indi.nonoas.worktools.view
 
 import cn.hutool.core.collection.CollectionUtil
-import github.nonoas.jfx.flat.ui.control.PopupTextField
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.FuncSettingDao
@@ -9,23 +8,17 @@ import indi.nonoas.worktools.ext.PluginLoader
 import indi.nonoas.worktools.global.FuncManager
 import indi.nonoas.worktools.pojo.dto.FuncSettingDto
 import indi.nonoas.worktools.pojo.params.FuncSettingQry
-import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.service.impl.FuncSettingService
 import indi.nonoas.worktools.ui.Reinitializable
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.utils.DBUtil
-import javafx.beans.value.ChangeListener
 import javafx.event.EventHandler
 import javafx.scene.control.*
-import javafx.scene.control.skin.VirtualFlow
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
-import javafx.scene.layout.VBox
-import javafx.util.Callback
-import org.apache.commons.lang3.mutable.MutableObject
 
 class MainStage private constructor() : BaseStage(), Reinitializable {
 
@@ -180,13 +173,14 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 初始化功能搜索框
      */
     private fun initSearchTextField() {
-        tfSearch.textProperty().addListener { ob, o, n ->
-            val search = funcService.search(FuncSettingQry().apply {
+        tfSearch.textProperty().addListener { _, _, n ->
+            val qry = FuncSettingQry().apply {
                 funcCode = n
                 funcName = n
                 enableFlag = true
                 pageSize = 10
-            })
+            }
+            val search = funcService.search(qry)
             println(search)
             fpFuncList.children.clear()
             if (search != null) {
