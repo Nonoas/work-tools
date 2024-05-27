@@ -19,21 +19,15 @@ class FuncSettingVo {
         setEnableFlag(enableFlag)
     }
 
-    fun getFuncCode(): String? {
-        return funcCode.get()
-    }
+    fun getFuncCode(): String = funcCode.get()
 
-    fun funcCodeProperty(): SimpleStringProperty {
-        return funcCode
-    }
+    fun funcCodeProperty(): SimpleStringProperty = funcCode
 
     fun setFuncCode(funcCode: String?) {
         this.funcCode.set(funcCode)
     }
 
-    fun getFuncName(): String? {
-        return funcName.get()
-    }
+    fun getFuncName(): String? = funcName.get()
 
     fun funcNameProperty(): SimpleStringProperty {
         return funcName

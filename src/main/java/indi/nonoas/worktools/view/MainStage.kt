@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.view
 
 import cn.hutool.core.collection.CollectionUtil
+import cn.hutool.core.util.StrUtil
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.FuncSettingDao
@@ -13,12 +14,14 @@ import indi.nonoas.worktools.ui.Reinitializable
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.utils.DBUtil
 import javafx.event.EventHandler
+import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
+import kotlin.collections.HashMap
 
 class MainStage private constructor() : BaseStage(), Reinitializable {
 
@@ -54,7 +57,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         setAlwaysOnTop(true)
         setResizable(true)
         setMinHeight(400)
-        setMinWidth(500)
+        setMinWidth(600)
 
         // 监听宽高的变化，保存到静态变量
         stage.widthProperty().addListener { _, _, newValue ->
@@ -173,7 +176,12 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 初始化功能搜索框
      */
     private fun initSearchTextField() {
-        tfSearch.textProperty().addListener { _, _, n ->
+        tfSearch.padding = Insets(10.0, 40.0, 10.0, 40.0)
+        tfSearch.onTextChanged { n ->
+            if (StrUtil.isEmpty(n)) {
+                rootPane.center = fpFuncList
+                return@onTextChanged
+            }
             val qry = FuncSettingQry().apply {
                 funcCode = n
                 funcName = n
@@ -181,11 +189,10 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                 pageSize = 10
             }
             val search = funcService.search(qry)
-            println(search)
-            fpFuncList.children.clear()
-            if (search != null) {
-                fpFuncList.children.addAll(search.map { e -> Button(e.getFuncName()) })
-            }
+            val resultPane = SearchResultPane.Builder()
+                    .funcSettings(search)
+                    .build()
+            rootPane.center = resultPane
         }
     }
 
@@ -206,10 +213,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     /**
      * 切换主面板
      */
-    private fun routeCenter(funcCode: String?) {
-        if (null == funcCode) {
-            return
-        }
+    fun routeCenter(funcCode: String) {
         val rootView = FuncManager.getRootView(funcCode) ?: return
         rootPane.center = rootView
         setTitle("${TITLE}-${funcEnabledMap[funcCode]?.funcName}")
@@ -226,6 +230,15 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             map[dto.funcCode] = dto
         }
         return map
+    }
+
+    /**
+     * 文本变化监听器
+     */
+    private fun TextField.onTextChanged(action: (String?) -> Unit) {
+        textProperty().addListener { _, _, newValue ->
+            action(newValue)
+        }
     }
 
 
@@ -250,7 +263,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         var instance: MainStage? = null
             get() {
                 if (field != null) return field
-                //同步代码块
+                // 同步代码块
                 synchronized(MainStage::class.java) {
                     if (field == null) {
                         field = MainStage()

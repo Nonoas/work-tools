@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.service.impl
 
+import cn.hutool.core.collection.CollUtil
 import cn.hutool.db.PageResult
 import indi.nonoas.worktools.dao.FuncSettingDao
 import indi.nonoas.worktools.pojo.params.FuncSettingQry
@@ -16,8 +17,9 @@ class FuncSettingService : IFuncSettingService {
 
     private val dao = FuncSettingDao(null)
 
-    override fun search(qry: FuncSettingQry): PageResult<FuncSettingVo>? {
-        val pos = dao.pageBy(qry) ?: return null
+    override fun search(qry: FuncSettingQry): PageResult<FuncSettingVo> {
+        val pos = dao.pageBy(qry) ?: return PageResult<FuncSettingVo>()
+
         val vos = PageResult<FuncSettingVo>()
         vos.totalPage = pos.totalPage
         vos.total = pos.total
