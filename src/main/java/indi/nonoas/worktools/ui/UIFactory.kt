@@ -35,22 +35,4 @@ object UIFactory {
         return btn
     }
 
-    fun getBaseToggleButton(): ToggleButton {
-        val toggleButton = ToggleButton("启用")
-        toggleButton.styleClass.add("primary")
-        toggleButton.selectedProperty()
-            .addListener { _, _, newValue: Boolean ->
-                if (newValue) {
-                    toggleButton.text = "关闭"
-                    toggleButton.styleClass.add("danger")
-                    toggleButton.styleClass.remove("primary")
-                } else {
-                    toggleButton.text = "启用"
-                    toggleButton.styleClass.add("primary")
-                    toggleButton.styleClass.remove("danger")
-                }
-            }
-        return toggleButton
-    }
-
 }

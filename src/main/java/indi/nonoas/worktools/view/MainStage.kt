@@ -1,8 +1,12 @@
 package indi.nonoas.worktools.view
 
+import atlantafx.base.controls.CustomTextField
 import cn.hutool.core.collection.CollectionUtil
 import cn.hutool.core.util.StrUtil
 import github.nonoas.jfx.flat.ui.control.UIFactory
+import github.nonoas.jfx.flat.ui.theme.Styles
+import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_MUTED
+import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_SMALL
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.dao.FuncSettingDao
 import indi.nonoas.worktools.ext.PluginLoader
@@ -14,28 +18,31 @@ import indi.nonoas.worktools.ui.Reinitializable
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.utils.DBUtil
 import javafx.event.EventHandler
-import javafx.geometry.Insets
 import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
-import kotlin.collections.HashMap
+import org.kordamp.ikonli.javafx.FontIcon
+import org.kordamp.ikonli.material2.Material2AL
+import org.kordamp.ikonli.material2.Material2MZ
 
 class MainStage private constructor() : BaseStage(), Reinitializable {
 
     private val rootPane = BorderPane()
     private var toolBar = ToolBar()
     private val menuBar = MenuBar()
-    private val tfSearch = TextField().apply { promptText = "输入关键字，回车搜索" }
+    private val tfSearch = CustomTextField().apply {
+        promptText = "输入关键字，回车搜索"
+    }
 
     private val fpFuncList = FlowPane(10.0, 10.0).apply { padding = CommonInsets.PADDING_20 }
 
     /**
      * 小提示标签
      */
-    private val lbTips = Label(" ⓘ ")
+    private val lbTips = FontIcon(Material2AL.HELP_OUTLINE)
 
     private val funcService = FuncSettingService()
 
@@ -151,7 +158,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      */
     private fun initToolBar() {
 
-        val btnListFunc = Button("功能列表")
+        val btnListFunc = Button(null, FontIcon(Material2MZ.MENU))
+        btnListFunc.styleClass.add(Styles.BUTTON_ICON)
         btnListFunc.onAction = EventHandler {
             rootPane.center = fpFuncList
         }
@@ -176,7 +184,12 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 初始化功能搜索框
      */
     private fun initSearchTextField() {
-        tfSearch.padding = Insets(10.0, 40.0, 10.0, 40.0)
+        val label = Label("Qry_>").apply {
+            styleClass.addAll("hint", TEXT_MUTED, TEXT_SMALL)
+            tooltip = Tooltip("搜索模式")
+        }
+
+        tfSearch.left = label
         tfSearch.onTextChanged { n ->
             if (StrUtil.isEmpty(n)) {
                 rootPane.center = fpFuncList
