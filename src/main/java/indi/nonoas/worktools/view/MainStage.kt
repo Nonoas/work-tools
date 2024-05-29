@@ -96,14 +96,12 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private fun initScene() {
         val kcToggleFunc = KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN)
 
-
         stage.scene.apply {
             accelerators[kcToggleFunc] = Runnable {
                 val keys = funcEnabledMap.keys.toList()
                 routeCenter(keys[++currFuncIndex % keys.size])
             }
         }
-
 
         rootPane.apply {
             top = toolBar

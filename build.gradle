@@ -38,7 +38,7 @@ repositories {
 
 ext {
     versions = [
-            'jfx': '22'
+            'jfx': '21.0.3'
     ]
 }
 
