@@ -1,6 +1,5 @@
 package indi.nonoas.worktools.view.todolist
 
-import com.kodedu.terminalfx.TerminalTab
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.MyAlert

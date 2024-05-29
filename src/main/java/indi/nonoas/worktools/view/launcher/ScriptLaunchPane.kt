@@ -1,9 +1,5 @@
 package indi.nonoas.worktools.view.launcher
 
-import com.kodedu.terminalfx.TerminalTab
-import javafx.scene.control.TabPane
-
-import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 
 /**
@@ -19,14 +15,7 @@ class ScriptLaunchPane(spacing: Double) : VBox(spacing) {
     }
 
     private fun initView() {
-        val terminalBuilder = com.kodedu.terminalfx.TerminalBuilder()
-        val terminal: TerminalTab = terminalBuilder.newTerminal()
 
-        val tabPane = TabPane()
-        tabPane.tabs.add(terminal)
-
-        setVgrow(tabPane, Priority.ALWAYS)
-        children.add(tabPane)
     }
 
     companion object {
