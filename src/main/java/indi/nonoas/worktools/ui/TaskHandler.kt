@@ -15,10 +15,6 @@ import java.util.function.Supplier
  */
 class TaskHandler<T> {
 
-    companion object{
-        private val LOG = LogManager.getLogger(TaskHandler::class)
-    }
-
     private var whenCall: Supplier<T>? = null
     private var andThen: Consumer<T>? = null
     private val task: Task<T> = object : Task<T>() {
@@ -63,5 +59,18 @@ class TaskHandler<T> {
         val service = Executors.newSingleThreadExecutor()
         service.execute(task)
         service.shutdown()
+    }
+
+    companion object{
+        private val LOG = LogManager.getLogger(TaskHandler::class)
+
+        /**
+         * 后台运行耗时任务
+         */
+        fun backRun(run: Runnable) {
+            val service = Executors.newSingleThreadExecutor()
+            service.execute(run)
+            service.shutdown()
+        }
     }
 }

@@ -16,6 +16,7 @@ import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Button
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
+import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.DragEvent
 import javafx.scene.input.TransferMode
@@ -130,10 +131,8 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private class OpenerBtn(private val vo: RtpLinkListVo) : Button(vo.name) {
         init {
-            val file = vo.link?.let { File(it) }
-            val fsv = FileSystemView.getFileSystemView()
-            val icon = fsv.getSystemIcon(file, 32, 32) as ImageIcon?
-            val fxImage = icon?.let { UIUtil.convertImageIconToFXImage(it) }
+            val file = File(vo.link)
+            val fxImage = UIUtil.getFileIcon(file)
             graphic = ImageView(fxImage).apply {
                 fitWidth = 24.0
                 fitHeight = 24.0
@@ -170,10 +169,6 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             }
             val cMenu = ContextMenu(menuClose)
             contextMenu = cMenu
-        }
-
-        fun getLinkString(): String? {
-            return vo.link
         }
 
         override fun equals(other: Any?): Boolean {

@@ -12,7 +12,7 @@ import indi.nonoas.worktools.pojo.po.RtpLinkListPo
 class RtpLinkListVo {
     var id: String? = null
     var name: String? = null
-    var link: String? = null
+    lateinit var link: String
     var lastUseTimestamp: Long = 0
 
     fun covertPo(): RtpLinkListPo {

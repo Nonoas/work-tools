@@ -2,7 +2,7 @@ package indi.nonoas.worktools.controller
 
 import indi.nonoas.worktools.common.FuncCode
 import indi.nonoas.worktools.ui.BaseParentController
-import indi.nonoas.worktools.view.launcher.ScriptLaunchPane
+import indi.nonoas.worktools.view.launcher.ExecFilePane
 import javafx.scene.Parent
 
 /**
@@ -12,6 +12,6 @@ import javafx.scene.Parent
 @FuncCode("batRunner")
 class LcptLaunchController : BaseParentController() {
     override fun getRootView(): Parent {
-        return ScriptLaunchPane.instance!!
+        return ExecFilePane.instance!!
     }
 }

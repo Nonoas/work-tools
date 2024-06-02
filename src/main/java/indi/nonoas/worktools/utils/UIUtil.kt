@@ -8,8 +8,10 @@ import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.ButtonType
 import java.awt.Image
 import java.awt.image.BufferedImage
+import java.io.File
 import java.util.*
 import javax.swing.ImageIcon
+import javax.swing.filechooser.FileSystemView
 import javafx.scene.image.Image as FXImage
 
 
@@ -38,19 +40,19 @@ object UIUtil {
         return showMyAlter(AlertType.ERROR, msg)
     }
 
-    fun showMyAlter(type: AlertType?, msg: String?): Optional<ButtonType> {
+    private fun showMyAlter(type: AlertType?, msg: String?): Optional<ButtonType> {
         return MyAlert(type, msg).showAndWait()
     }
 
-    fun convertImageIconToFXImage(icon: ImageIcon): FXImage {
+    private fun convertImageIconToFXImage(icon: ImageIcon): FXImage {
         // 获取 ImageIcon 中的 Image 对象
         val image: Image = icon.image
 
         // 将 Image 转换为 BufferedImage
         val bufferedImage = BufferedImage(
-            image.getWidth(null),
-            image.getHeight(null),
-            BufferedImage.TYPE_INT_ARGB
+                image.getWidth(null),
+                image.getHeight(null),
+                BufferedImage.TYPE_INT_ARGB
         )
         // 绘制 Image 到 BufferedImage 上
         bufferedImage.graphics.drawImage(image, 0, 0, null)
@@ -60,5 +62,19 @@ object UIUtil {
 
         // 返回转换后的 FXImage
         return fxImage
+    }
+
+    /**
+     * 获取文件的系统图标
+     */
+    fun getFileIcon(file: File): FXImage? {
+        val fsv = FileSystemView.getFileSystemView()
+        val icon = fsv.getSystemIcon(file, 32, 32) as ImageIcon?
+        val fxImage = icon?.let { convertImageIconToFXImage(it) }
+        return fxImage
+    }
+
+    fun getFileIcon(path: String): FXImage? {
+        return getFileIcon(File(path))
     }
 }
