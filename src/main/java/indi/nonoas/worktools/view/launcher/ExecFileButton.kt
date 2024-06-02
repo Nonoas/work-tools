@@ -5,6 +5,7 @@ import indi.nonoas.worktools.ui.component.FileLinkButton
 import indi.nonoas.worktools.utils.DesktopUtil
 import indi.nonoas.worktools.utils.UIUtil
 import javafx.event.EventHandler
+import javafx.scene.control.Tooltip
 import javafx.scene.image.ImageView
 import java.io.File
 
@@ -22,6 +23,7 @@ class ExecFileButton : FileLinkButton {
     constructor(vo: ExecFileVo) {
         text = vo.name
         graphic = ImageView(UIUtil.getFileIcon(vo.link))
+        Tooltip.install(this, Tooltip(text))
         onAction = EventHandler {
             val file = File(vo.link)
             if (!file.exists()) {

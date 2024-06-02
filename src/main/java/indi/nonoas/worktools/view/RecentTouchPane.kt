@@ -6,8 +6,10 @@ import indi.nonoas.worktools.pojo.po.RtpLinkListPo
 import indi.nonoas.worktools.pojo.vo.RtpLinkListVo
 import indi.nonoas.worktools.ui.TaskHandler
 import indi.nonoas.worktools.ui.component.ExceptionAlter
+import indi.nonoas.worktools.ui.component.FileLinkButton
 import indi.nonoas.worktools.ui.component.MyAlert
 import indi.nonoas.worktools.utils.UIUtil
+import indi.nonoas.worktools.view.launcher.ExecFileButton
 import javafx.collections.ObservableList
 import javafx.event.EventHandler
 import javafx.geometry.Pos
@@ -16,6 +18,7 @@ import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Button
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
+import javafx.scene.control.Tooltip
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.DragEvent
@@ -119,7 +122,7 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                         return@whenCall 0
                     }
                 }
-                .andThen {it->
+                .andThen {
                     if (0 == it) {
                         UIUtil.error("添加按钮出错")
                     }
@@ -129,16 +132,16 @@ class RecentTouchPane private constructor() : VBox(10.0) {
         return true
     }
 
-    private class OpenerBtn(private val vo: RtpLinkListVo) : Button(vo.name) {
+    private class OpenerBtn(private val vo: RtpLinkListVo) : FileLinkButton() {
         init {
             val file = File(vo.link)
             val fxImage = UIUtil.getFileIcon(file)
+            text = vo.name
             graphic = ImageView(fxImage).apply {
-                fitWidth = 24.0
-                fitHeight = 24.0
                 isPreserveRatio = true
                 isSmooth = true
             }
+            Tooltip.install(this, Tooltip(text))
 
             onAction = EventHandler {
                 try {
