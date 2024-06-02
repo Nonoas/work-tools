@@ -9,8 +9,8 @@ import javafx.scene.Parent
  * @author Nonoas
  * @datetime 2022/5/12 20:48
  */
-@FuncCode("batRunner")
-class LcptLaunchController : BaseParentController() {
+@FuncCode("ExecFile")
+class ExecFileController : BaseParentController() {
     override fun getRootView(): Parent {
         return ExecFilePane.instance!!
     }

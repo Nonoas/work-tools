@@ -24,11 +24,14 @@ import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
+import org.apache.logging.log4j.LogManager
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2AL
 import org.kordamp.ikonli.material2.Material2MZ
 
 class MainStage private constructor() : BaseStage(), Reinitializable {
+
+    private val log = LogManager.getLogger(MainStage::class.java)
 
     private val rootPane = BorderPane()
     private var toolBar = ToolBar()
@@ -225,7 +228,11 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 切换主面板
      */
     fun routeCenter(funcCode: String) {
-        val rootView = FuncManager.getRootView(funcCode) ?: return
+        val rootView = FuncManager.getRootView(funcCode)
+        if (null == rootView) {
+            log.error("没有找到功能号${funcCode}对应的面板")
+            return
+        }
         rootPane.center = rootView
         setTitle("${TITLE}-${funcEnabledMap[funcCode]?.funcName}")
     }

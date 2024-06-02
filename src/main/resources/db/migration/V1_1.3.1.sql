@@ -42,7 +42,7 @@ comment on table func_setting is '功能配置表';
 
 truncate table func_setting;
 insert into func_setting (func_code, func_name, enable_flag)
-values ('Lcpt', 'Lcpt', true);
+values ('ExecFile', '快速启动', true);
 insert into func_setting (func_code, func_name, enable_flag)
 values ('TextReplace', '文本替换', true);
 insert into func_setting (func_code, func_name, enable_flag)
@@ -53,11 +53,6 @@ insert into func_setting (func_code, func_name, enable_flag)
 values ('FileEncode', '文件编码', true);
 insert into func_setting (func_code, func_name, enable_flag)
 values ('TodoList', '待办事项', true);
-
-update func_setting
-set func_code = 'batRunner',
-    func_name = 'bat脚本启动'
-where func_code = 'Lcpt';
 
 
 insert into func_setting(func_code, func_name, enable_flag)
