@@ -68,8 +68,12 @@ object UIUtil {
      * 获取文件的系统图标
      */
     fun getFileIcon(file: File): FXImage? {
+        return getFileIcon(file, 32)
+    }
+
+    fun getFileIcon(file: File, size: Int): FXImage? {
         val fsv = FileSystemView.getFileSystemView()
-        val icon = fsv.getSystemIcon(file, 32, 32) as ImageIcon?
+        val icon = fsv.getSystemIcon(file, size, size) as ImageIcon?
         val fxImage = icon?.let { convertImageIconToFXImage(it) }
         return fxImage
     }
