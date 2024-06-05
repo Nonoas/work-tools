@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.view.launcher
 
+import github.nonoas.jfx.flat.ui.theme.Styles
 import indi.nonoas.worktools.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.ui.component.FileLinkButton
 import indi.nonoas.worktools.utils.DesktopUtil
@@ -18,10 +19,12 @@ import java.io.File
  */
 class ExecFileButton : FileLinkButton {
 
-    constructor()
+    constructor(){
+        styleClass.addAll(Styles.SMALL)
+    }
 
-    constructor(vo: ExecFileVo) {
-        text = vo.name
+    constructor(vo: ExecFileVo) : this() {
+        text = vo.name?.substringBeforeLast('.')
         graphic = ImageView(UIUtil.getFileIcon(vo.link))
         Tooltip.install(this, Tooltip(text))
         onAction = EventHandler {

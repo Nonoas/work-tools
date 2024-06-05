@@ -8,6 +8,7 @@ import github.nonoas.jfx.flat.ui.theme.Styles
 import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_MUTED
 import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_SMALL
 import indi.nonoas.worktools.common.CommonInsets
+import indi.nonoas.worktools.dao.ExecFileDao
 import indi.nonoas.worktools.dao.FuncSettingDao
 import indi.nonoas.worktools.ext.PluginLoader
 import indi.nonoas.worktools.global.FuncManager
@@ -28,6 +29,7 @@ import org.apache.logging.log4j.LogManager
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2AL
 import org.kordamp.ikonli.material2.Material2MZ
+import kotlin.math.sqrt
 
 class MainStage private constructor() : BaseStage(), Reinitializable {
 
@@ -170,13 +172,15 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         initSearchTextField()
         toolBar.items.add(tfSearch)
 
-        Tooltip.install(lbTips, Tooltip(
+        Tooltip.install(
+            lbTips, Tooltip(
                 """
             快捷键：
             Ctrl+Q  切换界面
             Alt+Shift+M  显示/隐藏窗口
         """.trimIndent()
-        ))
+            )
+        )
         toolBar.items.add(lbTips)
         registryDragger(toolBar)
     }
@@ -202,10 +206,12 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                 enableFlag = true
                 pageSize = 10
             }
-            val search = funcService.search(qry)
+            val funcSettings = funcService.search(qry)
+            val execFiles = ExecFileDao.search(n!!)
             val resultPane = SearchResultPane.Builder()
-                    .funcSettings(search)
-                    .build()
+                .funcSettings(funcSettings)
+                .execFiles(execFiles)
+                .build()
             rootPane.center = resultPane
         }
     }

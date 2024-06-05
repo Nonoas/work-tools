@@ -3,6 +3,8 @@ package indi.nonoas.worktools.view
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.pojo.vo.FuncSettingVo
+import indi.nonoas.worktools.view.launcher.ExecFileButton
+import indi.nonoas.worktools.view.launcher.ExecFilePane
 import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.Label
@@ -50,8 +52,15 @@ class SearchResultPane private constructor() : VBox() {
                     children.add(button)
                 }
             }
+
+            val execPane = FlowPane(CommonInsets.SPACING_1, CommonInsets.SPACING_1).apply {
+                for (execVo in execFiles) {
+                    val button = ExecFileButton(execVo)
+                    children.add(button)
+                }
+            }
             pane.tpFunc.content = funcPane
-            pane.tpScript
+            pane.tpScript.content = execPane
 
             return pane
         }
