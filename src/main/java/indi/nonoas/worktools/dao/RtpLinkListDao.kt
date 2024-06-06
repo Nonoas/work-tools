@@ -12,9 +12,9 @@ import indi.nonoas.worktools.utils.DBUtil
  * @author huangshengsheng
  * @date 2024/5/16 10:09
  */
-class RtpLinkListDao {
+object RtpLinkListDao {
 
-    val TABLE_NAME = "RTP_LINKLIST"
+    const val TABLE_NAME = "RTP_LINKLIST"
 
     fun add(po: RtpLinkListPo): Int {
         val entity = Entity.parse(po, true, true)
@@ -25,7 +25,11 @@ class RtpLinkListDao {
     fun replace(vo: RtpLinkListVo) {
         val entity = Entity.parse(vo.covertPo(), true, true)
         entity.tableName = TABLE_NAME
-        DBUtil.use().insertOrUpdate(entity, "id")
+        if (vo.id != null) {
+            DBUtil.use().insertOrUpdate(entity, "id")
+        } else {
+            DBUtil.use().insertOrUpdate(entity, "link")
+        }
     }
 
     fun delById(id: String): Int {
@@ -33,8 +37,10 @@ class RtpLinkListDao {
     }
 
     fun getAll(): MutableList<RtpLinkListPo> {
-        return DBUtil.use().query("select id,name,link,last_use_timestamp " +
-                "from rtp_linklist order by last_use_timestamp desc",
-                RtpLinkListPo::class.java)
+        return DBUtil.use().query(
+            "select id,name,link,last_use_timestamp " +
+                    "from rtp_linklist order by last_use_timestamp desc",
+            RtpLinkListPo::class.java
+        )
     }
 }

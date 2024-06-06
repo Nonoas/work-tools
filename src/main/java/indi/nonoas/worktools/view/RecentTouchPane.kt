@@ -48,7 +48,7 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                             items.add(0, item)
 
                             item.lastUseTimestamp = System.currentTimeMillis()
-                            TaskHandler.backRun { RtpLinkListDao().replace(item) }
+                            TaskHandler.backRun { RtpLinkListDao.replace(item) }
                         }
                     }
                 }
@@ -70,7 +70,7 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                     val menuDel = MenuItem("删除")
                     menuDel.onAction = EventHandler {
                         items.remove(item)
-                        TaskHandler.backRun { RtpLinkListDao().delById(item.id!!) }
+                        TaskHandler.backRun { RtpLinkListDao.delById(item.id!!) }
                     }
                     val contextMenu = ContextMenu(menuDel)
                     setContextMenu(contextMenu)
@@ -78,8 +78,6 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             }
         }
     }
-
-    private val rtpLinkListDao = RtpLinkListDao()
 
     private val logger: Logger = LogManager.getLogger(RecentTouchPane::class.java)
 
@@ -97,7 +95,7 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private fun initFromDB() {
         TaskHandler<MutableList<RtpLinkListPo>>()
-            .whenCall { rtpLinkListDao.getAll() }
+            .whenCall { RtpLinkListDao.getAll() }
             .andThen { pos ->
                 for (po in pos) {
                     lv.items.add(po.covertVo())
@@ -147,7 +145,7 @@ class RecentTouchPane private constructor() : VBox(10.0) {
             .whenCall {
                 logger.info("添加按钮${vo.name}")
                 try {
-                    return@whenCall RtpLinkListDao().add(vo.covertPo())
+                    return@whenCall RtpLinkListDao.add(vo.covertPo())
                 } catch (e: Exception) {
                     logger.error(e)
                     return@whenCall 0
