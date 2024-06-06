@@ -69,10 +69,8 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                     }
                     val menuDel = MenuItem("删除")
                     menuDel.onAction = EventHandler {
-                        TaskHandler<Int>()
-                                .whenCall { RtpLinkListDao().delById(item.id!!) }
-                                .andThen { items.remove(item) }
-                                .handle()
+                        items.remove(item)
+                        TaskHandler.backRun { RtpLinkListDao().delById(item.id!!) }
                     }
                     val contextMenu = ContextMenu(menuDel)
                     setContextMenu(contextMenu)
@@ -99,12 +97,12 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
     private fun initFromDB() {
         TaskHandler<MutableList<RtpLinkListPo>>()
-                .whenCall { rtpLinkListDao.getAll() }
-                .andThen { pos ->
-                    for (po in pos) {
-                        lv.items.add(po.covertVo())
-                    }
-                }.handle()
+            .whenCall { rtpLinkListDao.getAll() }
+            .andThen { pos ->
+                for (po in pos) {
+                    lv.items.add(po.covertVo())
+                }
+            }.handle()
     }
 
 
@@ -146,21 +144,21 @@ class RecentTouchPane private constructor() : VBox(10.0) {
         }
         lv.items.add(vo)
         TaskHandler<Int>()
-                .whenCall {
-                    logger.info("添加按钮${vo.name}")
-                    try {
-                        return@whenCall RtpLinkListDao().add(vo.covertPo())
-                    } catch (e: Exception) {
-                        logger.error(e)
-                        return@whenCall 0
-                    }
+            .whenCall {
+                logger.info("添加按钮${vo.name}")
+                try {
+                    return@whenCall RtpLinkListDao().add(vo.covertPo())
+                } catch (e: Exception) {
+                    logger.error(e)
+                    return@whenCall 0
                 }
-                .andThen {
-                    if (0 == it) {
-                        UIUtil.error("添加按钮出错")
-                    }
+            }
+            .andThen {
+                if (0 == it) {
+                    UIUtil.error("添加按钮出错")
                 }
-                .handle()
+            }
+            .handle()
 
         return true
     }
