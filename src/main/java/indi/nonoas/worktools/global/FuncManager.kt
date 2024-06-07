@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException
  * @author Nonoas
  * @datetime 2022/5/12 20:03
  */
+@Deprecated(message = "后续改用yml方式")
 object FuncManager {
     private lateinit var map: Map<String, UIController>
 

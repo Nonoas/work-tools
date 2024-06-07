@@ -7,7 +7,7 @@ import javafx.scene.Parent
  * @author Nonoas
  * @datetime 2022/5/12 20:49
  */
-open class BaseParentController : UIController {
+open class FuncPaneFactory : UIController {
 
     /**
      * 将 tClass 的数据类与 rootView 的组件属性绑定

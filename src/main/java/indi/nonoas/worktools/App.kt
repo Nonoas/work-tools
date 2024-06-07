@@ -6,6 +6,8 @@ import github.nonoas.jfx.flat.ui.theme.LightTheme
 import indi.nonoas.worktools.common.Identifier
 import indi.nonoas.worktools.config.DBConfigEnum
 import indi.nonoas.worktools.config.FlyWayMigration
+import indi.nonoas.worktools.global.Manifest
+import indi.nonoas.worktools.ui.TaskHandler
 import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.ui.component.ExceptionAlter
@@ -24,6 +26,7 @@ import javafx.scene.layout.Pane
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle
+import org.apache.logging.log4j.LogManager
 import java.awt.AWTException
 import java.awt.SystemTray
 import java.awt.Toolkit
@@ -44,6 +47,7 @@ import kotlin.system.exitProcess
  * @date 2024/4/4 10:27
  */
 class App : Application() {
+    private val LOG = LogManager.getLogger(TaskHandler::class)
     /**
      * 锁文件，标志程序是否正在运行
      */
@@ -78,13 +82,15 @@ class App : Application() {
 
     @Throws(Exception::class)
     override fun init() {
+        Manifest.init()
         DBUtil.init()
     }
 
     @Throws(Exception::class)
     override fun start(primaryStage: Stage) {
-        Thread.currentThread().uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { t, e ->
+        Thread.currentThread().uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e ->
             ExceptionAlter.error(e)
+            LOG.error("未知异常", e)
         }
 
         Platform.setImplicitExit(false)

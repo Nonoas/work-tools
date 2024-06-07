@@ -44,7 +44,7 @@ ext {
 
 javafx {
     version = "${versions.jfx}"
-    modules = ['javafx.controls',"javafx.swing"]
+    modules = ['javafx.controls', "javafx.swing"]
 }
 
 
@@ -62,6 +62,8 @@ dependencies {
     implementation 'io.github.nonoas:jfx-flat-ui:1.0.1'
     implementation 'io.github.mkpaz:atlantafx-base:2.0.1'
     implementation "org.openjfx:javafx-controls:${versions.jfx}"
+    // https://mvnrepository.com/artifact/org.yaml/snakeyaml
+    implementation 'org.yaml:snakeyaml:2.2'
 }
 
 mainClassName = 'indi.nonoas.worktools.MainKt'
