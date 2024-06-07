@@ -10,7 +10,7 @@ import javafx.scene.Parent
  * @datetime 2022/5/12 21:06
  */
 @FuncCode("TextReplace")
-class TextReplaceController : FuncPaneFactory() {
+class TextReplaceController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return TextReplacePane.instance!!
     }

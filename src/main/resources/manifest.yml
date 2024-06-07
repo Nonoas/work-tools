@@ -1,2 +1,14 @@
 app:
   version: 1.3.2-SNAPSHOT
+
+config:
+  # 功能面板实现类
+  funcPaneFactories:
+    - name: RecentTouch
+      impl: indi.nonoas.worktools.controller.RecentTouchController
+
+    - name: JdkVersion
+      impl: indi.nonoas.worktools.controller.JdkVersionController
+
+    - name: ExecFile
+      impl: indi.nonoas.worktools.controller.ExecFileController

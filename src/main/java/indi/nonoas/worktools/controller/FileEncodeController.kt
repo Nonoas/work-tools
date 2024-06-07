@@ -11,7 +11,7 @@ import javafx.scene.Parent
  * @date 2024/3/30 2:15
  */
 @FuncCode("FileEncode")
-class FileEncodeController : FuncPaneFactory() {
+class FileEncodeController : FuncPaneFactory {
 
     override fun getRootView(): Parent {
         return FileEncodePane.instance!!

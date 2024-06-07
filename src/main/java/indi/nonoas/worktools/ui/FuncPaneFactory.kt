@@ -1,26 +1,16 @@
 package indi.nonoas.worktools.ui
 
-import indi.nonoas.worktools.common.DataBinder.getBindModel
 import javafx.scene.Parent
 
 /**
  * @author Nonoas
- * @datetime 2022/5/12 20:49
+ * @datetime 2022/5/12 20:58
  */
-open class FuncPaneFactory : UIController {
-
+interface FuncPaneFactory {
     /**
-     * 将 tClass 的数据类与 rootView 的组件属性绑定
+     * 获取 UI 控制器绑定的根视图
      *
-     * @param tClass 数据类 class
-     * @param <T>    数据类类型
-     * @return 数据类实例
-    </T> */
-    protected fun <T> getBindModel(tClass: Class<T>): T? {
-        return getBindModel(getRootView(), tClass)
-    }
-
-    override fun getRootView(): Parent {
-        TODO("Not yet implemented")
-    }
+     * @return UI 控制器绑定的根视图
+     */
+    fun getRootView(): Parent
 }

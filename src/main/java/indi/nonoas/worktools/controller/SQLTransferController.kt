@@ -10,7 +10,7 @@ import javafx.scene.Parent
  * @date 2022/7/16
  */
 @FuncCode("SQLTransfer")
-class SQLTransferController : FuncPaneFactory() {
+class SQLTransferController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return SQLTransfer()
     }

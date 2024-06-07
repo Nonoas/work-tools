@@ -10,7 +10,7 @@ import javafx.scene.Parent
  * @datetime 2022/5/12 20:48
  */
 @FuncCode("ExecFile")
-class ExecFileController : FuncPaneFactory() {
+class ExecFileController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return ExecFilePane.instance!!
     }

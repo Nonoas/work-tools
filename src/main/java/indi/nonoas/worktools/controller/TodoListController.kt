@@ -10,7 +10,7 @@ import javafx.scene.Parent
  * @date 2022/7/16
  */
 @FuncCode("TodoList")
-class TodoListController : FuncPaneFactory() {
+class TodoListController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return TodoListPane()
     }

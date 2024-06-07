@@ -1,5 +1,7 @@
 package indi.nonoas.worktools.global
 
+import indi.nonoas.worktools.ui.TaskHandler
+import org.apache.logging.log4j.LogManager
 import org.yaml.snakeyaml.Yaml
 
 /**
@@ -9,6 +11,7 @@ import org.yaml.snakeyaml.Yaml
  * @date 2024/6/7 10:43
  */
 object Manifest {
+
     private val manifest = HashMap<String, Any>()
 
     fun init() {

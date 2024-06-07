@@ -19,7 +19,14 @@ import indi.nonoas.worktools.ui.Reinitializable
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.utils.DBUtil
 import javafx.event.EventHandler
-import javafx.scene.control.*
+import javafx.scene.control.Button
+import javafx.scene.control.Label
+import javafx.scene.control.Menu
+import javafx.scene.control.MenuBar
+import javafx.scene.control.MenuItem
+import javafx.scene.control.TextField
+import javafx.scene.control.ToolBar
+import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
@@ -29,7 +36,6 @@ import org.apache.logging.log4j.LogManager
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2AL
 import org.kordamp.ikonli.material2.Material2MZ
-import kotlin.math.sqrt
 
 class MainStage private constructor() : BaseStage(), Reinitializable {
 

@@ -10,7 +10,7 @@ import javafx.scene.Parent
  * @datetime 2022/5/12 21:06
  */
 @FuncCode("SQLExtraction")
-class SQLExtractionController : FuncPaneFactory() {
+class SQLExtractionController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return SQLExtraction.instance!!
     }

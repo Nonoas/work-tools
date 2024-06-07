@@ -1,10 +1,8 @@
 package indi.nonoas.worktools.global
 
-import indi.nonoas.worktools.global.UIControllerLoader.load
-import indi.nonoas.worktools.ui.UIController
-import indi.nonoas.worktools.ui.component.ExceptionAlter
+import indi.nonoas.worktools.ui.FuncPaneFactory
 import javafx.scene.Parent
-import java.lang.reflect.InvocationTargetException
+import org.apache.logging.log4j.LogManager
 
 /**
  * 功能面板枚举，将工具栏中使用按钮切换的面板注册在此
@@ -12,22 +10,31 @@ import java.lang.reflect.InvocationTargetException
  * @author Nonoas
  * @datetime 2022/5/12 20:03
  */
-@Deprecated(message = "后续改用yml方式")
 object FuncManager {
-    private lateinit var map: Map<String, UIController>
+
+    private val LOG = LogManager.getLogger(Manifest.javaClass)
+
+    private lateinit var map: Map<String, FuncPaneFactory>
 
     init {
         try {
             map = load()
-        } catch (e: InstantiationException) {
-            ExceptionAlter.error(e)
-        } catch (e: IllegalAccessException) {
-            ExceptionAlter.error(e)
-        } catch (e: InvocationTargetException) {
-            throw RuntimeException(e)
-        } catch (e: NoSuchMethodException) {
-            throw RuntimeException(e)
+        } catch (e: Exception) {
+            LOG.error("加载功能面板失败", e)
         }
+    }
+
+    private fun load(): Map<String, FuncPaneFactory> {
+        val funcList: List<Map<String, Any>> =
+            Manifest.get("config.funcPaneFactories") as List<Map<String, Any>>
+
+        val map = LinkedHashMap<String, FuncPaneFactory>()
+        for (func in funcList) {
+            val name = func["name"].toString()
+            val factory = Class.forName(func["impl"].toString()).getConstructor().newInstance()
+            map.put(name, factory as FuncPaneFactory)
+        }
+        return map
     }
 
     fun getRootView(funcCode: String): Parent? {
