@@ -15,7 +15,7 @@
 }
 
 .menu-bar.svg-button,
-.menu-bar.svg-button .container{
+.menu-bar.svg-button .container {
     -fx-padding: 0;
     -fx-background-color: transparent;
     -fx-effect: none;
@@ -50,4 +50,25 @@
 
 .tool-bar {
     -fx-padding: 10px;
+}
+
+.titled-pane.non-border,
+.titled-pane.non-border > *,
+.titled-pane.non-border .title {
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+}
+
+.titled-pane.non-border .title .text {
+    -fx-font-size: 1em;
+    -fx-fill: -color-base-5;
+}
+
+.titled-pane.non-border .arrow {
+    -fx-shape: "M 0 0 L 5 5 L 10 0";
+    -fx-background-color: -color-base-4;
+}
+
+.titled-pane .content {
+    -fx-padding: 10 20;
 }

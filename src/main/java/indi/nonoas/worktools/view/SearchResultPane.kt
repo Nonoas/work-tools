@@ -6,6 +6,7 @@ import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.view.launcher.ExecFileButton
 import indi.nonoas.worktools.view.launcher.ExecFilePane
 import javafx.event.EventHandler
+import javafx.geometry.Insets
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.TitledPane
@@ -21,11 +22,16 @@ import javafx.scene.layout.VBox
  */
 class SearchResultPane private constructor() : VBox() {
 
-    private val tpScript = TitledPane("脚本", Label("脚本"))
-    private val tpFunc = TitledPane("功能", Label("脚本"))
+    private val tpScript = TitledPane("脚本", Label("脚本")).apply {
+        styleClass.add("non-border")
+    }
+    private val tpFunc = TitledPane("功能", Label("脚本")).apply {
+        styleClass.add("non-border")
+    }
 
     init {
         children.addAll(tpScript, tpFunc)
+        padding = Insets(1.0)
     }
 
     class Builder {
