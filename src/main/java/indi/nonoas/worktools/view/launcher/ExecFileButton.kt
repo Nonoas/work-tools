@@ -1,13 +1,17 @@
 package indi.nonoas.worktools.view.launcher
 
 import github.nonoas.jfx.flat.ui.theme.Styles
+import indi.nonoas.worktools.dao.ExecFileDao
 import indi.nonoas.worktools.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.ui.component.FileLinkButton
 import indi.nonoas.worktools.utils.DesktopUtil
 import indi.nonoas.worktools.utils.UIUtil
 import javafx.event.EventHandler
+import javafx.scene.control.ContextMenu
+import javafx.scene.control.MenuItem
 import javafx.scene.control.Tooltip
 import javafx.scene.image.ImageView
+import javafx.scene.layout.Pane
 import java.io.File
 
 /**
@@ -35,5 +39,13 @@ class ExecFileButton : FileLinkButton {
             }
             DesktopUtil.open(file)
         }
+
+        val miDel = MenuItem("删除")
+        miDel.onAction= EventHandler {
+            (parent as Pane).children.remove(this)
+            ExecFileDao.delByUniqueKey(vo)
+        }
+        val ctMenu = ContextMenu(miDel)
+        contextMenu = ctMenu
     }
 }

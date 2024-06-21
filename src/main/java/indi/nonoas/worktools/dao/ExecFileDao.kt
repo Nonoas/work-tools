@@ -32,4 +32,11 @@ object ExecFileDao {
         """.trimIndent(),
         ExecFileVo::class.java, keyword
     )
+
+    fun delByUniqueKey(vo: ExecFileVo): Int {
+        if (vo.id == 0L) {
+            return DBUtil.use().del(TABLE_NAME, "link", vo.link)
+        }
+        return DBUtil.use().del(TABLE_NAME, "id", vo.id)
+    }
 }

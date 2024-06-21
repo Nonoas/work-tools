@@ -42,10 +42,11 @@ class ExecFilePane(spacing: Double) : VBox(spacing) {
 
         // 添加到面板
         val buttons = files.map {
-            ExecFileButton().apply {
-                text = it.name
-                graphic = ImageView(UIUtil.getFileIcon(it))
+            val vo = ExecFileVo().apply {
+                name = it.name
+                link = it.absolutePath
             }
+            ExecFileButton(vo)
         }
         flowPane.children.addAll(0, buttons)
         // 添加到数据库
