@@ -78,7 +78,7 @@ class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
             }
 
             KeyCode.ENTER -> {
-                buttonList.peek().fire()
+                buttonList.peek()?.fire()
                 event.consume()
             }
 
