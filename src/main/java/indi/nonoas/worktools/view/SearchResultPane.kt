@@ -13,6 +13,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.VBox
+import javafx.stage.Stage
 import java.util.LinkedList
 
 /**
@@ -78,7 +79,11 @@ class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
             }
 
             KeyCode.ENTER -> {
-                buttonList.peek()?.fire()
+                val peek = buttonList.peek()
+                peek?.fire()
+                if (peek is ExecFileButton) {
+                    (scene.window as Stage).close()
+                }
                 event.consume()
             }
 
@@ -101,20 +106,21 @@ class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
 
         fun build(): SearchResultPane {
             val pane = SearchResultPane()
+
+            val execPane = FlowPane(CommonInsets.SPACING_1, CommonInsets.SPACING_1).apply {
+                for (execVo in execFiles) {
+                    val button = ExecFileButton(execVo)
+                    children.add(button)
+                    pane.buttonList.add(button)
+                }
+            }
+
             val funcPane = FlowPane(CommonInsets.SPACING_1, CommonInsets.SPACING_1).apply {
                 for (funcSetting in funcSettings) {
                     val button = Button(funcSetting.getFuncName())
                     button.onAction = EventHandler {
                         MainStage.instance!!.routeCenter(funcSetting.getFuncCode())
                     }
-                    children.add(button)
-                    pane.buttonList.add(button)
-                }
-            }
-
-            val execPane = FlowPane(CommonInsets.SPACING_1, CommonInsets.SPACING_1).apply {
-                for (execVo in execFiles) {
-                    val button = ExecFileButton(execVo)
                     children.add(button)
                     pane.buttonList.add(button)
                 }
