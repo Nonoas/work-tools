@@ -212,7 +212,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                 if (null != tfSearchEventHandler) {
                     tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, tfSearchEventHandler)
                 }
-                println("移除监听")
                 return@onTextChanged
             }
             val qry = FuncSettingQry().apply {
