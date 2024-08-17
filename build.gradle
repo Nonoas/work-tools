@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'io.github.fvarrui:javapackager:1.7.5'
+        classpath 'io.github.fvarrui:javapackager:1.7.6'
     }
 }
 
@@ -80,8 +80,8 @@ tasks.register('packageMyApp', PackageTask) {
     // mandatory
     mainClass = mainClassName
     // optional
-    modules = ["java.base", "java.management", "java.net.http", "java.scripting", "java.sql", "java.naming",
-               "jdk.jsobject", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom"]
+//    modules = ["java.base", "java.management", "java.net.http", "java.scripting", "java.sql", "java.naming",
+//               "jdk.jsobject", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom"]
     bundleJre = true
     generateInstaller = false
     administratorRequired = false
