@@ -82,6 +82,9 @@ class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
                 val peek = buttonList.peek()
                 peek?.fire()
                 if (peek is ExecFileButton) {
+                    if (scene == null) {
+                        return
+                    }
                     (scene.window as Stage).close()
                 }
                 event.consume()
