@@ -72,3 +72,7 @@
 .titled-pane .content {
     -fx-padding: 10 20;
 }
+
+.search-button-selected {
+    -fx-background-color: -color-button-border-focused, -color-button-bg-hover;
+}

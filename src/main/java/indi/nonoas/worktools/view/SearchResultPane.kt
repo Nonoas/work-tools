@@ -4,14 +4,16 @@ import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.view.launcher.ExecFileButton
-import indi.nonoas.worktools.view.launcher.ExecFilePane
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.TitledPane
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.VBox
+import java.util.LinkedList
 
 /**
  * 全局搜索框的返回结果面板
@@ -20,7 +22,7 @@ import javafx.scene.layout.VBox
  * @author Nonoas
  * @date 2024/5/28
  */
-class SearchResultPane private constructor() : VBox() {
+class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
 
     private val tpScript = TitledPane("脚本", Label("脚本")).apply {
         styleClass.add("non-border")
@@ -29,9 +31,59 @@ class SearchResultPane private constructor() : VBox() {
         styleClass.add("non-border")
     }
 
+    companion object {
+        const val SEARCH_BUTTON_SELECTED = "search-button-selected"
+    }
+
+    /**
+     *  用于遍历按钮
+     */
+    private val buttonList = LinkedList<Button>()
+
     init {
         children.addAll(tpScript, tpFunc)
         padding = Insets(1.0)
+    }
+
+    private fun nextButton() {
+        if (buttonList.isEmpty()) {
+            return
+        }
+        val poll = buttonList.poll()
+        poll.styleClass.remove(SEARCH_BUTTON_SELECTED)
+        buttonList.offer(poll)
+        buttonList.peek().styleClass.add(SEARCH_BUTTON_SELECTED)
+    }
+
+    private fun preButton() {
+        if (buttonList.isEmpty()) {
+            return
+        }
+        buttonList.peek().styleClass.remove(SEARCH_BUTTON_SELECTED)
+        val last = buttonList.removeLast()
+        last.styleClass.add(SEARCH_BUTTON_SELECTED)
+        buttonList.push(last)
+    }
+
+    override fun handle(event: KeyEvent) {
+        when (event.code) {
+            KeyCode.LEFT -> {
+                preButton()
+                event.consume()
+            }
+
+            KeyCode.RIGHT -> {
+                nextButton()
+                event.consume()
+            }
+
+            KeyCode.ENTER -> {
+                buttonList.peek().fire()
+                event.consume()
+            }
+
+            else -> return
+        }
     }
 
     class Builder {
@@ -56,6 +108,7 @@ class SearchResultPane private constructor() : VBox() {
                         MainStage.instance!!.routeCenter(funcSetting.getFuncCode())
                     }
                     children.add(button)
+                    pane.buttonList.add(button)
                 }
             }
 
@@ -63,8 +116,14 @@ class SearchResultPane private constructor() : VBox() {
                 for (execVo in execFiles) {
                     val button = ExecFileButton(execVo)
                     children.add(button)
+                    pane.buttonList.add(button)
                 }
             }
+
+            if (pane.buttonList.isNotEmpty()) {
+                pane.buttonList.peek().styleClass.add(SEARCH_BUTTON_SELECTED)
+            }
+
             pane.tpFunc.content = funcPane
             pane.tpScript.content = execPane
 

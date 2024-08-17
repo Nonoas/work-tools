@@ -30,6 +30,7 @@ import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
 import org.apache.logging.log4j.LogManager
@@ -66,6 +67,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 当前功能代码索引，当前切换到 funcCodeList 的第几个元素
      */
     private var currFuncIndex = 0
+
+    private var tfSearchEventHandler: EventHandler<KeyEvent>? = null
 
     init {
         initView()
@@ -201,9 +204,14 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         }
 
         tfSearch.left = label
+
         tfSearch.onTextChanged { n ->
             if (StrUtil.isEmpty(n)) {
                 rootPane.center = fpFuncList
+
+                if (null != tfSearchEventHandler) {
+                    tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, tfSearchEventHandler)
+                }
                 return@onTextChanged
             }
             val qry = FuncSettingQry().apply {
@@ -219,6 +227,9 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                 .execFiles(execFiles)
                 .build()
             rootPane.center = resultPane
+
+            this.tfSearchEventHandler = resultPane
+            tfSearch.addEventHandler(KeyEvent.KEY_PRESSED, tfSearchEventHandler)
         }
     }
 
