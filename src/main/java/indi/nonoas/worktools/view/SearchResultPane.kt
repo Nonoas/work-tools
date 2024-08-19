@@ -79,8 +79,8 @@ class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
             }
 
             KeyCode.ENTER -> {
-                val peek = buttonList.peek()
-                peek?.fire()
+                val peek = buttonList.peek() ?: return
+                peek.fire()
                 if (peek is ExecFileButton) {
                     if (scene == null) {
                         return

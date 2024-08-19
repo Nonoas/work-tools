@@ -206,12 +206,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         tfSearch.left = label
 
         tfSearch.onTextChanged { n ->
+            // 移除旧的监听
+            if (null != tfSearchEventHandler) {
+                tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, tfSearchEventHandler)
+            }
+
             if (StrUtil.isEmpty(n)) {
                 rootPane.center = fpFuncList
-
-                if (null != tfSearchEventHandler) {
-                    tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, tfSearchEventHandler)
-                }
                 return@onTextChanged
             }
             val qry = FuncSettingQry().apply {
