@@ -12,3 +12,6 @@ config:
 
     - name: ExecFile
       impl: indi.nonoas.worktools.controller.ExecFileController
+
+    - name: SQLTransfer
+      impl: indi.nonoas.worktools.controller.SQLTransferController

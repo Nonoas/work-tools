@@ -240,9 +240,12 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
         var btnFunc: Button
         for (func in funcEnabledMap.values) {
-            btnFunc = Button(func.funcName)
-            btnFunc.onAction = EventHandler {
-                routeCenter(func.funcCode)
+            btnFunc = Button(func.funcName).apply {
+                prefWidth = 90.0
+                prefHeight = 90.0
+                onAction = EventHandler {
+                    routeCenter(func.funcCode)
+                }
             }
             fpFuncList.children.add(btnFunc)
         }

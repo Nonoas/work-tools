@@ -6,8 +6,9 @@ import cn.hutool.log.level.Level
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import indi.nonoas.worktools.config.DBConfigEnum
-import java.sql.*
-import java.util.*
+import java.sql.Connection
+import java.sql.PreparedStatement
+import java.sql.ResultSet
 import javax.sql.DataSource
 
 /**

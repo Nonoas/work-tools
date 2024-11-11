@@ -1,6 +1,5 @@
 package indi.nonoas.worktools
 
-import cn.hutool.db.DbUtil
 import com.melloware.jintellitype.JIntellitype
 import github.nonoas.jfx.flat.ui.theme.LightTheme
 import indi.nonoas.worktools.common.Identifier
@@ -8,12 +7,10 @@ import indi.nonoas.worktools.config.DBConfigEnum
 import indi.nonoas.worktools.config.FlyWayMigration
 import indi.nonoas.worktools.global.Manifest
 import indi.nonoas.worktools.ui.TaskHandler
-import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.ui.component.ExceptionAlter
 import indi.nonoas.worktools.ui.component.MyAlert
 import indi.nonoas.worktools.utils.DBUtil
-import indi.nonoas.worktools.utils.UIUtil
 import indi.nonoas.worktools.view.MainStage
 import javafx.application.Application
 import javafx.application.Platform
