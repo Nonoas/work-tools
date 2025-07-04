@@ -1,7 +1,7 @@
 package indi.nonoas.worktools.ext;
 
 /**
- * 插件封装类
+ * 插件封装
  *
  * @author Nonoas
  * @datetime 2022/2/6 17:59

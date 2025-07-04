@@ -95,6 +95,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         }
 
         stage.isAlwaysOnTop = true
+        stage.height = 500.0
+        stage.width = 600.0
 
         // 菜单栏
         initMenuBar()
@@ -120,8 +122,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         rootPane.apply {
             top = toolBar
             center = fpFuncList
-            prefHeight = 500.0
-            prefWidth = 600.0
         }
         setContentView(rootPane)
     }
