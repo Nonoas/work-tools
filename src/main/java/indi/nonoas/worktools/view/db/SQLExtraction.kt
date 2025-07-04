@@ -160,24 +160,9 @@ class SQLExtraction private constructor() : VBox(10.0) {
     }
 
     companion object {
-        //同步代码块
-        //对外提供获取实例对象的方法
-        //声明私有静态对象，用volatile修饰
-        @Volatile
-        var instance: SQLExtraction? = null
-            get() {
-                if (field == null) {
-                    //同步代码块
-                    synchronized(SQLExtraction::class.java) {
-                        if (field == null) {
-                            field = SQLExtraction()
-                        }
-                    }
-                }
-                return field
-            }
-            private set
-
+        val instance: SQLExtraction by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+            SQLExtraction()
+        }
         private const val PKEY_SQL_PREFIX = "SQLExtraction\$sqlPrefix"
     }
 

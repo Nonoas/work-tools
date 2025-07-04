@@ -1,11 +1,9 @@
 package indi.nonoas.worktools.ui
 
-import javafx.beans.value.ObservableValue
 import javafx.concurrent.Task
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Executors
 import java.util.function.Consumer
-import java.util.function.Supplier
 
 /**
  * 用于新建一个线程执行一个操作，并对返回值做出响应
@@ -15,62 +13,54 @@ import java.util.function.Supplier
  */
 class TaskHandler<T> {
 
-    private var whenCall: Supplier<T>? = null
+    private var whenCall: (() -> T)? = null
     private var andThen: Consumer<T>? = null
-    private val task: Task<T> = object : Task<T>() {
+
+    private val task = object : Task<T>() {
         override fun call(): T {
-            try {
-                return whenCall!!.get()
-            } catch (e:Throwable) {
-                LOG.error(e)
+            return try {
+                checkNotNull(whenCall) { "whenCall 未设置" }.invoke()
+            } catch (e: Throwable) {
+                LOG.error("任务执行异常", e)
                 throw e
             }
         }
     }
 
     init {
-        task.valueProperty().addListener { _: ObservableValue<out T>?, _: T, newValue: T ->
-            if (null != andThen) {
-                andThen!!.accept(newValue)
-            }
+        task.valueProperty().addListener { _, _, newValue ->
+            andThen?.accept(newValue)
         }
     }
 
     /**
-     * 当线程执行时调用，在子线程执行
-     *
-     * @return 返回处理结果
+     * 设置任务，子线程执行
      */
-    fun whenCall(supplier: Supplier<T>): TaskHandler<T> {
-        whenCall = supplier
-        return this
+    fun whenCall(supplier: () -> T) = apply {
+        this.whenCall = supplier
     }
 
     /**
-     * 当线程结果返回时调用，在 UI 线程执行
+     * 设置回调，UI线程执行
      */
-    fun andThen(consumer: Consumer<T>?): TaskHandler<T> {
-        andThen = consumer
-        return this
+    fun andThen(consumer: Consumer<T>) = apply {
+        this.andThen = consumer
     }
 
     fun handle() {
         checkNotNull(whenCall) { "未调用 whenCall 指定执行任务" }
-        val service = Executors.newSingleThreadExecutor()
-        service.execute(task)
-        service.shutdown()
+        THREAD_POOL.execute(task)
     }
 
-    companion object{
+    companion object {
         private val LOG = LogManager.getLogger(TaskHandler::class)
+        private val THREAD_POOL = Executors.newCachedThreadPool()
 
         /**
-         * 后台运行耗时任务
+         * 简单后台任务
          */
-        fun backRun(run: Runnable) {
-            val service = Executors.newSingleThreadExecutor()
-            service.execute(run)
-            service.shutdown()
+        fun backRun(run: () -> Unit) {
+            THREAD_POOL.execute(run)
         }
     }
 }

@@ -61,7 +61,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     /**
      * 功能代码保存
      */
-    private var funcEnabledMap = HashMap<String, FuncSettingDto>()
+    private var funcEnabledMap = emptyMap<String, FuncSettingDto>()
 
     /**
      * 当前功能代码索引，当前切换到 funcCodeList 的第几个元素
@@ -87,6 +87,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         stage.heightProperty().addListener { _, _, newValue ->
             height = newValue.toDouble()
         }
+
         // 监听窗口显示
         stage.showingProperty().addListener { _, _, newValue ->
             if (newValue) {
@@ -94,9 +95,11 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             }
         }
 
-        stage.isAlwaysOnTop = true
-        stage.height = 500.0
-        stage.width = 600.0
+        stage.apply {
+            isAlwaysOnTop = true
+            height = 500.0
+            width = 600.0
+        }
 
         // 菜单栏
         initMenuBar()
@@ -106,15 +109,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         refreshFuncPane()
 
         initScene()
-
     }
 
     private fun initScene() {
         val kcToggleFunc = KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN)
-
-        stage.scene.apply {
-            accelerators[kcToggleFunc] = Runnable {
-                val keys = funcEnabledMap.keys.toList()
+        stage.scene.accelerators[kcToggleFunc] = Runnable {
+            val keys = funcEnabledMap.keys.toList()
+            if (keys.isNotEmpty()) {
                 routeCenter(keys[++currFuncIndex % keys.size])
             }
         }
@@ -133,63 +134,58 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         // 设置
         val menuSetting = Menu(null, UIFactory.createMenuButton())
 
-        val itemFunc = MenuItem("功能")
-        itemFunc.onAction = EventHandler {
-            FunctionSettingStage().show()
+        val itemFunc = MenuItem("功能").apply {
+            onAction = EventHandler { FunctionSettingStage().show() }
         }
 
         // 插件
         val menuPlugin = Menu("插件")
-        val plugins = PluginLoader.load()
-        var item: MenuItem
-        for (plugin in plugins) {
-            item = MenuItem((plugin.name))
-            menuPlugin.setOnAction { plugin.service.service() }
+        PluginLoader.load().forEach { plugin ->
+            val item = MenuItem(plugin.name)
+            item.onAction = EventHandler { plugin.service.service() }
             menuPlugin.items.add(item)
         }
 
-        val itemAbout = MenuItem("关于")
-        val itemUpgrade = MenuItem("更新")
-        itemAbout.onAction = EventHandler { AboutAlerts.instance?.show() }
-        itemUpgrade.onAction = EventHandler { /* todo */ }
+        val itemAbout = MenuItem("关于").apply {
+            onAction = EventHandler { AboutAlerts.instance?.show() }
+        }
+        val itemUpgrade = MenuItem("更新").apply {
+            onAction = EventHandler { /* todo */ }
+        }
 
         menuSetting.items.addAll(itemFunc, menuPlugin, itemUpgrade, itemAbout)
 
-        menuBar.menus.addAll(menuSetting)
+        menuBar.menus.add(menuSetting)
         menuBar.isFocusTraversable = false
         menuBar.styleClass.add("svg-button")
 
-        val pinButton = UIFactory.createPinButton(stage)
-        val tooltip = Tooltip("窗口置顶")
-        Tooltip.install(pinButton, tooltip)
-        systemButtons.addAll(0, CollectionUtil.toList(pinButton, menuBar))
+        val pinButton = UIFactory.createPinButton(stage).also {
+            Tooltip.install(it, Tooltip("窗口置顶"))
+        }
+
+        systemButtons.addAll(0, listOf(pinButton, menuBar))
     }
 
     /**
      * 初始化工具栏
      */
     private fun initToolBar() {
-
-        val btnListFunc = Button(null, FontIcon(Material2MZ.MENU))
-        btnListFunc.styleClass.add(Styles.BUTTON_ICON)
-        btnListFunc.onAction = EventHandler {
-            rootPane.center = fpFuncList
+        val btnListFunc = Button(null, FontIcon(Material2MZ.MENU)).apply {
+            styleClass.add(Styles.BUTTON_ICON)
+            onAction = EventHandler { rootPane.center = fpFuncList }
         }
+
         toolBar.items.add(btnListFunc)
 
         // 搜索框
         initSearchTextField()
         toolBar.items.add(tfSearch)
 
-        Tooltip.install(
-            lbTips, Tooltip(
-                """
+        Tooltip.install(lbTips, Tooltip("""
             快捷键：
             Ctrl+Q  切换界面
             Alt+Shift+M  显示/隐藏窗口
-        """.trimIndent()
-            )
-        )
+        """.trimIndent()))
         toolBar.items.add(lbTips)
         registryDragger(toolBar)
     }
@@ -198,54 +194,48 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 初始化功能搜索框
      */
     private fun initSearchTextField() {
-        val label = Label("Qry_>").apply {
+        tfSearch.left = Label("Qry_>").apply {
             styleClass.addAll("hint", TEXT_MUTED, TEXT_SMALL)
             tooltip = Tooltip("搜索模式")
         }
 
-        tfSearch.left = label
-
-        tfSearch.onTextChanged { n ->
-            // 移除旧的监听
-            if (null != tfSearchEventHandler) {
-                tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, tfSearchEventHandler)
+        tfSearch.onTextChanged { query ->
+            tfSearchEventHandler?.let {
+                tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, it)
             }
 
-            if (StrUtil.isEmpty(n)) {
+            if (query.isNullOrBlank()) {
                 rootPane.center = fpFuncList
                 return@onTextChanged
             }
+
             val qry = FuncSettingQry().apply {
-                funcCode = n
-                funcName = n
+                funcCode = query
+                funcName = query
                 enableFlag = true
                 pageSize = 10
             }
-            val funcSettings = funcService.search(qry)
-            val execFiles = ExecFileDao.search(n!!)
-            val resultPane = SearchResultPane.Builder()
-                .funcSettings(funcSettings)
-                .execFiles(execFiles)
-                .build()
-            rootPane.center = resultPane
 
-            this.tfSearchEventHandler = resultPane
-            tfSearch.addEventHandler(KeyEvent.KEY_PRESSED, tfSearchEventHandler)
+            val resultPane = SearchResultPane.Builder()
+                .funcSettings(funcService.search(qry))
+                .execFiles(ExecFileDao.search(query))
+                .build()
+
+            rootPane.center = resultPane
+            tfSearchEventHandler = resultPane
+            tfSearch.addEventHandler(KeyEvent.KEY_PRESSED, resultPane)
         }
     }
 
     private fun refreshFuncPane() {
         fpFuncList.children.clear()
-        funcEnabledMap = getSettingMap().filter { it.value.isEnableFlag } as HashMap<String, FuncSettingDto>
+        funcEnabledMap = getSettingMap().filterValues { it.isEnableFlag }
 
-        var btnFunc: Button
-        for (func in funcEnabledMap.values) {
-            btnFunc = Button(func.funcName).apply {
+        funcEnabledMap.values.forEach { func ->
+            val btnFunc = Button(func.funcName).apply {
                 prefWidth = 90.0
                 prefHeight = 90.0
-                onAction = EventHandler {
-                    routeCenter(func.funcCode)
-                }
+                onAction = EventHandler { routeCenter(func.funcCode) }
             }
             fpFuncList.children.add(btnFunc)
         }
@@ -256,36 +246,30 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      */
     fun routeCenter(funcCode: String) {
         val rootView = FuncManager.getRootView(funcCode)
-        if (null == rootView) {
-            log.error("没有找到功能号${funcCode}对应的面板")
+        if (rootView == null) {
+            log.error("没有找到功能号$funcCode 对应的面板")
             return
         }
         rootPane.center = rootView
-        setTitle("${TITLE}-${funcEnabledMap[funcCode]?.funcName}")
+        setTitle("$TITLE-${funcEnabledMap[funcCode]?.funcName}")
     }
 
     /**
      * 获取工具栏配置
      * @return K:菜单编码 V:配置数据对象
      */
-    private fun getSettingMap(): HashMap<String, FuncSettingDto> {
-        val map = HashMap<String, FuncSettingDto>()
-        val list = FuncSettingDao(DBUtil.getConnection()).getAll()
-        for (dto in list) {
-            map[dto.funcCode] = dto
-        }
-        return map
+    private fun getSettingMap(): Map<String, FuncSettingDto> {
+        return FuncSettingDao(DBUtil.getConnection())
+            .getAll()
+            .associateBy { it.funcCode }
     }
 
     /**
      * 文本变化监听器
      */
     private fun TextField.onTextChanged(action: (String?) -> Unit) {
-        textProperty().addListener { _, _, newValue ->
-            action(newValue)
-        }
+        textProperty().addListener { _, _, newValue -> action(newValue) }
     }
-
 
     /**
      * 使窗口显示出来，并显示为上一次窗口隐藏时的大小
@@ -308,7 +292,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         var instance: MainStage? = null
             get() {
                 if (field != null) return field
-                // 同步代码块
                 synchronized(MainStage::class.java) {
                     if (field == null) {
                         field = MainStage()
