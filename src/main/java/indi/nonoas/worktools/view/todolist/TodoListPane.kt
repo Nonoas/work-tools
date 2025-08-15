@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.view.todolist
 
+import TodoListView
 import indi.nonoas.worktools.common.CommonInsets
 import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.MyAlert
@@ -29,7 +30,7 @@ class TodoListPane : VBox(10.0) {
 
     private val listView = TodoListView()
 
-    private val btnAdd = UIFactory.getPrimaryButton("+").apply {
+    private val btnAdd = UIFactory.getPrimaryButton("添加待办").apply {
         maxWidth = Double.MAX_VALUE
     }
 

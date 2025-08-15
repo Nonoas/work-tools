@@ -2,7 +2,6 @@ package indi.nonoas.worktools.controller
 
 import indi.nonoas.worktools.common.FuncCode
 import indi.nonoas.worktools.ui.FuncPaneFactory
-import indi.nonoas.worktools.view.fileencode.FileEncodePane
 import javafx.scene.Parent
 
 /**

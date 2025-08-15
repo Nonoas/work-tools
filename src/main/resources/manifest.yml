@@ -15,3 +15,9 @@ config:
 
     - name: SQLTransfer
       impl: indi.nonoas.worktools.controller.SQLTransferController
+
+    - name: TodoList
+      impl: indi.nonoas.worktools.controller.TodoListController
+
+    - name: FileEncode
+      impl: indi.nonoas.worktools.controller.FileEncodeController
