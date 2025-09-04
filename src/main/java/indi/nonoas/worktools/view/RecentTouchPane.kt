@@ -10,13 +10,16 @@ import indi.nonoas.worktools.utils.UIUtil
 import javafx.event.EventHandler
 import javafx.geometry.Pos
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.MenuItem
+import javafx.scene.control.Tooltip
 import javafx.scene.image.ImageView
 import javafx.scene.input.DragEvent
 import javafx.scene.input.MouseButton
 import javafx.scene.input.TransferMode
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import org.apache.logging.log4j.LogManager
@@ -55,26 +58,57 @@ class RecentTouchPane private constructor() : VBox(10.0) {
 
                 override fun updateItem(item: RtpLinkListVo?, empty: Boolean) {
                     super.updateItem(item, empty)
-                    if (empty || null == item) {
+                    if (empty || item == null) {
                         graphic = null
                         text = null
                         return
                     }
+
                     val file = File(item.link)
                     val fxImage = UIUtil.getFileIcon(file, 16)
-                    text = item.name
-                    graphic = ImageView(fxImage).apply {
-                        isPreserveRatio = true
-                        isSmooth = true
+
+                    // 文件名 Label
+                    val nameLabel = Label(item.name)
+
+                    // 路径 Label（灰色，截断显示）
+                    val pathLabel = Label(file.absolutePath).apply {
+                        style = "-fx-text-fill: #A0A0A0;"
+                        isWrapText = false
+                        maxWidth = 200.0        // 限制宽度，避免撑开
+                        ellipsisString = "..."  // JavaFX 9+ 有效；老版本可以用 CSS
                     }
+
+                    // Tooltip 显示完整路径
+                    val tooltip = Tooltip(file.absolutePath)
+                    Tooltip.install(pathLabel, tooltip)
+                    Tooltip.install(nameLabel, tooltip)
+
+                    HBox.setHgrow(pathLabel, Priority.ALWAYS)
+                    val textBox = HBox(nameLabel, pathLabel).apply {
+                        spacing = 5.0
+                        alignment = Pos.CENTER_LEFT
+                    }
+
+                    graphic = HBox(
+                        ImageView(fxImage).apply {
+                            isPreserveRatio = true
+                            isSmooth = true
+                        },
+                        textBox
+                    ).apply {
+                        spacing = 8.0
+                        alignment = Pos.CENTER_LEFT
+                    }
+
+                    // 右键菜单
                     val menuDel = MenuItem("删除")
                     menuDel.onAction = EventHandler {
                         items.remove(item)
                         TaskHandler.backRun { RtpLinkListDao.delById(item.id!!) }
                     }
-                    val contextMenu = ContextMenu(menuDel)
-                    setContextMenu(contextMenu)
+                    contextMenu = ContextMenu(menuDel)
                 }
+
             }
         }
     }
@@ -162,19 +196,8 @@ class RecentTouchPane private constructor() : VBox(10.0) {
     }
 
     companion object {
-        @Volatile
-        var instance: RecentTouchPane? = null
-            get() {
-                if (field == null) {
-                    // 同步代码块
-                    synchronized(RecentTouchPane::class.java) {
-                        if (field == null) {
-                            field = WeakReference(RecentTouchPane()).get()
-                        }
-                    }
-                }
-                return field
-            }
+        @JvmStatic
+        val instance: RecentTouchPane by lazy { RecentTouchPane() }
     }
 
     // 私有构造器
