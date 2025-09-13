@@ -1,10 +1,7 @@
 package indi.nonoas.worktools.view
 
-import cn.hutool.setting.dialect.Props
 import indi.nonoas.worktools.global.Manifest
-import indi.nonoas.worktools.ui.component.ExceptionAlter
 import indi.nonoas.worktools.ui.component.MyAlert
-import java.util.Properties
 
 /**
  * @author Nonoas
