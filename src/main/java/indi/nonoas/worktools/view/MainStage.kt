@@ -259,7 +259,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * @return K:菜单编码 V:配置数据对象
      */
     private fun getSettingMap(): Map<String, FuncSettingDto> {
-        return FuncSettingDao(DBUtil.getConnection())
+        return FuncSettingDao()
             .getAll()
             .associateBy { it.funcCode }
     }

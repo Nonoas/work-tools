@@ -9,6 +9,7 @@ import indi.nonoas.worktools.ui.TaskHandler
 import indi.nonoas.worktools.ui.UIFactory
 import indi.nonoas.worktools.ui.component.BaseStage
 import indi.nonoas.worktools.utils.DBUtil
+import indi.nonoas.worktools.utils.DBUtil.withTransaction
 import javafx.collections.FXCollections
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -61,7 +62,7 @@ class FunctionSettingStage : BaseStage() {
 
         TaskHandler<List<FuncSettingVo>>()
             .whenCall {
-                val settingList = FuncSettingDao(DBUtil.getConnection()).getAll()
+                val settingList = FuncSettingDao().getAll()
                 vos = settingList.map(FuncSettingDto::convertVo)
                 vos
             }.andThen {
@@ -128,13 +129,12 @@ class FunctionSettingStage : BaseStage() {
         TaskHandler<Int?>()
             .whenCall {
                 var result = 0
-                val conn = DBUtil.getConnection()
-                conn.autoCommit = false
-                val dao = FuncSettingDao(conn)
-                result += dao.deleteAll()
-                result += Arrays.stream(dao.insertBatch(vos)).sum()
-                conn.commit()
-                if (result != 0) result else null
+                DBUtil.withTransaction { conn ->
+                    val dao = FuncSettingDao()
+                    result += dao.deleteAll()
+                    result += Arrays.stream(dao.insertBatch(vos)).sum()
+                    return@whenCall if (result != 0) result else null
+                }
             }
             .andThen {
                 this.close()

@@ -8,13 +8,16 @@ import java.sql.Connection;
  */
 public abstract class BaseDao {
 
-	private final Connection conn;
+    private Connection conn;
 
-	public BaseDao(Connection conn) {
-		this.conn = conn;
-	}
+    public BaseDao() {
+    }
 
-	public Connection getConnection() {
-		return this.conn;
-	}
+    public BaseDao(Connection conn) {
+        this.conn = conn;
+    }
+
+    public Connection getConnection() {
+        return this.conn;
+    }
 }

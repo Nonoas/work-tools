@@ -15,7 +15,7 @@ import java.util.function.Consumer
  */
 class FuncSettingService : IFuncSettingService {
 
-    private val dao = FuncSettingDao(null)
+    private val dao = FuncSettingDao()
 
     override fun search(qry: FuncSettingQry): PageResult<FuncSettingVo> {
         val pos = dao.pageBy(qry) ?: return PageResult<FuncSettingVo>()

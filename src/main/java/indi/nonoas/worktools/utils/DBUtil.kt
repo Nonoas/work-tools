@@ -20,7 +20,7 @@ object DBUtil {
 
     private lateinit var ds: DataSource
 
-    fun init(){
+    fun init() {
         // 数据源配置
         val config = HikariConfig()
         config.jdbcUrl = DBConfigEnum.WORKTOOLS.url
@@ -40,16 +40,42 @@ object DBUtil {
         return ds.connection
     }
 
+    inline fun <T> useConnection(block: (Connection) -> T): T {
+        getConnection().use {
+            return block(it)
+        }
+    }
+
+    inline fun <T> DBUtil.withTransaction(block: (Connection) -> T): T {
+        return useConnection { conn ->
+            val oldAutoCommit = conn.autoCommit
+            try {
+                conn.autoCommit = false
+                val result = block(conn)
+                conn.commit()
+                result
+            } catch (ex: Exception) {
+                conn.rollback()
+                throw ex
+            } finally {
+                conn.autoCommit = oldAutoCommit // 恢复原始状态，避免影响池子
+            }
+        }
+    }
+
+
     /**
      * 执行更新语句 update 或 delete
      * @param ps PreparedStatement对象
      * @param args 可变参数
      */
     fun executeUpdate(ps: PreparedStatement, vararg args: Any): Int {
-        for (i in args.indices) {
-            ps.setObject(i + 1, args[i])
+        ps.use {
+            for (i in args.indices) {
+                ps.setObject(i + 1, args[i])
+            }
+            return ps.executeUpdate()
         }
-        return ps.executeUpdate()
     }
 
     /**
