@@ -69,12 +69,14 @@ object DBUtil {
      * @param ps PreparedStatement对象
      * @param args 可变参数
      */
-    fun executeUpdate(ps: PreparedStatement, vararg args: Any): Int {
-        ps.use {
-            for (i in args.indices) {
-                ps.setObject(i + 1, args[i])
+    fun executeUpdate(sql: String, vararg args: Any): Int {
+        useConnection { conn ->
+            conn.prepareStatement(sql).use { ps ->
+                for (i in args.indices) {
+                    ps.setObject(i + 1, args[i])
+                }
+                return ps.executeUpdate()
             }
-            return ps.executeUpdate()
         }
     }
 

@@ -58,11 +58,7 @@ class FuncSettingDao : BaseDao() {
 
     /** 删除全部数据 */
     fun deleteAll(): Int {
-        DBUtil.useConnection { connection ->
-            val ps = connection.prepareStatement("delete from func_setting where 1=1")
-            return DBUtil.executeUpdate(ps)
-        }
-
+        return DBUtil.executeUpdate("delete from func_setting where 1=1")
     }
 
     /**
