@@ -38,8 +38,8 @@ import java.lang.ref.WeakReference
 class RecentTouchPane private constructor() : VBox(10.0) {
 
     private val lv = ListView<RtpLinkListVo>().apply {
-        setCellFactory { _ ->
-            object : ListCell<RtpLinkListVo>() {
+        setCellFactory { lv ->
+            val cell = object : ListCell<RtpLinkListVo>() {
 
                 init {
                     onMouseClicked = EventHandler { event ->
@@ -74,8 +74,8 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                     val pathLabel = Label(file.absolutePath).apply {
                         style = "-fx-text-fill: #A0A0A0;"
                         isWrapText = false
-                        maxWidth = 200.0        // 限制宽度，避免撑开
                         ellipsisString = "..."  // JavaFX 9+ 有效；老版本可以用 CSS
+                        minWidth = 0.0
                     }
 
                     // Tooltip 显示完整路径
@@ -84,20 +84,18 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                     Tooltip.install(nameLabel, tooltip)
 
                     HBox.setHgrow(pathLabel, Priority.ALWAYS)
-                    val textBox = HBox(nameLabel, pathLabel).apply {
-                        spacing = 5.0
-                        alignment = Pos.CENTER_LEFT
-                    }
 
                     graphic = HBox(
                         ImageView(fxImage).apply {
                             isPreserveRatio = true
                             isSmooth = true
                         },
-                        textBox
+                        nameLabel,
+                        pathLabel
                     ).apply {
                         spacing = 8.0
                         alignment = Pos.CENTER_LEFT
+                        maxWidth = Double.MAX_VALUE
                     }
 
                     // 右键菜单
@@ -110,6 +108,8 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                 }
 
             }
+            cell.prefWidthProperty().bind(lv.widthProperty().subtract(5)); // 0 是为了微调，有时需要减去滚动条的宽度
+            cell
         }
     }
 

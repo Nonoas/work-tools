@@ -54,8 +54,8 @@ class FunctionSettingStage : BaseStage() {
             alignment = Pos.CENTER_RIGHT
         }
 
-        val root = VBox(10.0, listView, hBox).apply {
-            padding = Insets(40.0, 20.0, 20.0, 20.0)
+        val root = VBox( listView, hBox).apply {
+            padding = Insets(40.0, 10.0, 20.0, 10.0)
         }
 
         setContentView(root)
