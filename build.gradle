@@ -1,4 +1,5 @@
 import io.github.fvarrui.javapackager.gradle.PackageTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     repositories {
@@ -11,135 +12,113 @@ buildscript {
 }
 
 plugins {
-    // 根项目应用 'java' 插件，用于定义标准的 configuration (如 runtimeClasspath)
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.9.0' apply false
-    id 'org.openjfx.javafxplugin' version '0.1.0' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
 apply plugin: 'io.github.fvarrui.javapackager.plugin'
 
-group 'indi.nonoas'
-version '1.3.3'
+group = 'indi.nonoas'
+version = '1.3.3'
 
-repositories {
-    mavenLocal()
-    mavenCentral()
+sourceCompatibility = '17'
+
+// 命令行指定要打包的可选模块
+def selectedModules = []
+if (project.hasProperty("modules")) {
+    selectedModules = project.property("modules").split(",").collect { it.trim() }.findAll { it }
+}
+println "Selected optional modules: $selectedModules"
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
 }
 
-// 根项目依赖声明：
-// ❗ 这是获取 :platform 模块的所有传递依赖到根项目 'runtimeClasspath' 的关键！
-dependencies {
-    implementation project(':platform')
-}
-
-
-// 统一配置所有子项目
 subprojects {
     apply plugin: 'java'
     apply plugin: 'org.jetbrains.kotlin.jvm'
     apply plugin: 'org.openjfx.javafxplugin'
 
     sourceCompatibility = '17'
+    targetCompatibility = '17'
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
+    // Kotlin jvmTarget
+    tasks.withType(KotlinCompile).configureEach {
+        kotlinOptions.jvmTarget = "17"
     }
 
-    // 假设 jfxVersion 是在 settings.gradle 或 gradle.properties 中定义的
-    javafx {
-        version = jfxVersion
-        modules = ['javafx.controls', "javafx.swing"]
-    }
-
+    // 公共依赖
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"
-        // ⚠️ 注意：如果平台依赖在根项目声明了，这里应该只保留子模块特有的依赖。
-        // 如果这里保留 project(':platform')，它只对当前子模块生效，不会影响根项目的依赖收集。
-        // 根据你的项目设计决定是否保留这行：
-        // implementation project(':platform')
-        // ... 保留所有公共依赖，或移到 platform 模块
+        implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+        implementation 'org.quartz-scheduler:quartz:2.3.2'
+        implementation 'com.h2database:h2:2.2.220'
+        implementation 'com.alibaba.fastjson2:fastjson2:2.0.47'
+        implementation 'org.freemarker:freemarker:2.3.30'
+        implementation 'org.flywaydb:flyway-core:10.12.0'
+        implementation 'cn.hutool:hutool-db:5.8.25'
+        implementation 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
+        implementation 'io.github.nonoas:jfx-flat-ui:1.0.3'
+        implementation 'io.github.mkpaz:atlantafx-base:2.0.1'
+        implementation "org.openjfx:javafx-controls:21.0.3"
+        implementation 'com.google.code.gson:gson:2.8.9'
+        implementation 'org.slf4j:slf4j-api:2.0.9'
+        implementation 'org.yaml:snakeyaml:2.2'
     }
 
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = "17"
+    // 非 platform 模块都引入 platform
+    if (project.name != platformName) {
+        dependencies {
+            implementation project(":$platformName")
         }
     }
 
-    jar {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    javafx {
+        version = jfxVersion
+        modules = ['javafx.controls', 'javafx.swing']
     }
 }
 
-// --- 依赖和 JAR 文件处理任务 ---
 
-def targetLibsDir = "$buildDir/libs/libs"
-
-// 任务 1: 复制 platform 模块的运行时依赖
-tasks.register('copyPlatformDependencies', Copy) {
-    description = '将 platform 模块的所有运行时依赖复制到根项目的 libs/libs 目录下。'
-    group = 'build'
-
-    // 使用根项目的 runtimeClasspath configuration
-    from configurations.runtimeClasspath
-
-    // 指定目标目录
-    into targetLibsDir
+dependencies {
+    implementation project(":$platformName")
 }
 
-// 任务 2: 将 platform 模块的 JAR 移动到根项目的 build/libs 目录下
-tasks.register('movePlatformJar', Copy) {
-    description = '将 platform 模块的 JAR 移动到根项目的 libs 目录下。'
-    group = 'build'
 
-    // 源文件：platform 模块的 jar 任务的输出
-    // 确保 :platform 模块的 build.gradle 定义了 jar 任务
-    from project(':platform').tasks.named('jar').get().archiveFile
-
-    // 目标目录：根项目的 build/libs
-    into "$buildDir/libs"
-}
-
-// 增强 build 任务的依赖
-tasks.named('build') {
-    // 确保在执行 build 时，platform 模块的 jar 任务被执行
-    dependsOn project(':platform').tasks.named('jar')
-
-    // 确保依赖复制任务和 JAR 移动任务都被执行
-    dependsOn tasks.named('copyPlatformDependencies')
-    dependsOn tasks.named('movePlatformJar')
-}
-
-// --- JavaPackager 任务 ---
-
+// 统一打包 thin jar + libs
 tasks.register('packageMyApp', PackageTask) {
-    // 依赖于 clean 和 jar，但现在 jar 任务依赖于我们的新任务，故直接依赖 'build' 更安全
-    // 假设你希望在打包前完成所有构建步骤
-    dependsOn clean, build
+    dependsOn clean
 
-    // mandatory
-    // 假设 mainClassName 已经在外部或另一个配置中定义
+    // 打包哪些模块：platform 必选 + 可选模块
+    def modulesToInclude = ['platform'] + selectedModules
+    println "Modules to package: $modulesToInclude"
+
+    // 确保子模块先 build
+    dependsOn modulesToInclude.collect { ":$it:build" }
+
     mainClass = mainClassName
 
-    // optional
-    modules = ["java.base", "java.management", "java.net.http", "java.scripting", "java.sql", "java.naming",
-               "jdk.jsobject", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom"]
+    // Java 模块配置
+    modules = ["java.base", "java.management", "java.net.http", "java.scripting", "java.sql",
+               "java.naming", "jdk.jsobject", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom"]
+
     bundleJre = true
     generateInstaller = false
     administratorRequired = false
-    winConfig { createZipball = true }
 
-    // ❗ 重点: 确保打包器知道在哪里找到你的应用 JAR 和依赖
-    // Javapackager 通常会自动处理依赖，但为了兼容我们的自定义结构，
-    // 可能需要配置 files 或 classpath。这里假设它能自动找到 build/libs 下的文件。
+    winConfig {
+        createZipball = true
+    }
 }
 
-// 添加全局代理任务
+// 根项目运行 platform
 tasks.register('run') {
-    // 运行 :platform 模块的应用
-    dependsOn ':platform:run'
     group = 'application'
-    description = '运行 platform 模块应用'
+    description = 'Runs the platform module'
+    dependsOn ':platform:run'
 }

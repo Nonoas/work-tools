@@ -3,7 +3,8 @@ enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
 
 rootProject.name = 'worktools'
 
-// 必选平台模块
-include 'platform'
+include(platformName)
 
-include 'modules:boot-launcher'
+file("modules").eachDir { dir ->
+    include(":modules:${dir.name}")
+}
