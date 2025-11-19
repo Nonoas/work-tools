@@ -1,1 +1,9 @@
+// 开启特性
+enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
+
 rootProject.name = 'worktools'
+
+// 必选平台模块
+include 'platform'
+
+include 'modules:boot-launcher'
