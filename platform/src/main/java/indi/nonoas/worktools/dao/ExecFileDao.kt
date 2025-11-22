@@ -1,7 +1,6 @@
 package indi.nonoas.worktools.dao
 
 import cn.hutool.db.Entity
-import indi.nonoas.worktools.pojo.params.FuncSettingQry
 import indi.nonoas.worktools.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.utils.DBUtil
 
@@ -26,7 +25,7 @@ object ExecFileDao {
 
     fun findAll(): List<ExecFileVo> = DBUtil.use().findAll(Entity.create(TABLE_NAME), ExecFileVo::class.java)
 
-    fun search(keyword: String): MutableList<ExecFileVo> = DBUtil.use().query(
+    fun search(keyword: String?): MutableList<ExecFileVo> = DBUtil.use().query(
         """
             select * from $TABLE_NAME where upper(name) like '%'||upper(?)||'%'
         """.trimIndent(),

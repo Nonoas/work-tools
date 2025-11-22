@@ -1,8 +1,6 @@
 package indi.nonoas.worktools.view
 
 import atlantafx.base.controls.CustomTextField
-import cn.hutool.core.collection.CollectionUtil
-import cn.hutool.core.util.StrUtil
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import github.nonoas.jfx.flat.ui.theme.Styles
 import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_MUTED
@@ -17,7 +15,6 @@ import indi.nonoas.worktools.pojo.params.FuncSettingQry
 import indi.nonoas.worktools.service.impl.FuncSettingService
 import indi.nonoas.worktools.ui.Reinitializable
 import indi.nonoas.worktools.ui.component.BaseStage
-import indi.nonoas.worktools.utils.DBUtil
 import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.Label
@@ -140,11 +137,11 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
         // 插件
         val menuPlugin = Menu("插件")
-        PluginLoader.load().forEach { plugin ->
-            val item = MenuItem(plugin.name)
-            item.onAction = EventHandler { plugin.service.service() }
-            menuPlugin.items.add(item)
-        }
+//        PluginLoader.load().forEach { plugin ->
+//            val item = MenuItem(plugin.name)
+//            item.onAction = EventHandler { plugin.service.service() }
+//            menuPlugin.items.add(item)
+//        }
 
         val itemAbout = MenuItem("关于").apply {
             onAction = EventHandler { AboutAlerts.instance?.show() }

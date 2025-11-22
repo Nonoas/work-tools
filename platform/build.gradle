@@ -1,11 +1,11 @@
 plugins {
-    id 'application'
     id 'org.jetbrains.kotlin.jvm'
     id 'org.openjfx.javafxplugin'
 }
 
-application {
-    mainClass = 'indi.nonoas.worktools.MainKt'
+javafx {
+    version = jfxVersion
+    modules = ['javafx.controls', 'javafx.swing']
 }
 
 // platform 独有依赖

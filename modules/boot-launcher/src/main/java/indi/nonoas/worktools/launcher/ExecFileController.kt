@@ -1,8 +1,7 @@
-package indi.nonoas.worktools.controller
+package indi.nonoas.worktools.launcher
 
 import indi.nonoas.worktools.common.FuncCode
 import indi.nonoas.worktools.ui.FuncPaneFactory
-import indi.nonoas.worktools.view.launcher.ExecFilePane
 import javafx.scene.Parent
 
 /**

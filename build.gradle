@@ -13,8 +13,15 @@ buildscript {
 
 plugins {
     id 'java'
+    id 'application'
     id 'org.jetbrains.kotlin.jvm' version '1.9.0'
     id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+
+javafx {
+    version = jfxVersion
+    modules = ['javafx.controls', 'javafx.swing']
 }
 
 apply plugin: 'io.github.fvarrui.javapackager.plugin'
@@ -41,7 +48,6 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'org.jetbrains.kotlin.jvm'
-    apply plugin: 'org.openjfx.javafxplugin'
 
     sourceCompatibility = '17'
     targetCompatibility = '17'
@@ -76,17 +82,31 @@ subprojects {
             implementation project(":$platformName")
         }
     }
-
-
-    javafx {
-        version = jfxVersion
-        modules = ['javafx.controls', 'javafx.swing']
-    }
 }
 
+application {
+    mainClass = 'indi.nonoas.worktools.MainKt'   // 来自 platform
+}
 
 dependencies {
     implementation project(":$platformName")
+    implementation project(":modules:boot-launcher")
+}
+
+tasks.named("run") {
+    dependsOn(":platform:classes")
+    mainClass = mainClassName
+
+    doFirst {
+        def p = project(":platform")
+        def jfx = p.javafx
+        def jfxPath = "${p.buildDir}/javafx-sdk-${jfx.version}/lib"
+
+        jvmArgs += [
+                "--module-path", jfxPath,
+                "--add-modules", jfx.modules.join(",")
+        ]
+    }
 }
 
 
@@ -95,7 +115,7 @@ tasks.register('packageMyApp', PackageTask) {
     dependsOn clean
 
     // 打包哪些模块：platform 必选 + 可选模块
-    def modulesToInclude = ['platform'] + selectedModules
+    def modulesToInclude = [':platform', ':modules:boot-launcher'] + selectedModules
     println "Modules to package: $modulesToInclude"
 
     // 确保子模块先 build
@@ -114,11 +134,4 @@ tasks.register('packageMyApp', PackageTask) {
     winConfig {
         createZipball = true
     }
-}
-
-// 根项目运行 platform
-tasks.register('run') {
-    group = 'application'
-    description = 'Runs the platform module'
-    dependsOn ':platform:run'
 }

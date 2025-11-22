@@ -3,8 +3,10 @@ package indi.nonoas.worktools
 import com.melloware.jintellitype.JIntellitype
 import github.nonoas.jfx.flat.ui.theme.LightTheme
 import indi.nonoas.worktools.common.Identifier
+import indi.nonoas.worktools.common.Searchable
 import indi.nonoas.worktools.config.DBConfigEnum
 import indi.nonoas.worktools.config.FlyWayMigration
+import indi.nonoas.worktools.ext.PluginLoader
 import indi.nonoas.worktools.global.Manifest
 import indi.nonoas.worktools.ui.TaskHandler
 import indi.nonoas.worktools.ui.component.BaseStage
@@ -79,6 +81,7 @@ class App : Application() {
 
     @Throws(Exception::class)
     override fun init() {
+        PluginLoader.load(Searchable::class.java)
         Manifest.init()
         DBUtil.init()
     }

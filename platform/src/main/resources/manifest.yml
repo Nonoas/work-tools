@@ -11,7 +11,7 @@ config:
       impl: indi.nonoas.worktools.controller.JdkVersionController
 
     - name: ExecFile
-      impl: indi.nonoas.worktools.controller.ExecFileController
+      impl: indi.nonoas.worktools.launcher.ExecFileController
 
     - name: SQLTransfer
       impl: indi.nonoas.worktools.controller.SQLTransferController
