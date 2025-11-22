@@ -81,7 +81,7 @@ class App : Application() {
 
     @Throws(Exception::class)
     override fun init() {
-        PluginLoader.load(Searchable::class.java)
+        PluginLoader.load()
         Manifest.init()
         DBUtil.init()
     }
