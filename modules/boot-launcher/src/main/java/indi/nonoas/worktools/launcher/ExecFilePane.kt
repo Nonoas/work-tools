@@ -1,9 +1,9 @@
 package indi.nonoas.worktools.launcher
 
-import indi.nonoas.worktools.common.CommonInsets
-import indi.nonoas.worktools.dao.ExecFileDao
-import indi.nonoas.worktools.pojo.vo.ExecFileVo
-import indi.nonoas.worktools.ui.TaskHandler
+import indi.nonoas.worktools.platform.common.CommonInsets
+import indi.nonoas.worktools.platform.dao.ExecFileDao
+import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
+import indi.nonoas.worktools.platform.ui.TaskHandler
 import javafx.event.EventHandler
 import javafx.scene.input.DragEvent
 import javafx.scene.input.TransferMode

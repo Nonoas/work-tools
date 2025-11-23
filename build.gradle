@@ -31,13 +31,6 @@ version = '1.3.3'
 
 sourceCompatibility = '17'
 
-// 命令行指定要打包的可选模块
-def selectedModules = []
-if (project.hasProperty("modules")) {
-    selectedModules = project.property("modules").split(",").collect { it.trim() }.findAll { it }
-}
-println "Selected optional modules: $selectedModules"
-
 allprojects {
     repositories {
         mavenLocal()
@@ -85,17 +78,26 @@ subprojects {
 }
 
 application {
-    mainClass = 'indi.nonoas.worktools.MainKt'   // 来自 platform
+    mainClass = myMainClassName   // 来自 platform
 }
+
+// 命令行指定要打包的可选模块
+def selectedModules = [
+        ':modules:boot-launcher',
+        ':modules:recent-touch'
+]
+println "Selected optional modules: $selectedModules"
 
 dependencies {
     implementation project(":$platformName")
-    implementation project(":modules:boot-launcher")
+    selectedModules.forEach {
+        implementation project(it)
+    }
 }
 
 tasks.named("run") {
     dependsOn(":platform:classes")
-    mainClass = mainClassName
+    mainClass = myMainClassName
 
     doFirst {
         def p = project(":platform")
@@ -115,13 +117,13 @@ tasks.register('packageMyApp', PackageTask) {
     dependsOn clean
 
     // 打包哪些模块：platform 必选 + 可选模块
-    def modulesToInclude = [':platform', ':modules:boot-launcher'] + selectedModules
+    def modulesToInclude = [':platform'] + selectedModules
     println "Modules to package: $modulesToInclude"
 
     // 确保子模块先 build
     dependsOn modulesToInclude.collect { ":$it:build" }
 
-    mainClass = mainClassName
+    mainClass = myMainClassName
 
     // Java 模块配置
     modules = ["java.base", "java.management", "java.net.http", "java.scripting", "java.sql",

@@ -1,8 +1,8 @@
 package indi.nonoas.worktools.launcher
 
-import indi.nonoas.worktools.common.Searchable
-import indi.nonoas.worktools.dao.ExecFileDao
-import indi.nonoas.worktools.ui.component.FileLinkButton
+import indi.nonoas.worktools.platform.common.Searchable
+import indi.nonoas.worktools.platform.dao.ExecFileDao
+import indi.nonoas.worktools.platform.ui.component.FileLinkButton
 import javafx.stage.Stage
 
 class ExecFileSearcher : Searchable {

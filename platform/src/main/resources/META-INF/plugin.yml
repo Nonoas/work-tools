@@ -1,0 +1,8 @@
+name: indi.nonoas.worktools.platform
+extensions:
+  indi.nonoas.worktools.platform.ui.FuncPaneFactory:
+    - indi.nonoas.worktools.platform.controller.JdkVersionController
+    - indi.nonoas.worktools.platform.controller.SQLTransferController
+    - indi.nonoas.worktools.platform.controller.TodoListController
+    - indi.nonoas.worktools.platform.controller.TodoListController
+    - indi.nonoas.worktools.platform.controller.FileEncodeController
