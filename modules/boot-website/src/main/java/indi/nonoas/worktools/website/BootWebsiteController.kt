@@ -1,22 +1,22 @@
-package indi.nonoas.worktools.recenttouch
+package indi.nonoas.worktools.website
 
 import indi.nonoas.worktools.platform.ui.FuncPaneFactory
 import javafx.scene.Parent
 
 /**
  * @author Nonoas
- * @datetime 2022/5/12 21:06
+ * @datetime 2022/5/12 20:48
  */
-class RecentTouchController : FuncPaneFactory {
+class BootWebsiteController : FuncPaneFactory {
     override fun getRootView(): Parent {
-        return RecentTouchPane.instance
+        return BootWebsitePane()
     }
 
     override fun getCode(): String {
-        return "RecentTouch"
+        return "indi.nonoas.worktools.website.BootWebsiteController"
     }
 
     override fun getName(): String {
-        return "最近"
+        return "网站书签"
     }
 }

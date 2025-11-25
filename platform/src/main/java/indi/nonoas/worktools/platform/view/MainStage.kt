@@ -271,7 +271,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             if (func == null) {
                 func = FuncSettingDto().apply {
                     funcCode = e.getCode()
-                    funcName = e.getCode()
+                    funcName = e.getName()
                     isEnableFlag = true
                 }
                 settingMap[e.getCode()] = func

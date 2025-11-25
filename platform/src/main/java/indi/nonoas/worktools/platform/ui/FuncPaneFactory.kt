@@ -19,6 +19,10 @@ interface FuncPaneFactory {
         return javaClass.simpleName
     }
 
+    fun getName(): String {
+        return getCode()
+    }
+
     companion object {
         fun getAllImpls(): List<FuncPaneFactory> {
             return ExtensionManager.getExtensions(FuncPaneFactory::class.java)
