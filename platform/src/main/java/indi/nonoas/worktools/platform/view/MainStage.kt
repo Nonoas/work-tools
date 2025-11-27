@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.platform.view
 
 import atlantafx.base.controls.CustomTextField
+import github.nonoas.jfx.flat.ui.control.Card
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import github.nonoas.jfx.flat.ui.theme.Styles
 import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_MUTED
@@ -22,6 +23,7 @@ import javafx.scene.control.Label
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.TextField
 import javafx.scene.control.ToolBar
 import javafx.scene.control.Tooltip
@@ -31,6 +33,10 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
+import javafx.scene.layout.HBox
+import javafx.scene.layout.Priority
+import javafx.scene.layout.Region
+import javafx.scene.paint.Color
 import org.apache.logging.log4j.LogManager
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2AL
@@ -48,6 +54,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     }
 
     private val fpFuncList = FlowPane(10.0, 10.0).apply { padding = CommonInsets.PADDING_20 }
+    private val fpFuncListPane = ScrollPane()
 
     /**
      * 小提示标签
@@ -118,9 +125,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             }
         }
 
+        fpFuncListPane.apply {
+            isFitToWidth = true
+            content = fpFuncList
+        }
         rootPane.apply {
             top = toolBar
-            center = fpFuncList
+            center = fpFuncListPane
         }
         setContentView(rootPane)
     }
@@ -189,6 +200,9 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             )
         )
         toolBar.items.add(lbTips)
+
+        toolBar.items.add(Region().apply { HBox.setHgrow(this, Priority.ALWAYS) })
+        toolBar.items.addAll(systemButtons)
         registryDragger(toolBar)
     }
 
@@ -234,12 +248,18 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         funcEnabledMap = getSettingMap().filterValues { it.isEnableFlag }
 
         funcEnabledMap.values.forEach { func ->
-            val btnFunc = Button(func.funcName).apply {
-                prefWidth = 90.0
+            // 创建图标
+            val rocketIcon = FontIcon(Material2MZ.ROCKET)
+            rocketIcon.setIconSize(32);
+            rocketIcon.setIconColor(Color.web("#4A90E2"))
+
+            // 实例化自定义控件
+            val myCard = Card(func.funcName, "快速启动，开发时阅读", rocketIcon).apply {
+                prefWidth = 20.0
                 prefHeight = 90.0
-                onAction = EventHandler { routeCenter(func.funcCode) }
+                onMouseClicked = EventHandler { routeCenter(func.funcCode) }
             }
-            fpFuncList.children.add(btnFunc)
+            fpFuncList.children.add(myCard)
         }
     }
 
