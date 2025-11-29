@@ -1,7 +1,7 @@
 version: 1.3.2-SNAPSHOT
 name: BootWebsite
 extensions:
-  indi.nonoas.worktools.platform.ui.FuncPaneFactory:
+  indi.nonoas.worktools.platform.ext.FuncPaneFactory:
     - indi.nonoas.worktools.website.BootWebsiteController
-  indi.nonoas.worktools.platform.common.Searchable:
+  indi.nonoas.worktools.platform.ext.Searchable:
     - indi.nonoas.worktools.launcher.ExecFileSearcher

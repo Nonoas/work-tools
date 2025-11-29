@@ -79,6 +79,13 @@ application {
     mainClass.set(myMainClassName)
 }
 
+tasks.withType<JavaExec> {
+    jvmArgs(
+        "--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
+    )
+}
+
+
 // 命令行指定要打包的可选模块
 val selectedModules = listOf(
     ":modules:boot-launcher",

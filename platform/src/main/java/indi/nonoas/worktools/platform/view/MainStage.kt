@@ -7,14 +7,16 @@ import github.nonoas.jfx.flat.ui.theme.Styles
 import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_MUTED
 import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_SMALL
 import indi.nonoas.worktools.platform.common.CommonInsets
-import indi.nonoas.worktools.platform.dao.ExecFileDao
 import indi.nonoas.worktools.platform.dao.FuncSettingDao
+import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import indi.nonoas.worktools.platform.ext.PluginLoader
+import indi.nonoas.worktools.platform.ext.Searchable
+import indi.nonoas.worktools.platform.global.ExtensionManager
 import indi.nonoas.worktools.platform.global.FuncManager
 import indi.nonoas.worktools.platform.pojo.dto.FuncSettingDto
 import indi.nonoas.worktools.platform.pojo.params.FuncSettingQry
+import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.platform.service.impl.FuncSettingService
-import indi.nonoas.worktools.platform.ui.FuncPaneFactory
 import indi.nonoas.worktools.platform.ui.Reinitializable
 import indi.nonoas.worktools.platform.ui.component.BaseStage
 import javafx.event.EventHandler
@@ -36,7 +38,6 @@ import javafx.scene.layout.FlowPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
-import javafx.scene.paint.Color
 import org.apache.logging.log4j.LogManager
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2AL
@@ -181,7 +182,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private fun initToolBar() {
         val btnListFunc = Button(null, FontIcon(Material2MZ.MENU)).apply {
             styleClass.add(Styles.BUTTON_ICON)
-            onAction = EventHandler { rootPane.center = fpFuncList }
+            onAction = EventHandler { rootPane.center = fpFuncListPane }
         }
 
         toolBar.items.add(btnListFunc)
@@ -221,7 +222,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             }
 
             if (query.isNullOrBlank()) {
-                rootPane.center = fpFuncList
+                rootPane.center = fpFuncListPane
                 return@onTextChanged
             }
 
@@ -232,9 +233,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                 pageSize = 10
             }
 
+            val execFileVo = ArrayList<ExecFileVo>()
+            ExtensionManager.getExtensions(Searchable::class.java).forEach { extension ->
+                execFileVo.addAll(extension.onSearchKeywordChange(query))
+            }
             val resultPane = SearchResultPane.Builder()
                 .funcSettings(funcService.search(qry))
-                .execFiles(ExecFileDao.search(query))
+                .execFiles(execFileVo)
                 .build()
 
             rootPane.center = resultPane
@@ -248,13 +253,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         funcEnabledMap = getSettingMap().filterValues { it.isEnableFlag }
 
         funcEnabledMap.values.forEach { func ->
-            // 创建图标
-            val rocketIcon = FontIcon(Material2MZ.ROCKET)
-            rocketIcon.setIconSize(32);
-            rocketIcon.setIconColor(Color.web("#4A90E2"))
-
             // 实例化自定义控件
-            val myCard = Card(func.funcName, "快速启动，开发时阅读", rocketIcon).apply {
+            val myCard = Card(func.funcName, "快速启动，开发时阅读", func.graphic).apply {
                 prefWidth = 20.0
                 prefHeight = 90.0
                 onMouseClicked = EventHandler { routeCenter(func.funcCode) }
@@ -293,6 +293,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                     funcCode = e.getCode()
                     funcName = e.getName()
                     isEnableFlag = true
+                    graphic = e.getGraphic()
                 }
                 settingMap[e.getCode()] = func
             }

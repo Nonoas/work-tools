@@ -1,7 +1,7 @@
 package indi.nonoas.worktools.platform.controller
 
 import indi.nonoas.worktools.platform.common.FuncCode
-import indi.nonoas.worktools.platform.ui.FuncPaneFactory
+import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Parent
 
 /**

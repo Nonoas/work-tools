@@ -3,6 +3,7 @@ package indi.nonoas.worktools.platform.view
 import indi.nonoas.worktools.platform.common.CommonInsets
 import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.platform.pojo.vo.FuncSettingVo
+import indi.nonoas.worktools.platform.ui.component.ExecFileButton
 //import indi.nonoas.worktools.view.launcher.ExecFileButton
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -13,6 +14,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.VBox
+import javafx.stage.Stage
 import java.util.LinkedList
 
 /**
@@ -80,12 +82,12 @@ class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
             KeyCode.ENTER -> {
                 val peek = buttonList.peek() ?: return
                 peek.fire()
-//                if (peek is ExecFileButton) {
-//                    if (scene == null) {
-//                        return
-//                    }
-//                    (scene.window as Stage).close()
-//                }
+                if (peek is ExecFileButton) {
+                    if (scene == null) {
+                        return
+                    }
+                    (scene.window as Stage).close()
+                }
                 event.consume()
             }
 
@@ -111,9 +113,9 @@ class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
 
             val execPane = FlowPane(CommonInsets.SPACING_1, CommonInsets.SPACING_1).apply {
                 for (execVo in execFiles) {
-//                    val button = ExecFileButton(execVo)
-//                    children.add(button)
-//                    pane.buttonList.add(button)
+                    val button = ExecFileButton(execVo)
+                    children.add(button)
+                    pane.buttonList.add(button)
                 }
             }
 

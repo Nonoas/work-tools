@@ -76,3 +76,40 @@
 .search-button-selected {
     -fx-background-color: -color-button-border-focused, -color-button-bg-hover;
 }
+
+.card {
+    /* 引用 AtlantaFX 的变量，保证和主题一致 */
+    -fx-background-color: -color-bg-default;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+
+    /* 默认尺寸 */
+    -fx-min-width: 100px;
+    -fx-pref-width: 200px;
+    -fx-padding: 10px;
+
+    /* 关键：应用 AtlantaFX 的阴影效果 (对应 ELEVATED_1) */
+    -fx-effect: dropshadow(three-pass-box, -color-shadow-default, 8, 0, 0, 1);
+
+    /* 鼠标手型 */
+    -fx-cursor: hand;
+}
+
+/* 悬停效果 (Hover) */
+.card:hover {
+    -fx-background-color: -color-bg-subtle; /* 悬停时背景稍微变深/亮 */
+    /* 悬停时加深阴影 (模拟浮起效果) */
+    -fx-effect: dropshadow(three-pass-box, -color-shadow-default, 10, 0, 0, 4);
+    -fx-translate-y: -2px; /* 物理位移 */
+}
+
+/* 内部组件微调 */
+.card-description {
+    -fx-wrap-text: true;
+}
+
+.card-graphic-container * {
+    -fx-pref-width: 100px;
+    -fx-min-width: 60px;
+    -fx-alignment: center;
+}

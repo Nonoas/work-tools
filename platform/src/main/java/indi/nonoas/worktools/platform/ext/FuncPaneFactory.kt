@@ -1,7 +1,10 @@
-package indi.nonoas.worktools.platform.ui
+package indi.nonoas.worktools.platform.ext
 
 import indi.nonoas.worktools.platform.global.ExtensionManager
+import javafx.scene.Node
 import javafx.scene.Parent
+import org.kordamp.ikonli.javafx.FontIcon
+import org.kordamp.ikonli.material2.Material2AL
 
 /**
  * @author Nonoas
@@ -21,6 +24,10 @@ interface FuncPaneFactory {
 
     fun getName(): String {
         return getCode()
+    }
+
+    fun getGraphic(): Node {
+        return FontIcon(Material2AL.EXTENSION)
     }
 
     companion object {

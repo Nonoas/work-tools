@@ -1,6 +1,6 @@
 package indi.nonoas.worktools.platform.global
 
-import indi.nonoas.worktools.platform.ui.FuncPaneFactory
+import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Parent
 import org.apache.logging.log4j.LogManager
 

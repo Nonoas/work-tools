@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.platform.pojo.dto
 
 import indi.nonoas.worktools.platform.pojo.vo.FuncSettingVo
+import javafx.scene.Node
 
 /**
  * @author Nonoas
@@ -10,6 +11,7 @@ class FuncSettingDto {
     lateinit var funcCode: String
     var funcName: String? = null
     var isEnableFlag: Boolean = false
+    var graphic: Node? = null
 
     fun convertVo(): FuncSettingVo {
         val po = this;
