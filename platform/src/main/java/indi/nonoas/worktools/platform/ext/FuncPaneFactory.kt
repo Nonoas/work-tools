@@ -1,9 +1,10 @@
 package indi.nonoas.worktools.platform.ext
 
 import indi.nonoas.worktools.platform.global.ExtensionManager
+import indi.nonoas.worktools.platform.ui.component.FontIconView
 import javafx.scene.Node
 import javafx.scene.Parent
-import org.kordamp.ikonli.javafx.FontIcon
+import javafx.scene.paint.Color
 import org.kordamp.ikonli.material2.Material2AL
 
 /**
@@ -27,7 +28,7 @@ interface FuncPaneFactory {
     }
 
     fun getGraphic(): Node {
-        return FontIcon(Material2AL.EXTENSION)
+        return FontIconView(Material2AL.EXTENSION, 40, Color.BLACK)
     }
 
     companion object {
@@ -36,4 +37,5 @@ interface FuncPaneFactory {
                 ?: return listOf()
         }
     }
+
 }

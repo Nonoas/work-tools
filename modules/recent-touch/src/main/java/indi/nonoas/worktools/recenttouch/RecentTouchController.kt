@@ -1,7 +1,11 @@
 package indi.nonoas.worktools.recenttouch
 
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
+import indi.nonoas.worktools.platform.ui.component.FontIconView
+import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.paint.Color
+import org.kordamp.ikonli.material2.Material2MZ
 
 /**
  * @author Nonoas
@@ -18,5 +22,9 @@ class RecentTouchController : FuncPaneFactory {
 
     override fun getName(): String {
         return "最近"
+    }
+
+    override fun getGraphic(): Node {
+        return FontIconView(Material2MZ.TIMER, 40, Color.BLACK)
     }
 }

@@ -1,7 +1,11 @@
 package indi.nonoas.worktools.launcher
 
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
+import indi.nonoas.worktools.platform.ui.component.FontIconView
+import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.paint.Color
+import org.kordamp.ikonli.material2.Material2MZ
 
 /**
  * @author Nonoas
@@ -14,5 +18,9 @@ class ExecFileController : FuncPaneFactory {
 
     override fun getCode(): String {
         return "ExecFile"
+    }
+
+    override fun getGraphic(): Node {
+        return FontIconView(Material2MZ.ROCKET, 40, Color.BLACK)
     }
 }

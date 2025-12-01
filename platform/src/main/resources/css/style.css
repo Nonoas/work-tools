@@ -113,3 +113,7 @@
     -fx-min-width: 60px;
     -fx-alignment: center;
 }
+
+.card-icon {
+    -fx-font-size: 32px !important;
+}

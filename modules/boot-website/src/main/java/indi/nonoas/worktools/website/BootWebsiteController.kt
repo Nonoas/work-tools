@@ -1,7 +1,12 @@
 package indi.nonoas.worktools.website
 
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
+import indi.nonoas.worktools.platform.ui.component.FontIconView
+import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.paint.Color
+import org.kordamp.ikonli.material2.Material2AL
+import org.kordamp.ikonli.material2.Material2MZ
 
 /**
  * @author Nonoas
@@ -18,5 +23,9 @@ class BootWebsiteController : FuncPaneFactory {
 
     override fun getName(): String {
         return "网站书签"
+    }
+
+    override fun getGraphic(): Node {
+        return FontIconView(Material2AL.BOOK, 40, Color.BLACK)
     }
 }

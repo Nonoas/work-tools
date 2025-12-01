@@ -287,15 +287,12 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             .associateBy { it.funcCode }.toMutableMap()
 
         FuncPaneFactory.getAllImpls().forEach { e ->
-            var func = settingMap[e.getCode()]
-            if (func == null) {
-                func = FuncSettingDto().apply {
-                    funcCode = e.getCode()
-                    funcName = e.getName()
-                    isEnableFlag = true
-                    graphic = e.getGraphic()
-                }
-                settingMap[e.getCode()] = func
+            val dbSetting = settingMap[e.getCode()]
+            settingMap[e.getCode()] = FuncSettingDto().apply {
+                funcCode = e.getCode()
+                funcName = e.getName()
+                isEnableFlag = dbSetting?.isEnableFlag ?: true
+                graphic = e.getGraphic()
             }
         }
         return settingMap
