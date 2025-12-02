@@ -1,5 +1,7 @@
 package indi.nonoas.worktools.launcher
 
+import indi.nonoas.worktools.platform.common.ColorSerials
+import indi.nonoas.worktools.platform.common.Colors
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import indi.nonoas.worktools.platform.ui.component.FontIconView
 import javafx.scene.Node
@@ -21,6 +23,6 @@ class ExecFileController : FuncPaneFactory {
     }
 
     override fun getGraphic(): Node {
-        return FontIconView(Material2MZ.ROCKET, 40, Color.BLACK)
+        return FontIconView(Material2MZ.ROCKET, 40, Color.web(ColorSerials.GREEN.secureRandomColor))
     }
 }

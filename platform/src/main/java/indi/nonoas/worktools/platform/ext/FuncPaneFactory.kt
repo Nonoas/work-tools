@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.platform.ext
 
+import indi.nonoas.worktools.platform.common.ColorSerials
 import indi.nonoas.worktools.platform.global.ExtensionManager
 import indi.nonoas.worktools.platform.ui.component.FontIconView
 import javafx.scene.Node
@@ -28,7 +29,9 @@ interface FuncPaneFactory {
     }
 
     fun getGraphic(): Node {
-        return FontIconView(Material2AL.EXTENSION, 40, Color.BLACK)
+        return FontIconView(Material2AL.EXTENSION,
+            40,
+            Color.web(ColorSerials.GREEN.secureRandomColor))
     }
 
     companion object {

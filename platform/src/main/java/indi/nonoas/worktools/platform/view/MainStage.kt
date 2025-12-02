@@ -3,6 +3,7 @@ package indi.nonoas.worktools.platform.view
 import atlantafx.base.controls.CustomTextField
 import github.nonoas.jfx.flat.ui.control.Card
 import github.nonoas.jfx.flat.ui.control.UIFactory
+import github.nonoas.jfx.flat.ui.pane.JustifiedFlowPane
 import github.nonoas.jfx.flat.ui.theme.Styles
 import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_MUTED
 import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_SMALL
@@ -34,7 +35,6 @@ import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
-import javafx.scene.layout.FlowPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
@@ -52,9 +52,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private val menuBar = MenuBar()
     private val tfSearch = CustomTextField().apply {
         promptText = "输入关键字，回车搜索"
+        styleClass.add(Styles.ROUNDED)
     }
 
-    private val fpFuncList = FlowPane(10.0, 10.0).apply { padding = CommonInsets.PADDING_20 }
+    private val fpFuncList = JustifiedFlowPane(10.0, 10.0, 200.0).apply {
+        padding = CommonInsets.PADDING_20
+    }
+
     private val fpFuncListPane = ScrollPane()
 
     /**
