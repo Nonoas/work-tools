@@ -85,12 +85,12 @@ tasks.withType<JavaExec> {
     )
 }
 
-
 // 命令行指定要打包的可选模块
 val selectedModules = listOf(
     ":modules:boot-launcher",
     ":modules:recent-touch",
     ":modules:boot-website",
+    ":modules:windows-util",
 )
 println("Selected optional modules: $selectedModules")
 

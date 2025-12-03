@@ -12,6 +12,8 @@ javafx {
 dependencies {
     api("io.github.nonoas:jfx-flat-ui:1.0.3")
     api("org.apache.logging.log4j:log4j-core:2.20.0")
+    api("net.java.dev.jna:jna:5.12.1")
+    api("net.java.dev.jna:jna-platform:5.12.1")
 
     implementation('com.melloware:jintellitype:1.4.0')
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
