@@ -14,4 +14,12 @@ class ClassExtractController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return ClassExtractPane.instance!!
     }
+
+    override fun getName(): String {
+        return "Class文件提取"
+    }
+
+    override fun getDescription(): String {
+        return "从构建文件中提取class文件"
+    }
 }

@@ -1,7 +1,5 @@
 package indi.nonoas.worktools.platform.common;
 
-import javafx.scene.paint.Color;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
@@ -32,8 +30,6 @@ public enum ColorSerials {
             // 尝试获取一个推荐的安全随机数生成器
             secureRandom = SecureRandom.getInstanceStrong();
         } catch (NoSuchAlgorithmException e) {
-            // 如果 Strong 算法不可用，退回到默认实现
-            System.err.println("SecureRandom.getInstanceStrong() 不可用，退回使用默认 SecureRandom。");
             secureRandom = new SecureRandom();
         }
 

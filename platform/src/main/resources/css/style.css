@@ -50,6 +50,7 @@
 
 .tool-bar {
     -fx-padding: 10px;
+    /*-fx-background-color: -color-bg-default;*/
 }
 
 .titled-pane.non-border,

@@ -14,4 +14,12 @@ class SQLExtractionController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return SQLExtraction.instance
     }
+
+    override fun getName(): String {
+        return "SQL Extraction"
+    }
+
+    override fun getDescription(): String {
+        return "SQL提取"
+    }
 }

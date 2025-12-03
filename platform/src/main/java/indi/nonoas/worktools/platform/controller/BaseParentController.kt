@@ -24,4 +24,12 @@ open class BaseParentController : FuncPaneFactory {
     override fun getRootView(): Parent {
         TODO("Not yet implemented")
     }
+
+    override fun getName(): String {
+        return getCode()
+    }
+
+    override fun getDescription(): String {
+        return getCode()
+    }
 }

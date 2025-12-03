@@ -14,4 +14,12 @@ class TodoListController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return TodoListPane()
     }
+
+    override fun getName(): String {
+        return "待办"
+    }
+
+    override fun getDescription(): String {
+        return "待办事项"
+    }
 }

@@ -22,6 +22,14 @@ class ExecFileController : FuncPaneFactory {
         return "ExecFile"
     }
 
+    override fun getName(): String {
+        return "快速启动"
+    }
+
+    override fun getDescription(): String {
+        return "快速打开文件或执行程序"
+    }
+
     override fun getGraphic(): Node {
         return FontIconView(Material2MZ.ROCKET, 40, Color.web(ColorSerials.GREEN.secureRandomColor))
     }

@@ -27,6 +27,10 @@ class BootWebsiteController : FuncPaneFactory {
         return "网站书签"
     }
 
+    override fun getDescription(): String {
+        return "通过命令快速打开网页"
+    }
+
     override fun getGraphic(): Node {
         return FontIconView(Material2AL.BOOK, 40, Color.web(ColorSerials.GREEN.secureRandomColor))
     }

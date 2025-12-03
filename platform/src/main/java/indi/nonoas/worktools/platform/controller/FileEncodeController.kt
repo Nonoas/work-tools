@@ -16,4 +16,12 @@ class FileEncodeController : FuncPaneFactory {
         return FileEncodePane.instance!!
     }
 
+    override fun getName(): String {
+        return "文件编码"
+    }
+
+    override fun getDescription(): String {
+        return "用于批量修改文件编码"
+    }
+
 }

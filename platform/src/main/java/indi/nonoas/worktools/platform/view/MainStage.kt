@@ -258,7 +258,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
         funcEnabledMap.values.forEach { func ->
             // 实例化自定义控件
-            val myCard = Card(func.funcName, "快速启动，开发时阅读", func.graphic).apply {
+            val myCard = Card(func.funcName, func.funcDescription, func.graphic).apply {
                 prefWidth = 20.0
                 prefHeight = 90.0
                 onMouseClicked = EventHandler { routeCenter(func.funcCode) }
@@ -297,6 +297,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                 funcName = e.getName()
                 isEnableFlag = dbSetting?.isEnableFlag ?: true
                 graphic = e.getGraphic()
+                funcDescription = e.getDescription()
             }
         }
         return settingMap

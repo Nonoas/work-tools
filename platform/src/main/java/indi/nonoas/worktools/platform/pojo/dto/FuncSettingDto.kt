@@ -10,6 +10,7 @@ import javafx.scene.Node
 class FuncSettingDto {
     lateinit var funcCode: String
     var funcName: String? = null
+    var funcDescription: String? = null
     var isEnableFlag: Boolean = false
     var graphic: Node? = null
 

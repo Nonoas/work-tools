@@ -26,6 +26,10 @@ class RecentTouchController : FuncPaneFactory {
         return "最近"
     }
 
+    override fun getDescription(): String {
+        return "最近打开的文件"
+    }
+
     override fun getGraphic(): Node {
         return FontIconView(Material2MZ.TIMER, 40, Color.web(ColorSerials.GREEN.secureRandomColor))
     }

@@ -14,4 +14,12 @@ class SQLTransferController : FuncPaneFactory {
     override fun getRootView(): Parent {
         return SQLTransfer()
     }
+
+    override fun getName(): String {
+        return "SQL转换"
+    }
+
+    override fun getDescription(): String {
+        return "转换SQL"
+    }
 }

@@ -24,9 +24,12 @@ interface FuncPaneFactory {
         return javaClass.simpleName
     }
 
-    fun getName(): String {
-        return getCode()
-    }
+    /**
+     * 功能面板的名称
+     */
+    fun getName(): String
+
+    fun getDescription(): String
 
     fun getGraphic(): Node {
         return FontIconView(Material2AL.EXTENSION,

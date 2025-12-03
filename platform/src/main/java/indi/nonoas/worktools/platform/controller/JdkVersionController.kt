@@ -17,4 +17,8 @@ class JdkVersionController: BaseParentController() {
     override fun getCode(): String {
         return "JdkVersion"
     }
+
+    override fun getName(): String {
+        return "JDK版本管理"
+    }
 }
