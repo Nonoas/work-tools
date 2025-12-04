@@ -207,7 +207,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         toolBar.items.add(lbTips)
 
         toolBar.items.add(Region().apply { HBox.setHgrow(this, Priority.ALWAYS) })
-        toolBar.items.addAll(systemButtons)
+        toolBar.items.add(HBox().apply { children.addAll(systemButtons) })
         registryDragger(toolBar)
     }
 

@@ -3,22 +3,27 @@ package indi.nonoas.worktools.windowsutil;
 
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
-import javafx.beans.property.SimpleStringProperty;
+import github.nonoas.jfx.flat.ui.control.Switch;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * @author huangshengsheng
  * @date 2025/12/3 22:29
  */
 public class WindowTablePane extends VBox {
 
-    private final TableView<WindowInfo> table = new TableView<>();
     private final ObservableList<WindowInfo> windowList = FXCollections.observableArrayList();
 
     private static final WindowTablePane windowTablePane = new WindowTablePane();
@@ -33,49 +38,46 @@ public class WindowTablePane extends VBox {
 
         // 标题列
         TableColumn<WindowInfo, String> titleCol = new TableColumn<>("窗口标题");
-        titleCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTitle()));
+        titleCol.setCellValueFactory(data -> data.getValue().titleProperty());
         titleCol.setPrefWidth(400);
 
         // 置顶按钮列
-        TableColumn<WindowInfo, Void> topMostCol = new TableColumn<>("置顶");
+        TableColumn<WindowInfo, Boolean> topMostCol = new TableColumn<>("置顶");
+        topMostCol.setResizable(false);
+        topMostCol.setCellValueFactory(data -> data.getValue().topMostProperty());
         topMostCol.setCellFactory(col -> new TableCell<>() {
-            private final Button btn = new Button("置顶");
+            private final Switch switchBtn = new Switch();
 
-            {
-                btn.setOnAction(e -> {
-                    WindowInfo info = getTableView().getItems().get(getIndex());
+            private final ChangeListener<Boolean> listener = (ov, oldVal, newVal) -> {
+                WindowInfo info = getTableView().getItems().get(getIndex());
+                if (newVal) {
                     WindowUtils.setTopMost(info.getHwnd());
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : btn);
-            }
-        });
-
-        // 取消置顶按钮列
-        TableColumn<WindowInfo, Void> removeTopCol = new TableColumn<>("取消置顶");
-        removeTopCol.setCellFactory(col -> new TableCell<>() {
-            private final Button btn = new Button("取消置顶");
-
-            {
-                btn.setOnAction(e -> {
-                    WindowInfo info = getTableView().getItems().get(getIndex());
+                } else {
                     WindowUtils.removeTopMost(info.getHwnd());
-                });
-            }
+                }
+            };
 
             @Override
-            protected void updateItem(Void item, boolean empty) {
+            protected void updateItem(Boolean item, boolean empty) {
                 super.updateItem(item, empty);
-                setGraphic(empty ? null : btn);
+                if (empty || item == null) {
+                    switchBtn.selectedProperty().removeListener(listener);
+                    setGraphic(null);
+                } else {
+                    // 更新现有实例的状态
+                    switchBtn.setSelected(item);
+                    switchBtn.selectedProperty().addListener(listener);
+                    setGraphic(switchBtn);
+                }
             }
         });
 
-        table.getColumns().addAll(titleCol, topMostCol, removeTopCol);
+        TableView<WindowInfo> table = new TableView<>();
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.getColumns().addAll(titleCol, topMostCol);
         table.setItems(windowList);
+
+        VBox.setVgrow(table, Priority.ALWAYS);
 
         Button refreshBtn = new Button("刷新列表");
         refreshBtn.setOnAction(e -> refreshWindowList());
