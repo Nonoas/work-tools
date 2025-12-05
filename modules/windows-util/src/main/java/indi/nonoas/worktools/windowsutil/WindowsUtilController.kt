@@ -1,13 +1,11 @@
 package indi.nonoas.worktools.launcher
 
-import indi.nonoas.worktools.platform.common.ColorSerials
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
-import indi.nonoas.worktools.platform.ui.component.FontIconView
 import indi.nonoas.worktools.windowsutil.WindowTablePane
 import javafx.scene.Node
 import javafx.scene.Parent
-import javafx.scene.paint.Color
-import org.kordamp.ikonli.material2.Material2MZ
+import javafx.scene.image.ImageView
+
 
 /**
  * @author Nonoas
@@ -27,6 +25,12 @@ class WindowsUtilController : FuncPaneFactory {
     }
 
     override fun getGraphic(): Node {
-        return FontIconView(Material2MZ.ROCKET, 40, Color.web(ColorSerials.GREEN.secureRandomColor))
+        return ImageView("images/windows64x64.png")
+            .apply {
+                isPreserveRatio = true;
+                isSmooth = true
+                fitWidth = 32.0
+                fitHeight = 32.0
+            }
     }
 }

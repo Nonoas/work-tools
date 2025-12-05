@@ -1,11 +1,14 @@
+import org.openjfx.gradle.JavaFXOptions
+
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id 'org.openjfx.javafxplugin'
+    id("org.jetbrains.kotlin.jvm")
+    id("org.openjfx.javafxplugin")
 }
 
-javafx {
+val jfxVersion: String by project
+the<JavaFXOptions>().apply {
     version = jfxVersion
-    modules = ['javafx.controls', 'javafx.swing']
+    modules = listOf("javafx.controls", "javafx.swing")
 }
 
 // platform 独有依赖
@@ -15,7 +18,7 @@ dependencies {
     api("net.java.dev.jna:jna:5.12.1")
     api("net.java.dev.jna:jna-platform:5.12.1")
 
-    implementation('com.melloware:jintellitype:1.4.0')
+    implementation("com.melloware:jintellitype:1.4.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
     implementation("org.quartz-scheduler:quartz:2.3.2")
     implementation("com.h2database:h2:2.2.220")

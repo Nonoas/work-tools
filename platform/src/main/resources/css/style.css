@@ -86,8 +86,8 @@
 
     /* 默认尺寸 */
     -fx-min-width: 100px;
-    -fx-pref-width: 200px;
-    -fx-padding: 10px;
+    -fx-pref-width: 128px;
+    -fx-padding: 10px 16px;
 
     /* 关键：应用 AtlantaFX 的阴影效果 (对应 ELEVATED_1) */
     -fx-effect: dropshadow(three-pass-box, -color-shadow-default, 8, 0, 0, 1);
@@ -109,12 +109,9 @@
     -fx-wrap-text: true;
 }
 
-.card-graphic-container * {
-    -fx-pref-width: 100px;
-    -fx-min-width: 60px;
+.card-graphic-container {
+    -fx-max-width: 40px;
+    -fx-max-height: 40px;
+    -fx-min-width: 40px;
     -fx-alignment: center;
-}
-
-.card-icon {
-    -fx-font-size: 32px !important;
 }
