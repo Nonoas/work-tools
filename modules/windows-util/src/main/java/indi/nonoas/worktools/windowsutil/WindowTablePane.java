@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author huangshengsheng
@@ -31,6 +32,8 @@ public class WindowTablePane extends VBox {
     public static WindowTablePane getInstance() {
         return windowTablePane;
     }
+
+    private TableView<WindowInfo> table = new TableView<>();
 
     private WindowTablePane() {
         setSpacing(5);
@@ -72,7 +75,6 @@ public class WindowTablePane extends VBox {
             }
         });
 
-        TableView<WindowInfo> table = new TableView<>();
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         table.getColumns().addAll(titleCol, topMostCol);
         table.setItems(windowList);
@@ -97,6 +99,18 @@ public class WindowTablePane extends VBox {
             }
         }
     }
+
+    public void queryFilter(String keyword) {
+        if (null == keyword || keyword.isBlank()) {
+            table.setItems(windowList);
+            return;
+        }
+        ObservableList<WindowInfo> collect = windowList.stream()
+                .filter(windowInfo -> windowInfo.getTitle().contains(keyword))
+                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+        table.setItems(collect);
+    }
+
 
     private List<HWND> getAllWindows() {
         List<HWND> list = new ArrayList<>();

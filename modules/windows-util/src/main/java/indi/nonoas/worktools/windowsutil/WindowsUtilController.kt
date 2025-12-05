@@ -1,7 +1,6 @@
-package indi.nonoas.worktools.launcher
+package indi.nonoas.worktools.windowsutil
 
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
-import indi.nonoas.worktools.windowsutil.WindowTablePane
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.image.ImageView

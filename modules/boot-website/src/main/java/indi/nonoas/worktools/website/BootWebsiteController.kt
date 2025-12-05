@@ -1,14 +1,9 @@
 package indi.nonoas.worktools.website
 
-import indi.nonoas.worktools.platform.common.ColorSerials
-import indi.nonoas.worktools.platform.common.Colors
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
-import indi.nonoas.worktools.platform.ui.component.FontIconView
 import javafx.scene.Node
 import javafx.scene.Parent
-import javafx.scene.paint.Color
-import org.kordamp.ikonli.material2.Material2AL
-import org.kordamp.ikonli.material2.Material2MZ
+import javafx.scene.image.ImageView
 
 /**
  * @author Nonoas
@@ -32,6 +27,13 @@ class BootWebsiteController : FuncPaneFactory {
     }
 
     override fun getGraphic(): Node {
-        return FontIconView(Material2AL.BOOK, 40, Color.web(ColorSerials.GREEN.secureRandomColor))
+        return ImageView("images/website.png")
+            .apply {
+                isPreserveRatio = true;
+                isSmooth = true
+                fitWidth = 32.0
+                fitHeight = 32.0
+            }
     }
+
 }

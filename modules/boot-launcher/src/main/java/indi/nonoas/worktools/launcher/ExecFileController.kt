@@ -6,6 +6,7 @@ import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import indi.nonoas.worktools.platform.ui.component.FontIconView
 import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.image.ImageView
 import javafx.scene.paint.Color
 import org.kordamp.ikonli.material2.Material2MZ
 
@@ -31,6 +32,12 @@ class ExecFileController : FuncPaneFactory {
     }
 
     override fun getGraphic(): Node {
-        return FontIconView(Material2MZ.ROCKET, 40, Color.web(ColorSerials.GREEN.secureRandomColor))
+        return ImageView("images/rocket.png")
+            .apply {
+                isPreserveRatio = true;
+                isSmooth = true
+                fitWidth = 32.0
+                fitHeight = 32.0
+            }
     }
 }
