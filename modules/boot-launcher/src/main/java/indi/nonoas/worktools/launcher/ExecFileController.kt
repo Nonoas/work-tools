@@ -1,14 +1,9 @@
 package indi.nonoas.worktools.launcher
 
-import indi.nonoas.worktools.platform.common.ColorSerials
-import indi.nonoas.worktools.platform.common.Colors
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
-import indi.nonoas.worktools.platform.ui.component.FontIconView
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.image.ImageView
-import javafx.scene.paint.Color
-import org.kordamp.ikonli.material2.Material2MZ
 
 /**
  * @author Nonoas
