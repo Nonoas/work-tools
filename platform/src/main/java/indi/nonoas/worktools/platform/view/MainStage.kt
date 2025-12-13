@@ -248,7 +248,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         fpFuncList.children.clear()
         val settingMaps = getSettingMap().filterValues { it.isEnableFlag }
         settingMaps.values.forEach { plugDto ->
-            val plugin = PluginManager.getPluginById(plugDto.funcCode)
+            val plugin = PluginManager.getPluginById(plugDto.funcCode) ?: return
             val funcPanes = plugin.getExtensionByType(FuncPaneFactory::class.java)
             funcPanes?.forEach{ func->
                 val myCard = Card(func.getName(), func.getDescription(), func.getGraphic()).apply {
