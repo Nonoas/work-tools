@@ -1,5 +1,6 @@
 version: 1.3.2-SNAPSHOT
-name: ExecFile
+name: 快速启动
+id: indi.nonoas.worktools.launcher
 extensions:
   indi.nonoas.worktools.platform.ext.FuncPaneFactory:
     - indi.nonoas.worktools.launcher.ExecFileController

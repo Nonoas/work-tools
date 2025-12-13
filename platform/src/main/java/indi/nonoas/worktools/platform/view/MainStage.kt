@@ -10,10 +10,9 @@ import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_SMALL
 import indi.nonoas.worktools.platform.common.CommonInsets
 import indi.nonoas.worktools.platform.dao.FuncSettingDao
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
-import indi.nonoas.worktools.platform.ext.PluginLoader
+import indi.nonoas.worktools.platform.ext.PluginManager
 import indi.nonoas.worktools.platform.ext.Searchable
 import indi.nonoas.worktools.platform.global.ExtensionManager
-import indi.nonoas.worktools.platform.global.FuncManager
 import indi.nonoas.worktools.platform.pojo.dto.FuncSettingDto
 import indi.nonoas.worktools.platform.pojo.params.FuncSettingQry
 import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
@@ -71,7 +70,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     /**
      * 功能代码保存
      */
-    private var funcEnabledMap = emptyMap<String, FuncSettingDto>()
+    private var funcEnabledMap = HashMap<String, FuncPaneFactory>()
 
     /**
      * 当前功能代码索引，当前切换到 funcCodeList 的第几个元素
@@ -124,7 +123,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private fun initScene() {
         val kcToggleFunc = KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN)
         stage.scene.accelerators[kcToggleFunc] = Runnable {
-            val keys = funcEnabledMap.keys.toList()
+            val keys = funcEnabledMap.values.toList()
             if (keys.isNotEmpty()) {
                 routeCenter(keys[++currFuncIndex % keys.size])
             }
@@ -148,16 +147,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         // 设置
         val menuSetting = Menu(null, UIFactory.createMenuButton())
 
-        val itemFunc = MenuItem("功能").apply {
-            onAction = EventHandler { FunctionSettingStage().show() }
-        }
-
-        // 插件
-        val menuPlugin = Menu("插件")
-        PluginLoader.load().forEach { plugin ->
-            val item = MenuItem(plugin.name)
-            item.onAction = EventHandler { plugin.service.service() }
-            menuPlugin.items.add(item)
+        val itemFunc = MenuItem("插件管理").apply {
+            onAction = EventHandler { PluginSettingStage().show() }
         }
 
         val itemAbout = MenuItem("关于").apply {
@@ -167,7 +158,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             onAction = EventHandler { /* todo */ }
         }
 
-        menuSetting.items.addAll(itemFunc, menuPlugin, itemUpgrade, itemAbout)
+        menuSetting.items.addAll(itemFunc, itemUpgrade, itemAbout)
 
         menuBar.menus.add(menuSetting)
         menuBar.isFocusTraversable = false
@@ -237,13 +228,14 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                 pageSize = 10
             }
 
-            val execFileVo = ArrayList<ExecFileVo>()
+            val execFileVoList = ArrayList<ExecFileVo>()
             ExtensionManager.getExtensions(Searchable::class.java).forEach { extension ->
-                execFileVo.addAll(extension.onSearchKeywordChange(query))
+                val qryResult = extension.onSearchKeywordChange(query)
+                execFileVoList.addAll(qryResult)
             }
             val resultPane = SearchResultPane.Builder()
                 .funcSettings(funcService.search(qry))
-                .execFiles(execFileVo)
+                .execFiles(execFileVoList)
                 .build()
 
             rootPane.center = resultPane
@@ -254,30 +246,33 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
     private fun refreshFuncPane() {
         fpFuncList.children.clear()
-        funcEnabledMap = getSettingMap().filterValues { it.isEnableFlag }
-
-        funcEnabledMap.values.forEach { func ->
-            // 实例化自定义控件
-            val myCard = Card(func.funcName, func.funcDescription, func.graphic).apply {
-                prefWidth = 20.0
-                prefHeight = 90.0
-                onMouseClicked = EventHandler { routeCenter(func.funcCode) }
+        val settingMaps = getSettingMap().filterValues { it.isEnableFlag }
+        settingMaps.values.forEach { plugDto ->
+            val plugin = PluginManager.getPluginById(plugDto.funcCode)
+            val funcPanes = plugin.getExtensionByType(FuncPaneFactory::class.java)
+            funcPanes?.forEach{ func->
+                val myCard = Card(func.getName(), func.getDescription(), func.getGraphic()).apply {
+                    prefWidth = 20.0
+                    prefHeight = 90.0
+                    onMouseClicked = EventHandler { routeCenter(func) }
+                }
+                funcEnabledMap[plugDto.funcCode] = func
+                fpFuncList.children.add(myCard)
             }
-            fpFuncList.children.add(myCard)
+
         }
     }
 
+    fun routeCenter(funcCode: String) {
+        val paneFactory = funcEnabledMap[funcCode] ?: return
+        routeCenter(paneFactory)
+    }
     /**
      * 切换主面板
      */
-    fun routeCenter(funcCode: String) {
-        val rootView = FuncManager.getRootView(funcCode)
-        if (rootView == null) {
-            log.error("没有找到功能号$funcCode 对应的面板")
-            return
-        }
-        rootPane.center = rootView
-        setTitle("$TITLE-${funcEnabledMap[funcCode]?.funcName}")
+    fun routeCenter(factory: FuncPaneFactory) {
+        rootPane.center = factory.getRootView()
+        setTitle(factory.getName())
     }
 
     /**
@@ -287,19 +282,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private fun getSettingMap(): Map<String, FuncSettingDto> {
         val settingMap = FuncSettingDao()
             .getAll()
-            .filter { FuncManager.getRootView(it.funcCode) !== null }
-            .associateBy { it.funcCode }.toMutableMap()
-
-        FuncPaneFactory.getAllImpls().forEach { e ->
-            val dbSetting = settingMap[e.getCode()]
-            settingMap[e.getCode()] = FuncSettingDto().apply {
-                funcCode = e.getCode()
-                funcName = e.getName()
-                isEnableFlag = dbSetting?.isEnableFlag ?: true
-                graphic = e.getGraphic()
-                funcDescription = e.getDescription()
-            }
-        }
+            .associateBy { it.funcCode }
+            .toMutableMap()
         return settingMap
     }
 

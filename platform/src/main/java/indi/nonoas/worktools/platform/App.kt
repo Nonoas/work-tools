@@ -5,7 +5,7 @@ import github.nonoas.jfx.flat.ui.theme.LightTheme
 import indi.nonoas.worktools.platform.common.Identifier
 import indi.nonoas.worktools.platform.config.DBConfigEnum
 import indi.nonoas.worktools.platform.config.FlyWayMigration
-import indi.nonoas.worktools.platform.ext.PluginLoader
+import indi.nonoas.worktools.platform.ext.PluginManager
 import indi.nonoas.worktools.platform.ui.TaskHandler
 import indi.nonoas.worktools.platform.ui.component.BaseStage
 import indi.nonoas.worktools.platform.ui.component.ExceptionAlter
@@ -79,7 +79,7 @@ class App : Application() {
 
     @Throws(Exception::class)
     override fun init() {
-        PluginLoader.load()
+        PluginManager.loadPlugins()
         DBUtil.init()
     }
 

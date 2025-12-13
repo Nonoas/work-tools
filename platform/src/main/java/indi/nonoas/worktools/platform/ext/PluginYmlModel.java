@@ -1,16 +1,13 @@
 package indi.nonoas.worktools.platform.ext;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 插件封装
- *
- * @author Nonoas
- * @datetime 2022/2/6 17:59
+ * @author huangshengsheng
+ * @date 2025/12/13 15:01
  */
-public class Plugin {
+public class PluginYmlModel {
 
     private String id;
     /**
@@ -35,7 +32,7 @@ public class Plugin {
      */
     private PluginService service;
 
-    private Map<Class<?>, List<?>> extensions;
+    private Map<String, List<String>> extensions;
 
     public String getName() {
         return name;
@@ -77,15 +74,11 @@ public class Plugin {
         this.mainClass = mainClass;
     }
 
-    public Map<Class<?>, List<?>> getExtensions() {
+    public Map<String, List<String>> getExtensions() {
         return extensions;
     }
 
-    public <T> List<T> getExtensionByType(Class<T> tClass) {
-        return (List<T>) extensions.getOrDefault(tClass, Collections.emptyList());
-    }
-
-    public void setExtensions(Map<Class<?>, List<?>> extensions) {
+    public void setExtensions(Map<String, List<String>> extensions) {
         this.extensions = extensions;
     }
 

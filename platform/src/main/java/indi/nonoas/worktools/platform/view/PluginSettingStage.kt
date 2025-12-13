@@ -3,7 +3,7 @@ package indi.nonoas.worktools.platform.view
 import github.nonoas.jfx.flat.ui.control.Switch
 import indi.nonoas.worktools.platform.common.CommonInsets
 import indi.nonoas.worktools.platform.dao.FuncSettingDao
-import indi.nonoas.worktools.platform.pojo.dto.FuncSettingDto
+import indi.nonoas.worktools.platform.ext.PluginManager
 import indi.nonoas.worktools.platform.pojo.vo.FuncSettingVo
 import indi.nonoas.worktools.platform.ui.TaskHandler
 import indi.nonoas.worktools.platform.ui.UIFactory
@@ -32,7 +32,7 @@ import java.util.Arrays
  * @author Nonoas
  * @datetime 2022/1/22 22:33
  */
-class FunctionSettingStage : BaseStage() {
+class PluginSettingStage : BaseStage() {
 
     private var vos: List<FuncSettingVo> = emptyList()
 
@@ -63,8 +63,13 @@ class FunctionSettingStage : BaseStage() {
 
         TaskHandler<List<FuncSettingVo>>()
             .whenCall {
-                val settingList = FuncSettingDao().getAll()
-                vos = settingList.map(FuncSettingDto::convertVo)
+                val settingMap = FuncSettingDao().getAll().associate { it.funcCode to it.isEnableFlag }
+                vos = PluginManager.getAll().map {
+                    FuncSettingVo.covertFrom(it).apply {
+                        val enabled = settingMap[it.id] ?: false
+                        this.setEnableFlag(enabled)
+                    }
+                }
                 vos
             }.andThen {
                 val data = it
@@ -130,7 +135,7 @@ class FunctionSettingStage : BaseStage() {
         TaskHandler<Int?>()
             .whenCall {
                 var result = 0
-                DBUtil.withTransaction { conn ->
+                DBUtil.withTransaction {
                     val dao = FuncSettingDao()
                     result += dao.deleteAll()
                     result += Arrays.stream(dao.insertBatch(vos)).sum()

@@ -1,4 +1,5 @@
-name: indi.nonoas.worktools.platform
+id: indi.nonoas.worktools.platform
+name: worktools平台
 extensions:
   indi.nonoas.worktools.platform.ext.FuncPaneFactory:
     - indi.nonoas.worktools.platform.controller.JdkVersionController

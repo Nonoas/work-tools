@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.platform.pojo.vo
 
+import indi.nonoas.worktools.platform.ext.Plugin
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.SimpleBooleanProperty
 
@@ -13,6 +14,7 @@ class FuncSettingVo {
     private val enableFlag = SimpleBooleanProperty()
 
     constructor()
+
     constructor(funcCode: String?, funcName: String?, enableFlag: Boolean) {
         setFuncCode(funcCode)
         setFuncName(funcName)
@@ -47,6 +49,13 @@ class FuncSettingVo {
 
     fun setEnableFlag(enableFlag: Boolean) {
         this.enableFlag.set(enableFlag)
+    }
+
+    companion object {
+        fun covertFrom(plugin: Plugin) = FuncSettingVo().apply {
+            funcCode.set(plugin.id)
+            funcName.set(plugin.name)
+        }
     }
 
     override fun toString(): String {
