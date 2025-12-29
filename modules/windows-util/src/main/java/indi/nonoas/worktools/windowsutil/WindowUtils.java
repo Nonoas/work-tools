@@ -27,16 +27,6 @@ public class WindowUtils {
     private static final int SWP_SHOWWINDOW = 0x0040;
     private static final HWND HWND_NOTOPMOST = new HWND(new Pointer(-2));
 
-    // 获取当前选中的（前台）窗口
-    public static HWND getForegroundWindow() {
-        return User32.INSTANCE.GetForegroundWindow();
-    }
-
-    public static String getWindowTitle(HWND hwnd) {
-        char[] buffer = new char[512];
-        User32.INSTANCE.GetWindowText(hwnd, buffer, buffer.length);
-        return Native.toString(buffer);
-    }
 
     // 将窗口置顶
     public static void setTopMost(HWND hwnd) {
