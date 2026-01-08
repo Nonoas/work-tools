@@ -25,7 +25,6 @@ import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
-import javafx.scene.control.TextField
 import javafx.scene.control.ToolBar
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
@@ -72,8 +71,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 当前功能代码索引，当前切换到 funcCodeList 的第几个元素
      */
     private var currFuncIndex = 0
-
-    private var tfSearchEventHandler: EventHandler<KeyEvent>? = null
 
     init {
         initView()
@@ -203,10 +200,10 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      */
     private fun initSearchTextField() {
         MessageBus.connect().subscribe(SearchListener.TOPIC, object : SearchListener {
-            override fun search(keyword: String) {
-                tfSearchEventHandler?.let {
-                    tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, it)
-                }
+
+            var resultPane: SearchResultPane? = null
+
+            override fun onTextChange(keyword: String) {
 
                 if (keyword.isBlank()) {
                     rootPane.center = fpFuncListPane
@@ -225,14 +222,20 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                     val qryResult = extension.onSearchKeywordChange(keyword)
                     execFileVoList.addAll(qryResult)
                 }
-                val resultPane = SearchResultPane.Builder()
+                resultPane = SearchResultPane.Builder()
                     .funcSettings(funcService.search(qry))
                     .execFiles(execFileVoList)
                     .build()
 
                 rootPane.center = resultPane
-                tfSearchEventHandler = resultPane
-                tfSearch.addEventHandler(KeyEvent.KEY_PRESSED, resultPane)
+            }
+
+            override fun onKeyPressed(event: KeyEvent) {
+                resultPane?.handle(event)
+            }
+
+            override fun onEntered(event: KeyEvent) {
+                resultPane?.handle(event)
             }
         })
     }
@@ -279,13 +282,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             .associateBy { it.funcCode }
             .toMutableMap()
         return settingMap
-    }
-
-    /**
-     * 文本变化监听器
-     */
-    private fun TextField.onTextChanged(action: (String?) -> Unit) {
-        textProperty().addListener { _, _, newValue -> action(newValue) }
     }
 
     /**
