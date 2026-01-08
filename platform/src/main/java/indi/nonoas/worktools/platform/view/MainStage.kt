@@ -1,27 +1,26 @@
 package indi.nonoas.worktools.platform.view
 
-import atlantafx.base.controls.CustomTextField
 import github.nonoas.jfx.flat.ui.control.Card
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import github.nonoas.jfx.flat.ui.pane.JustifiedFlowPane
 import github.nonoas.jfx.flat.ui.theme.Styles
-import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_MUTED
-import github.nonoas.jfx.flat.ui.theme.Styles.TEXT_SMALL
 import indi.nonoas.worktools.platform.common.CommonInsets
 import indi.nonoas.worktools.platform.dao.FuncSettingDao
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import indi.nonoas.worktools.platform.ext.PluginManager
 import indi.nonoas.worktools.platform.ext.Searchable
 import indi.nonoas.worktools.platform.global.ExtensionManager
+import indi.nonoas.worktools.platform.global.message.MessageBus
 import indi.nonoas.worktools.platform.pojo.dto.FuncSettingDto
 import indi.nonoas.worktools.platform.pojo.params.FuncSettingQry
 import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.platform.service.impl.FuncSettingService
 import indi.nonoas.worktools.platform.ui.Reinitializable
 import indi.nonoas.worktools.platform.ui.component.BaseStage
+import indi.nonoas.worktools.platform.ui.component.SearchListener
+import indi.nonoas.worktools.platform.ui.component.SearchTextField
 import javafx.event.EventHandler
 import javafx.scene.control.Button
-import javafx.scene.control.Label
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
@@ -49,10 +48,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private val rootPane = BorderPane()
     private var toolBar = ToolBar()
     private val menuBar = MenuBar()
-    private val tfSearch = CustomTextField().apply {
-        promptText = "输入关键字，回车搜索"
-        styleClass.add(Styles.ROUNDED)
-    }
+    private val tfSearch = SearchTextField()
 
     private val fpFuncList = JustifiedFlowPane(10.0, 10.0, 200.0).apply {
         padding = CommonInsets.PADDING_20
@@ -206,42 +202,39 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 初始化功能搜索框
      */
     private fun initSearchTextField() {
-        tfSearch.left = Label("Qry_>").apply {
-            styleClass.addAll("hint", TEXT_MUTED, TEXT_SMALL)
-            tooltip = Tooltip("搜索模式")
-        }
+        MessageBus.connect().subscribe(SearchListener.TOPIC, object : SearchListener {
+            override fun search(keyword: String) {
+                tfSearchEventHandler?.let {
+                    tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, it)
+                }
 
-        tfSearch.onTextChanged { query ->
-            tfSearchEventHandler?.let {
-                tfSearch.removeEventHandler(KeyEvent.KEY_PRESSED, it)
+                if (keyword.isBlank()) {
+                    rootPane.center = fpFuncListPane
+                    return
+                }
+
+                val qry = FuncSettingQry().apply {
+                    funcCode = keyword
+                    funcName = keyword
+                    enableFlag = true
+                    pageSize = 10
+                }
+
+                val execFileVoList = ArrayList<ExecFileVo>()
+                ExtensionManager.getExtensions(Searchable::class.java).forEach { extension ->
+                    val qryResult = extension.onSearchKeywordChange(keyword)
+                    execFileVoList.addAll(qryResult)
+                }
+                val resultPane = SearchResultPane.Builder()
+                    .funcSettings(funcService.search(qry))
+                    .execFiles(execFileVoList)
+                    .build()
+
+                rootPane.center = resultPane
+                tfSearchEventHandler = resultPane
+                tfSearch.addEventHandler(KeyEvent.KEY_PRESSED, resultPane)
             }
-
-            if (query.isNullOrBlank()) {
-                rootPane.center = fpFuncListPane
-                return@onTextChanged
-            }
-
-            val qry = FuncSettingQry().apply {
-                funcCode = query
-                funcName = query
-                enableFlag = true
-                pageSize = 10
-            }
-
-            val execFileVoList = ArrayList<ExecFileVo>()
-            ExtensionManager.getExtensions(Searchable::class.java).forEach { extension ->
-                val qryResult = extension.onSearchKeywordChange(query)
-                execFileVoList.addAll(qryResult)
-            }
-            val resultPane = SearchResultPane.Builder()
-                .funcSettings(funcService.search(qry))
-                .execFiles(execFileVoList)
-                .build()
-
-            rootPane.center = resultPane
-            tfSearchEventHandler = resultPane
-            tfSearch.addEventHandler(KeyEvent.KEY_PRESSED, resultPane)
-        }
+        })
     }
 
     private fun refreshFuncPane() {
@@ -250,7 +243,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         settingMaps.values.forEach { plugDto ->
             val plugin = PluginManager.getPluginById(plugDto.funcCode) ?: return
             val funcPanes = plugin.getExtensionByType(FuncPaneFactory::class.java)
-            funcPanes?.forEach{ func->
+            funcPanes?.forEach { func ->
                 val myCard = Card(func.getName(), func.getDescription(), func.getGraphic()).apply {
                     prefWidth = 20.0
                     prefHeight = 90.0
@@ -267,6 +260,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         val paneFactory = funcEnabledMap[funcCode] ?: return
         routeCenter(paneFactory)
     }
+
     /**
      * 切换主面板
      */

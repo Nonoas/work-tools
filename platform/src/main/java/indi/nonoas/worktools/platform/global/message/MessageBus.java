@@ -33,16 +33,21 @@ public class MessageBus {
      * @return 一个 Consumer 接口，调用其 accept 方法即可发布消息
      */
     @SuppressWarnings("unchecked")
-    public <L> L getPublisher(Topic<L> topicKey, Class<L> clazz) {
-        if (!clazz.isInterface()) {
+    public static <L> L getPublisher(Topic<L> topicKey) {
+        Class<L> keyInterface = topicKey.getInterface();
+        if (!keyInterface.isInterface()) {
             throw new IllegalArgumentException("The given class is not an interface");
         }
         return (L) publisherCache.computeIfAbsent(topicKey,
                 topic -> Proxy.newProxyInstance(
-                        clazz.getClassLoader(),
-                        new Class<?>[]{clazz},
+                        keyInterface.getClassLoader(),
+                        new Class<?>[]{keyInterface},
                         new MessagePublisher(topicKey))
         );
+    }
+
+    public static Connection connect() {
+        return new Connection();
     }
 
     static class MessagePublisher implements InvocationHandler {
@@ -55,10 +60,6 @@ public class MessageBus {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getReturnType() == Void.TYPE) {
-                throw new UnsupportedOperationException();
-            }
-
             List<?> objects = topicListeners.get(topic);
             if (CollectionUtil.isEmpty(objects)) {
                 return null;
@@ -91,9 +92,6 @@ public class MessageBus {
          * @param listener 监听器实例，这里简化为处理 Object 消息的 Consumer
          */
         public <T> void subscribe(Topic<T> topicKey, T listener) {
-            if (!listener.getClass().isInterface()) {
-                throw new IllegalArgumentException("The given listener is not an interface");
-            }
             // 将 Topic Key 映射到监听器集合，如果不存在则创建
             topicListeners.computeIfAbsent(topicKey, k -> new CopyOnWriteArrayList<>())
                     // 将监听器添加到该 Topic 的集合中ww
