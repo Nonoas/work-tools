@@ -12,7 +12,7 @@ import javafx.scene.image.ImageView
  */
 class WindowsUtilController : FuncPaneFactory {
     override fun getRootView(): Parent {
-        return WindowTablePane.getInstance()
+        return WindowTablePane.instance
     }
 
     override fun getName(): String {
