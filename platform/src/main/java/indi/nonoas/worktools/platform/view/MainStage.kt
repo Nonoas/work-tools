@@ -11,6 +11,7 @@ import indi.nonoas.worktools.platform.ext.PluginManager
 import indi.nonoas.worktools.platform.ext.Searchable
 import indi.nonoas.worktools.platform.global.ExtensionManager
 import indi.nonoas.worktools.platform.global.message.MessageBus
+import indi.nonoas.worktools.platform.global.message.MsgBusManager
 import indi.nonoas.worktools.platform.pojo.dto.FuncSettingDto
 import indi.nonoas.worktools.platform.pojo.params.FuncSettingQry
 import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
@@ -199,7 +200,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 初始化功能搜索框
      */
     private fun initSearchTextField() {
-        MessageBus.connect().subscribe(SearchListener.TOPIC, object : SearchListener {
+        MsgBusManager.getGlobalBus().connect()
+            .subscribe(SearchListener.TOPIC, object : SearchListener {
 
             var resultPane: SearchResultPane? = null
 

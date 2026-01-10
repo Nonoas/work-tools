@@ -6,6 +6,7 @@ import com.sun.jna.platform.win32.WinDef.HWND
 import github.nonoas.jfx.flat.ui.concurrent.TaskHandler
 import github.nonoas.jfx.flat.ui.control.Switch
 import indi.nonoas.worktools.platform.global.message.MessageBus
+import indi.nonoas.worktools.platform.global.message.MsgBusManager
 import indi.nonoas.worktools.platform.ui.component.SearchListener
 import indi.nonoas.worktools.platform.ui.component.SearchListener.Companion.TOPIC
 import javafx.beans.value.ChangeListener
@@ -119,7 +120,7 @@ class WindowTablePane private constructor() : VBox() {
 
         table.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
         table.columns.addAll(titleCol, topMostCol)
-        table.setItems(windowList)
+        table.items = windowList
 
         setVgrow(table, Priority.ALWAYS)
 
@@ -130,7 +131,8 @@ class WindowTablePane private constructor() : VBox() {
 
         refreshWindowList()
 
-        MessageBus.connect().subscribe(TOPIC, object : SearchListener {
+        MsgBusManager.getCurrentBus()
+            .connect().subscribe(TOPIC, object : SearchListener {
 
             override fun onTextChange(keyword: String) {
                 queryFilter(keyword)
@@ -148,7 +150,7 @@ class WindowTablePane private constructor() : VBox() {
             val desktopWindows = com.sun.jna.platform.WindowUtils.getAllWindows(true)
             for (dw in desktopWindows) {
                 val title = dw.title
-                if (!title.isEmpty()) {
+                if (title.isNotEmpty()) {
                     val hwnd = dw.hwnd
                     val windowIcon = com.sun.jna.platform.WindowUtils.getWindowIcon(hwnd)
                     var imageView: ImageView
