@@ -66,7 +66,7 @@ class SearchTextField : CustomTextField(), EventHandler<KeyEvent> {
                 // 根据模式切换消息总线
                 val label = left as Label
                 messageBus = if (mode == MODE.CURRENT) {
-                    label.text = " Cur  _>"
+                    label.text = " Cur_>"
                     MsgBusManager.getCurrentBus()
                 } else {
                     label.text = " Qry_>"
