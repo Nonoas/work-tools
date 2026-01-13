@@ -123,7 +123,8 @@ tasks.register<PackageTask>("packageMyApp") {
     // Java 模块配置
     modules = listOf(
         "java.base", "java.management", "java.net.http", "java.scripting", "java.sql",
-        "java.naming", "jdk.jsobject", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom"
+        "java.naming", "jdk.jsobject", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom",
+        "jdk.crypto.ec"
     )
 
     isBundleJre = true
