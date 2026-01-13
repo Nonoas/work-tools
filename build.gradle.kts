@@ -91,6 +91,7 @@ val selectedModules = listOf(
     ":modules:recent-touch",
     ":modules:boot-website",
     ":modules:windows-util",
+    ":modules:stock-monitor",
 )
 println("Selected optional modules: $selectedModules")
 

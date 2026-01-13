@@ -1,0 +1,124 @@
+.root {
+    -fx-font-size: 12px;
+    /* 股票上涨色 (默认红色) */
+    -stock-up-color: #e53935;
+    /* 股票下跌色 (默认绿色) */
+    -stock-down-color: #1d9f3e;
+}
+
+.markdown-text {
+    -fx-font-size: 12px !important;
+    -fx-fill: -mdfx-font-color;
+}
+
+
+.dialog-pane .content {
+    -fx-text-fill: #111;
+}
+
+.sys-btn-box .button {
+    -fx-border-width: 0;
+}
+
+.svg-button:pressed {
+    -fx-border-width: 0;
+}
+
+.svg-button {
+    -fx-border-width: 0;
+}
+
+.menu-bar.svg-button,
+.menu-bar.svg-button .container {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-effect: none;
+    -fx-border-color: none;
+}
+
+.menu-bar.svg-button .menu-button.menu {
+    -fx-background-color: transparent !important;
+    -fx-effect: none;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+.popup-list-view {
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+}
+
+.list-view .list-cell:selected,
+.list-cell:hover {
+    -fx-background-color: #d4e2ff;
+    -fx-text-fill: black !important;
+}
+
+.list-cell {
+    -fx-border-width: 0;
+    -fx-effect: none;
+    -fx-focus-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.tool-bar {
+    -fx-padding: 10px;
+}
+
+.titled-pane.non-border,
+.titled-pane.non-border > *,
+.titled-pane.non-border .title {
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+}
+
+.titled-pane.non-border .title .text {
+    -fx-font-size: 1em;
+    -fx-fill: -color-base-5;
+}
+
+.titled-pane.non-border .arrow {
+    -fx-shape: "M 0 0 L 5 5 L 10 0";
+    -fx-background-color: -color-base-4;
+}
+
+.titled-pane .content {
+    -fx-padding: 10 20;
+}
+
+.search-button-selected {
+    -fx-background-color: -color-button-border-focused, -color-button-bg-hover;
+}
+
+
+/* 整行里所有单元格文字跟随伪类变色 */
+/* 文本颜色 */
+.table-row-cell:up .table-cell {
+    -fx-text-fill: -stock-up-color;
+}
+
+.table-row-cell:down .table-cell {
+    -fx-text-fill: -stock-down-color;
+}
+
+/* 行背景颜色 */
+/* 这里的颜色需要使用 JavaFX 的 color 函数来添加透明度，因为不能直接在 CSS 中对变量进行操作 */
+.table-row-cell:up {
+    -fx-background-color: derive(-stock-up-color, 120%); /* 增加亮度，达到类似 rgba(r,g,b, 0.06) 的淡色效果 */
+}
+
+.table-row-cell:down {
+    -fx-background-color: derive(-stock-down-color, 120%);
+}
+
+/* 悬停/选中时的背景颜色 */
+.table-row-cell:up:hover,
+.table-row-cell:up:selected {
+    -fx-background-color: derive(-stock-up-color, 90%); /* 增加亮度，达到类似 rgba(r,g,b, 0.2) 的效果 */
+}
+
+.table-row-cell:down:hover,
+.table-row-cell:down:selected {
+    -fx-background-color: derive(-stock-down-color, 90%);
+}

@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.platform.view
 
+import github.nonoas.jfx.flat.ui.ResourceManager
 import github.nonoas.jfx.flat.ui.control.Card
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import github.nonoas.jfx.flat.ui.pane.JustifiedFlowPane

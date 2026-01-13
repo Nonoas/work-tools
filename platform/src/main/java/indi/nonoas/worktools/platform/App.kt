@@ -1,6 +1,8 @@
 package indi.nonoas.worktools.platform
 
 import com.melloware.jintellitype.JIntellitype
+import github.nonoas.jfx.flat.ui.AutoReleaseApplication
+import github.nonoas.jfx.flat.ui.ResourceManager
 import github.nonoas.jfx.flat.ui.theme.LightTheme
 import indi.nonoas.worktools.platform.common.Identifier
 import indi.nonoas.worktools.platform.config.DBConfigEnum
@@ -43,8 +45,9 @@ import kotlin.system.exitProcess
  * @author Nonoas
  * @date 2024/4/4 10:27
  */
-class App : Application() {
+class App : AutoReleaseApplication() {
     private val LOG = LogManager.getLogger(TaskHandler::class)
+
     /**
      * 锁文件，标志程序是否正在运行
      */
@@ -106,6 +109,7 @@ class App : Application() {
         initPrimaryStage(primaryStage)
 
         val stage: BaseStage = MainStage.instance as BaseStage
+
         // 设置系统托盘
         setSystemTray(stage)
         setGlobalHotKeys(stage)
@@ -179,9 +183,9 @@ class App : Application() {
         }
 
         systemTray = SystemTray.getSystemTray()
-                .apply {
-                    add(trayIcon)
-                }
+            .apply {
+                add(trayIcon)
+            }
 
 
     }
@@ -205,9 +209,9 @@ class App : Application() {
      */
     private fun setGlobalHotKeys(stage: BaseStage) {
         jIntellitype!!.registerHotKey(
-                Identifier.A_S_M,
-                JIntellitype.MOD_ALT + JIntellitype.MOD_SHIFT,
-                'M'.code
+            Identifier.A_S_M,
+            JIntellitype.MOD_ALT + JIntellitype.MOD_SHIFT,
+            'M'.code
         )
         jIntellitype!!.addHotKeyListener { identifier ->
             if (Identifier.A_S_M == identifier) {
