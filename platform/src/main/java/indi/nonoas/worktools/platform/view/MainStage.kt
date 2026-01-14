@@ -204,50 +204,54 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         MsgBusManager.getGlobalBus().connect()
             .subscribe(SearchListener.TOPIC, object : SearchListener {
 
-            var resultPane: SearchResultPane? = null
+                var resultPane: SearchResultPane? = null
 
-            override fun onTextChange(keyword: String) {
+                override fun onTextChange(keyword: String) {
 
-                if (keyword.isBlank()) {
-                    rootPane.center = fpFuncListPane
-                    return
+                    if (keyword.isBlank()) {
+                        rootPane.center = fpFuncListPane
+                        return
+                    }
+
+                    val qry = FuncSettingQry().apply {
+                        funcCode = keyword
+                        funcName = keyword
+                        enableFlag = true
+                        pageSize = 10
+                    }
+
+                    val execFileVoList = ArrayList<ExecFileVo>()
+                    ExtensionManager.getExtensions(Searchable::class.java).forEach { extension ->
+                        val qryResult = extension.onSearchKeywordChange(keyword)
+                        execFileVoList.addAll(qryResult)
+                    }
+                    resultPane = SearchResultPane.Builder()
+                        .funcSettings(funcService.search(qry))
+                        .execFiles(execFileVoList)
+                        .build()
+
+                    rootPane.center = resultPane
                 }
 
-                val qry = FuncSettingQry().apply {
-                    funcCode = keyword
-                    funcName = keyword
-                    enableFlag = true
-                    pageSize = 10
+                override fun onKeyPressed(event: KeyEvent) {
+                    resultPane?.handle(event)
                 }
 
-                val execFileVoList = ArrayList<ExecFileVo>()
-                ExtensionManager.getExtensions(Searchable::class.java).forEach { extension ->
-                    val qryResult = extension.onSearchKeywordChange(keyword)
-                    execFileVoList.addAll(qryResult)
+                override fun onEntered(event: KeyEvent) {
+                    resultPane?.handle(event)
                 }
-                resultPane = SearchResultPane.Builder()
-                    .funcSettings(funcService.search(qry))
-                    .execFiles(execFileVoList)
-                    .build()
-
-                rootPane.center = resultPane
-            }
-
-            override fun onKeyPressed(event: KeyEvent) {
-                resultPane?.handle(event)
-            }
-
-            override fun onEntered(event: KeyEvent) {
-                resultPane?.handle(event)
-            }
-        })
+            })
     }
 
+    /**
+     * 刷新功能面板
+     */
     private fun refreshFuncPane() {
         fpFuncList.children.clear()
         val settingMaps = getSettingMap().filterValues { it.isEnableFlag }
         settingMaps.values.forEach { plugDto ->
             val plugin = PluginManager.getPluginById(plugDto.funcCode) ?: return
+
             val funcPanes = plugin.getExtensionByType(FuncPaneFactory::class.java)
             funcPanes?.forEach { func ->
                 val myCard = Card(func.getName(), func.getDescription(), func.getGraphic()).apply {

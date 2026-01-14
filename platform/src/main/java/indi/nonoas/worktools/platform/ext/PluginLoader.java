@@ -6,15 +6,12 @@ import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class PluginLoader {
 
@@ -24,70 +21,91 @@ public class PluginLoader {
 
     private static List<Plugin> instances;
 
-    /**
-     * 加载所有 plugin.yml 并实例化插件对象
-     */
     public static List<Plugin> load() {
-        if (instances != null) {
-            return instances;
-        }
+        if (instances != null) return instances;
 
+        instances = new ArrayList<>();
         Yaml yaml = new Yaml();
 
         try {
-            Enumeration<URL> resources = Thread.currentThread()
-                    .getContextClassLoader()
-                    .getResources(PLUGIN_YML);
+            // 这里依然用当前的加载器去寻找所有的 yml
+            Enumeration<URL> resources = PluginLoader.class.getClassLoader().getResources(PLUGIN_YML);
 
-
-            instances = new ArrayList<>();
             while (resources.hasMoreElements()) {
-                URL url = resources.nextElement();
-                try (InputStream in = url.openStream()) {
+                URL configUrl = resources.nextElement();
+
+                // 关键点：获取该 yml 所在的 JAR 或目录根路径
+                URL pluginRoot = getPluginRoot(configUrl);
+
+                // 为每个插件创建独立的加载器，并指定父加载器为主程序加载器
+                PluginClassLoader pluginLoader = new PluginClassLoader(
+                        new URL[]{pluginRoot},
+                        PluginLoader.class.getClassLoader()
+                );
+
+                try (InputStream in = configUrl.openStream()) {
                     PluginYmlModel pluginModel = yaml.loadAs(in, PluginYmlModel.class);
-                    instances.add(toPlugin(pluginModel));
+                    // 传递这个 pluginLoader 进行类加载
+                    instances.add(toPlugin(pluginModel, pluginLoader));
                 } catch (Exception e) {
-                    LOG.error("Failed to load plugin from: {}", url, e);
+                    LOG.error("Failed to load plugin from: {}", configUrl, e);
                 }
             }
         } catch (Exception e) {
             LOG.error(e);
         }
-
         return instances;
     }
 
-    private static Plugin toPlugin(PluginYmlModel pluginModel) throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        Set<String> implSet = new HashSet<>();
+    /**
+     * 解析 plugin.yml 的 URL，提取出插件 JAR 的根路径
+     */
+    private static URL getPluginRoot(URL configUrl) throws Exception {
+        String urlString = configUrl.toExternalForm();
+        if (urlString.startsWith("jar:")) {
+            // jar:file:/path/to/plugin.jar!/META-INF/plugin.yml -> file:/path/to/plugin.jar
+            return new URL(urlString.substring(4, urlString.indexOf("!/")));
+        } else {
+            // file:/path/to/classes/META-INF/plugin.yml -> file:/path/to/classes/
+            return new URL(urlString.substring(0, urlString.length() - PLUGIN_YML.length()));
+        }
+    }
 
+    private static Plugin toPlugin(PluginYmlModel pluginModel, ClassLoader loader) throws Exception {
         Plugin plugin = new Plugin();
+        // 保存一下这个加载器，后续加载 CSS 或图标时要用到它
+        plugin.setClassLoader(loader);
+
         plugin.setId(pluginModel.getId());
         plugin.setName(pluginModel.getName());
         plugin.setVersion(pluginModel.getVersion());
 
         Map<Class<?>, List<?>> extensions = new HashMap<>();
         for (Map.Entry<String, List<String>> extension : pluginModel.getExtensions().entrySet()) {
-            // 获取接口/父类的Class
-            Class<?> interfaceClass = Class.forName(extension.getKey());
-            for (String impl : extension.getValue()) {
-                if (!implSet.add(impl)) {
-                    continue;
-                }
-                // 获取实现类的Class
-                Class<?> implClass = Class.forName(impl);
+            // 使用插件专有的加载器加载接口和实现类
+            Class<?> interfaceClass = PluginLoader.class.getClassLoader().loadClass(extension.getKey());
 
-                // 修正：检查实现类是否实现了接口或继承了父类
+            for (String implName : extension.getValue()) {
+
+                Class<?> implClass = loader.loadClass(implName);
+                System.out.println("加载扩展，子类  " + implClass+" "+implClass.getClassLoader());
+                System.out.println("加载扩展，父类  " + interfaceClass + " " + interfaceClass.getClassLoader());
+
                 if (interfaceClass.isAssignableFrom(implClass)) {
+                    // 实例化
                     Object implObject = implClass.getDeclaredConstructor().newInstance();
-                    List impls = extensions.computeIfAbsent(interfaceClass, aClass -> new ArrayList<>());
-                    impls.add(implObject);
-                } else {
-                    System.err.println("Warning: " + implClass.getName() +
-                            " does not implement/extend " + interfaceClass.getName());
+                    addExtension(extensions, interfaceClass, implObject);
                 }
             }
         }
         plugin.setExtensions(extensions);
         return plugin;
     }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void addExtension(Map<Class<?>, List<?>> extensions, Class<T> interfaceClass, Object implObject) {
+        List<T> list = (List<T>) extensions.computeIfAbsent(interfaceClass, k -> new ArrayList<T>());
+        list.add(interfaceClass.cast(implObject));
+    }
+
 }

@@ -64,7 +64,8 @@ class PluginSettingStage : BaseStage() {
         TaskHandler<List<FuncSettingVo>>()
             .whenCall {
                 val settingMap = FuncSettingDao().getAll().associate { it.funcCode to it.isEnableFlag }
-                vos = PluginManager.getAll().map {
+                val allPlugin = PluginManager.getAll()
+                vos = allPlugin.map {
                     FuncSettingVo.covertFrom(it).apply {
                         val enabled = settingMap[it.id] ?: false
                         this.setEnableFlag(enabled)

@@ -37,6 +37,8 @@ public class Plugin {
 
     private Map<Class<?>, List<?>> extensions;
 
+    private ClassLoader classLoader;
+
     public String getName() {
         return name;
     }
@@ -95,5 +97,13 @@ public class Plugin {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public void setClassLoader(ClassLoader loader) {
+        this.classLoader = loader;
+    }
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
     }
 }

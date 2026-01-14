@@ -66,11 +66,10 @@ subprojects {
         modules = listOf("javafx.controls", "javafx.swing")
     }
 
-
     // 非 platform 模块引入 platform
     if (project.name != platformName) {
         dependencies {
-            implementation(project(":$platformName"))
+            compileOnly(project(":$platformName"))
         }
     }
 }
