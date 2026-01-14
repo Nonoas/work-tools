@@ -90,7 +90,7 @@ public class StockMonitorPane extends BorderPane implements Resource {
     private final Supplier<Stage> stageSupplier = () -> (Stage) getScene().getWindow();
 
     private StockMonitorPane() {
-
+        getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
         MenuBar menuBar = getMenuBar();
 
         tabPane.setSide(Side.BOTTOM);

@@ -66,7 +66,9 @@ class RecentTouchPane private constructor() : VBox(10.0) {
                     val fxImage = UIUtil.getFileIcon(file, 16)
 
                     // 文件名 Label
-                    val nameLabel = Label(item.name)
+                    val nameLabel = Label(item.name).apply {
+                        minWidth = USE_PREF_SIZE
+                    }
 
                     // 路径 Label（灰色，截断显示）
                     val pathLabel = Label(file.absolutePath).apply {
