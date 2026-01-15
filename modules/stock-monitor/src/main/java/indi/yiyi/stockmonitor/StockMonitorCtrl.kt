@@ -10,6 +10,10 @@ class StockMonitorCtrl : BaseParentController() {
         return StockMonitorPane.getInstance()
     }
 
+    override fun getName(): String {
+        return "盯盘助手"
+    }
+
     override fun getGraphic(): Node {
         return ImageView("image/stock-monitor-logo-64x64.png")
             .apply {

@@ -1,4 +1,4 @@
-version: 1.3.2-SNAPSHOT
+# yaml-language-server: $schema=./path/to/plugin-schema.jsonversion: 1.3.2-SNAPSHOT
 name: 快速启动
 id: indi.nonoas.worktools.launcher
 extensions:

@@ -86,11 +86,7 @@ public class PluginLoader {
             Class<?> interfaceClass = PluginLoader.class.getClassLoader().loadClass(extension.getKey());
 
             for (String implName : extension.getValue()) {
-
                 Class<?> implClass = loader.loadClass(implName);
-                System.out.println("加载扩展，子类  " + implClass+" "+implClass.getClassLoader());
-                System.out.println("加载扩展，父类  " + interfaceClass + " " + interfaceClass.getClassLoader());
-
                 if (interfaceClass.isAssignableFrom(implClass)) {
                     // 实例化
                     Object implObject = implClass.getDeclaredConstructor().newInstance();

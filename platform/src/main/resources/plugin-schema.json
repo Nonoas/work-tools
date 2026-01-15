@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Nonoas Plugin Configuration",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "description": "插件唯一标识符" },
+    "name": { "type": "string", "description": "插件名称" },
+    "version": { "type": "string", "description": "插件版本号" },
+    "mainClass": { "type": "string", "description": "插件主类全限定名" },
+    "extensions": {
+      "type": "object",
+      "description": "扩展点映射",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    }
+  },
+  "required": ["id", "name"]
+}
