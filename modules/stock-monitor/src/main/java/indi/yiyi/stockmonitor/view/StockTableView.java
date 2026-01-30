@@ -2,6 +2,7 @@ package indi.yiyi.stockmonitor.view;
 
 import github.nonoas.jfx.flat.ui.AppState;
 import github.nonoas.jfx.flat.ui.control.AlignedTableColumn;
+import indi.nonoas.worktools.platform.ui.component.FXAlert;
 import indi.yiyi.stockmonitor.data.StockGroup;
 import indi.yiyi.stockmonitor.data.StockRow;
 import indi.yiyi.stockmonitor.utils.GroupConfig;

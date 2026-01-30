@@ -14,7 +14,7 @@ import indi.yiyi.stockmonitor.utils.FileUtil;
 import indi.yiyi.stockmonitor.utils.GroupConfig;
 import indi.yiyi.stockmonitor.utils.UIUtil;
 import indi.yiyi.stockmonitor.view.AIStage;
-import indi.yiyi.stockmonitor.view.FXAlert;
+import indi.nonoas.worktools.platform.ui.component.FXAlert;
 import indi.yiyi.stockmonitor.view.StockColorSettingsDialog;
 import indi.yiyi.stockmonitor.view.StockSearchDialog;
 import indi.yiyi.stockmonitor.view.StockTab;

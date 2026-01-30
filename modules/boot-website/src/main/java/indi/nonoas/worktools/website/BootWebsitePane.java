@@ -1,12 +1,25 @@
 package indi.nonoas.worktools.website;
 
+import github.nonoas.jfx.flat.ui.AppState;
+import indi.nonoas.worktools.platform.ui.component.FXAlert;
+import indi.nonoas.worktools.website.dao.WebsiteDataDao;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+
+import java.util.List;
 
 public class BootWebsitePane extends StackPane {
 
@@ -23,13 +36,26 @@ public class BootWebsitePane extends StackPane {
         setPadding(new Insets(15));
         VBox root = new VBox(12);
 
+        // 2. 加载现有数据
+        loadDataFromDb();
+
         root.getChildren().add(buildForm());
         root.getChildren().add(buildSearchBox());
         root.getChildren().add(buildTable());
         getChildren().add(root);
     }
 
-    /** ------------------ 表单 ------------------ **/
+    /**
+     * 从数据库读取并填充到表格
+     */
+    private void loadDataFromDb() {
+        List<WebsiteData> all = WebsiteDataDao.INSTANCE.findAll();
+        data.setAll(all);
+    }
+
+    /**
+     * ------------------ 表单 ------------------
+     **/
     private Pane buildForm() {
         VBox box = new VBox(10);
 
@@ -56,7 +82,9 @@ public class BootWebsitePane extends StackPane {
         return box;
     }
 
-    /** ------------------ 搜索框 ------------------ **/
+    /**
+     * ------------------ 搜索框 ------------------
+     **/
     private Pane buildSearchBox() {
         HBox box = new HBox(10);
         searchField.setPromptText("输入关键词搜索…");
@@ -70,10 +98,12 @@ public class BootWebsitePane extends StackPane {
         return box;
     }
 
-    /** ------------------ 表格 ------------------ **/
+    /**
+     * ------------------ 表格 ------------------
+     **/
     private TableView<WebsiteData> buildTable() {
         TableColumn<WebsiteData, String> commandCol = new TableColumn<>("命令");
-        commandCol.setCellValueFactory(c -> c.getValue().command);
+        commandCol.setCellValueFactory(c -> c.getValue().command); // 使用Property
 
         TableColumn<WebsiteData, String> urlCol = new TableColumn<>("网址");
         urlCol.setCellValueFactory(c -> c.getValue().url);
@@ -88,6 +118,8 @@ public class BootWebsitePane extends StackPane {
             {
                 del.setOnAction(e -> {
                     WebsiteData item = getTableView().getItems().get(getIndex());
+                    // 数据库同步删除
+                    WebsiteDataDao.INSTANCE.deleteByCommand(item.command.get());
                     data.remove(item);
                 });
             }
@@ -107,6 +139,9 @@ public class BootWebsitePane extends StackPane {
         table.setItems(data);
         table.setPrefHeight(300);
 
+        // 设置之前提到的列自动调整策略
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
         table.setOnMouseClicked(e -> {
             WebsiteData sel = table.getSelectionModel().getSelectedItem();
             if (sel != null) fillForm(sel);
@@ -115,32 +150,46 @@ public class BootWebsitePane extends StackPane {
         return table;
     }
 
-    /** ------------------ CRUD 方法 ------------------ **/
+    /**
+     * ------------------ CRUD 方法 (已整合Dao) ------------------
+     **/
 
     private void addItem() {
-        if (commandField.getText().isEmpty() || urlField.getText().isEmpty()) {
-            alert("命令和网址不能为空");
+        String cmd = commandField.getText();
+        String url = urlField.getText();
+        String alias = aliasField.getText();
+
+        if (cmd.isEmpty() || url.isEmpty()) {
+            FXAlert.error(AppState.getStage(), "警告", "命令和网址不能为空");
             return;
         }
-        data.add(new WebsiteData(
-                commandField.getText(),
-                urlField.getText(),
-                aliasField.getText()
-        ));
+
+        WebsiteData newItem = new WebsiteData(cmd, url, alias);
+
+        // 1. 存入数据库
+        WebsiteDataDao.INSTANCE.saveOrUpdate(newItem);
+        // 2. 更新UI列表
+        data.add(newItem);
+
         clearForm();
     }
 
     private void updateItem() {
         WebsiteData sel = table.getSelectionModel().getSelectedItem();
         if (sel == null) {
-            alert("请选择要修改的条目");
+            FXAlert.info(AppState.getStage(), "提示", "请选择要修改的条目");
             return;
         }
 
+        // 更新属性
         sel.command.set(commandField.getText());
         sel.url.set(urlField.getText());
         sel.alias.set(aliasField.getText());
 
+        // 1. 同步到数据库 (MERGE语句会根据PK自动更新)
+        WebsiteDataDao.INSTANCE.saveOrUpdate(sel);
+
+        // 2. 刷新UI
         table.refresh();
         clearForm();
     }
@@ -171,14 +220,12 @@ public class BootWebsitePane extends StackPane {
         commandField.clear();
         urlField.clear();
         aliasField.clear();
+        table.getSelectionModel().clearSelection();
     }
 
-    private void alert(String msg) {
-        Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
-        alert.show();
-    }
-
-    /** ------------------ 数据类 ------------------ **/
+    /**
+     * ------------------ 数据类 ------------------
+     **/
     public static class WebsiteData {
         public final SimpleStringProperty command;
         public final SimpleStringProperty url;

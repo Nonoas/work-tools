@@ -1,4 +1,4 @@
-package indi.yiyi.stockmonitor.view;
+package indi.nonoas.worktools.platform.ui.component;
 
 /**
  * @author Nonoas

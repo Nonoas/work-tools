@@ -3,6 +3,18 @@ import org.openjfx.gradle.JavaFXOptions
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.openjfx.javafxplugin")
+    id("maven-publish")
+}
+
+group = "indi.nonoas.worktools"
+version = "1.0.0"
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"]) // 获取 java 组件
+        }
+    }
 }
 
 val jfxVersion: String by project
