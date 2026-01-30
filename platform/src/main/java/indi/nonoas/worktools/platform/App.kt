@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.platform
 
 import com.melloware.jintellitype.JIntellitype
+import github.nonoas.jfx.flat.ui.AppState
 import github.nonoas.jfx.flat.ui.AutoReleaseApplication
 import github.nonoas.jfx.flat.ui.ResourceManager
 import github.nonoas.jfx.flat.ui.theme.LightTheme
@@ -109,6 +110,7 @@ class App : AutoReleaseApplication() {
         initPrimaryStage(primaryStage)
 
         val stage: BaseStage = MainStage.instance as BaseStage
+        AppState.setStage(stage.stage)
 
         // 设置系统托盘
         setSystemTray(stage)

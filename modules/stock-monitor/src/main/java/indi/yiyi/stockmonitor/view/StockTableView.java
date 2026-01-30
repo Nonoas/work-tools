@@ -1,7 +1,7 @@
 package indi.yiyi.stockmonitor.view;
 
+import github.nonoas.jfx.flat.ui.AppState;
 import github.nonoas.jfx.flat.ui.control.AlignedTableColumn;
-import indi.yiyi.stockmonitor.AppContext;
 import indi.yiyi.stockmonitor.data.StockGroup;
 import indi.yiyi.stockmonitor.data.StockRow;
 import indi.yiyi.stockmonitor.utils.GroupConfig;
@@ -84,7 +84,7 @@ public class StockTableView extends TableView<StockRow> {
 
         getColumns().addAll(colIndex, colCode, colName, colChangeRate, colPrice, colChangeAmt);
         setItems(data);
-        setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_NEXT_COLUMN);
 
         // 行颜色：涨红、跌绿、平默认
         setRowFactory(tv -> {
@@ -119,7 +119,7 @@ public class StockTableView extends TableView<StockRow> {
                 StockRow item = row.getItem();
                 if (item == null) return;
 
-                var r = FXAlert.confirm(AppContext.getMainStage(), "确认删除", "确定要删除 " + item.getCode() + "（" + item.getName() + "）吗？");
+                var r = FXAlert.confirm(AppState.getStage(), "确认删除", "确定要删除 " + item.getCode() + "（" + item.getName() + "）吗？");
                 if (r.isEmpty() || r.get() != ButtonType.OK) return;
 
                 boolean removeStock = GroupConfig.removeStock(stockGroup.getName(), item.getMarketCode(), item.getRawCode());
@@ -164,7 +164,7 @@ public class StockTableView extends TableView<StockRow> {
         Dialog<List<String>> dialog = new Dialog<>();
         dialog.setTitle("修改分组");
         dialog.setHeaderText("请选择股票【" + stock.getCode() + " - " + stock.getName() + "】所在的分组");
-        dialog.initOwner(AppContext.getMainStage());
+        dialog.initOwner(AppState.getStage());
 
         ButtonType okButtonType = new ButtonType("确定", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
