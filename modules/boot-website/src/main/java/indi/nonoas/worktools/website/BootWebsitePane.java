@@ -37,7 +37,9 @@ public class BootWebsitePane extends StackPane {
 
     private final TableView<WebsiteData> table = new TableView<>();
 
-    public BootWebsitePane() {
+    private static final BootWebsitePane INSTANCE = new BootWebsitePane();
+
+    private BootWebsitePane() {
         setPadding(new Insets(15));
         VBox root = new VBox(12);
 
@@ -48,6 +50,10 @@ public class BootWebsitePane extends StackPane {
         root.getChildren().add(buildForm());
         root.getChildren().add(buildTable());
         getChildren().add(root);
+    }
+
+    public static BootWebsitePane getInstance() {
+        return INSTANCE;
     }
 
     /**

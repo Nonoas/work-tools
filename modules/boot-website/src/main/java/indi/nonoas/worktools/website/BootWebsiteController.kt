@@ -11,7 +11,7 @@ import javafx.scene.image.ImageView
  */
 class BootWebsiteController : FuncPaneFactory {
     override fun getRootView(): Parent {
-        return BootWebsitePane()
+        return BootWebsitePane.getInstance()
     }
 
     override fun getCode(): String {

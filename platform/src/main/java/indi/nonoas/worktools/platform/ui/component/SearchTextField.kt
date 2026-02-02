@@ -23,18 +23,25 @@ class SearchTextField : CustomTextField(), EventHandler<KeyEvent> {
 
     private var messageBus: MessageBus = MsgBusManager.getGlobalBus()
 
+    private var leftGlobal = Label(" Qry_>").apply {
+        styleClass.addAll("hint", Styles.TEXT_MUTED, Styles.TEXT_SMALL)
+        tooltip = Tooltip("全局模式")
+    }
+
+    private var leftCurr = Label(" Cur_>").apply {
+        styleClass.addAll("hint", Styles.TEXT_MUTED, Styles.TEXT_SMALL)
+        tooltip = Tooltip("当前模式")
+    }
+
     /**
      * 搜索模式
      */
     private var mode: MODE = MODE.GLOBAL
 
     init {
-        promptText = "输入关键字，回车搜索"
+        promptText = "Enter搜索，Tab切换模式"
         styleClass.add(Styles.ROUNDED)
-        left = Label(" Qry_>").apply {
-            styleClass.addAll("hint", Styles.TEXT_MUTED, Styles.TEXT_SMALL)
-            tooltip = Tooltip("搜索模式")
-        }
+        left = leftGlobal
 
         onTextChanged {
             messageBus.getPublisher(SearchListener.TOPIC).onTextChange(it)
@@ -64,12 +71,11 @@ class SearchTextField : CustomTextField(), EventHandler<KeyEvent> {
             KeyCode.TAB -> {
                 mode = if (mode == MODE.GLOBAL) MODE.CURRENT else MODE.GLOBAL
                 // 根据模式切换消息总线
-                val label = left as Label
                 messageBus = if (mode == MODE.CURRENT) {
-                    label.text = " Cur_>"
+                    left = leftCurr
                     MsgBusManager.getCurrentBus()
                 } else {
-                    label.text = " Qry_>"
+                    left = leftGlobal
                     MsgBusManager.getGlobalBus()
                 }
                 // 消费事件，避免输入框丢失焦点
