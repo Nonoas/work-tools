@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.platform.utils
 
+import cn.hutool.core.util.URLUtil
 import indi.nonoas.worktools.platform.ui.component.ExceptionAlter
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
@@ -20,6 +21,15 @@ object DesktopUtil {
     fun open(file: File?) {
         try {
             Desktop.getDesktop().open(file)
+        } catch (e: Exception) {
+            ExceptionAlter.Companion.error(e)
+        }
+    }
+
+    @JvmStatic
+    fun browse(url: String) {
+        try {
+            Desktop.getDesktop().browse(URLUtil.url(url).toURI())
         } catch (e: Exception) {
             ExceptionAlter.Companion.error(e)
         }

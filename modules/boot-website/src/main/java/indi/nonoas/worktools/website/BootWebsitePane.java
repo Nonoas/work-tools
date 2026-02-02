@@ -1,7 +1,10 @@
 package indi.nonoas.worktools.website;
 
 import github.nonoas.jfx.flat.ui.AppState;
+import indi.nonoas.worktools.platform.global.message.MsgBusManager;
 import indi.nonoas.worktools.platform.ui.component.FXAlert;
+import indi.nonoas.worktools.platform.ui.component.SearchListener;
+import indi.nonoas.worktools.platform.utils.DesktopUtil;
 import indi.nonoas.worktools.website.dao.WebsiteDataDao;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -13,11 +16,13 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -38,9 +43,9 @@ public class BootWebsitePane extends StackPane {
 
         // 2. 加载现有数据
         loadDataFromDb();
+        initSearchEvent();
 
         root.getChildren().add(buildForm());
-        root.getChildren().add(buildSearchBox());
         root.getChildren().add(buildTable());
         getChildren().add(root);
     }
@@ -85,17 +90,37 @@ public class BootWebsitePane extends StackPane {
     /**
      * ------------------ 搜索框 ------------------
      **/
-    private Pane buildSearchBox() {
-        HBox box = new HBox(10);
-        searchField.setPromptText("输入关键词搜索…");
-        Button searchBtn = new Button("搜索");
-        Button resetBtn = new Button("重置");
+    private void initSearchEvent() {
+        MsgBusManager.getCurrentBus().connect().subscribe(SearchListener.Companion.getTOPIC(), new SearchListener() {
+            @Override
+            public void onKeyPressed(@NotNull KeyEvent event) {
 
-        searchBtn.setOnAction(e -> search());
-        resetBtn.setOnAction(e -> resetSearch());
+            }
 
-        box.getChildren().addAll(searchField, searchBtn, resetBtn);
-        return box;
+            @Override
+            public void onTextChange(@NotNull String keyword) {
+                if (keyword.trim().isBlank()) {
+                    table.setItems(data);
+                    return;
+                }
+
+                table.setItems(data.filtered(b ->
+                        b.command.get().contains(keyword)
+                                || b.alias.get().contains(keyword)
+                ));
+            }
+
+            @Override
+            public void onEntered(@NotNull KeyEvent event) {
+                ObservableList<WebsiteData> items = table.getItems();
+                if (items.isEmpty()) {
+                    return;
+                }
+                WebsiteData websiteData = items.get(0);
+                String url = websiteData.url.get();
+                DesktopUtil.browse(url);
+            }
+        });
     }
 
     /**
@@ -194,21 +219,6 @@ public class BootWebsitePane extends StackPane {
         clearForm();
     }
 
-    private void search() {
-        String keyword = searchField.getText().trim();
-        if (keyword.isEmpty()) return;
-
-        table.setItems(data.filtered(b ->
-                b.command.get().contains(keyword)
-                        || b.url.get().contains(keyword)
-                        || b.alias.get().contains(keyword)
-        ));
-    }
-
-    private void resetSearch() {
-        searchField.clear();
-        table.setItems(data);
-    }
 
     private void fillForm(WebsiteData b) {
         commandField.setText(b.command.get());
