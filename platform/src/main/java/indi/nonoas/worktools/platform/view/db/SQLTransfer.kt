@@ -1,23 +1,38 @@
 package indi.nonoas.worktools.platform.view.db
 
-
+import github.nonoas.jfx.flat.ui.concurrent.TaskHandler
+import indi.nonoas.worktools.platform.dao.PageParamsDao
+import indi.nonoas.worktools.platform.pojo.dto.PageParamsDto
+import indi.nonoas.worktools.platform.pojo.vo.PageParamsVo
+import indi.nonoas.worktools.platform.utils.DBUtil
 import javafx.geometry.Insets
+import javafx.geometry.Pos
+import javafx.scene.control.Alert
 import javafx.scene.control.Button
+import javafx.scene.control.ButtonType
 import javafx.scene.control.ComboBox
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
+import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
+import javafx.stage.DirectoryChooser
+import javafx.stage.FileChooser
 import java.io.File
 import java.nio.charset.StandardCharsets
 
 class SQLTransfer : VBox() {
 
+    private val keyInput: String = "SQLTransfer\$input"
+    private val keyOutput: String = "SQLTransfer\$onput"
+
     private val fullSqlPathField = TextField()
     private val incrSqlPathField = TextField()
-    private val keyFieldsField = TextField("busi_TYPE")
+    private val keyFieldsField = TextField()
+
     private val modeComboBox = ComboBox<String>().apply {
         items.addAll("Delete-Insert", "Insert-Select-Not-Exists")
         value = "Delete-Insert"
@@ -28,169 +43,238 @@ class SQLTransfer : VBox() {
     }
 
     init {
-        spacing = 10.0
-        padding = Insets(15.0)
+        spacing = 15.0
+        padding = Insets(20.0)
 
-        // --- UI 布局 ---
         val grid = GridPane().apply {
             hgap = 10.0
-            vgap = 10.0
-            add(Label("全量SQL路径:"), 0, 0)
-            add(fullSqlPathField.apply { prefWidth = 400.0 }, 1, 0)
+            vgap = 15.0
+            alignment = Pos.TOP_LEFT
 
-            add(Label("输出SQL路径:"), 0, 1)
-            add(incrSqlPathField, 1, 1)
+            // --- 输入文件选择 ---
+            add(Label("输入 SQL 文件:"), 0, 0)
+            val inputHBox = HBox(5.0, fullSqlPathField.apply { HBox.setHgrow(this, Priority.ALWAYS) },
+                Button("选择").apply { setOnAction { chooseInputFile() } })
+            add(inputHBox, 1, 0)
 
-            add(Label("主键字段(逗号分隔):"), 0, 2)
-            add(keyFieldsField, 1, 2)
+            // --- 输出路径选择 ---
+            add(Label("输出路径/文件:"), 0, 1)
+            val outputHBox = HBox(5.0, incrSqlPathField.apply { HBox.setHgrow(this, Priority.ALWAYS) },
+                Button("选择").apply { setOnAction { chooseOutputPath() } })
+            add(outputHBox, 1, 1)
+
+            add(Label("主键字段:"), 0, 2)
+            add(keyFieldsField.apply { promptText = "多个主键请用逗号分隔" }, 1, 2)
 
             add(Label("生成模式:"), 0, 3)
             add(modeComboBox, 1, 3)
+
+            // 设置列约束，让第二列自动拉伸
+            val col2 = ColumnConstraints().apply { hgrow = Priority.ALWAYS }
+            columnConstraints.addAll(ColumnConstraints(), col2)
         }
 
-        val runBtn = Button("开始转换").apply {
-            style = "-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold;"
+        val runBtn = Button("执行转换").apply {
+            prefWidth = 200.0
+            style = "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;"
             setOnAction { handleConversion() }
         }
 
-        children.addAll(grid, runBtn, Label("日志输出:"), logArea)
-        VBox.setVgrow(logArea, Priority.ALWAYS)
+        children.addAll(grid, runBtn, Label("运行日志:"), logArea)
+        setVgrow(logArea, Priority.ALWAYS)
+
+        initForm()
+    }
+
+    private fun initForm() {
+        TaskHandler<List<PageParamsVo>>()
+            .whenCall {
+                PageParamsDao.getByParamCode(keyInput)
+            }
+            .andThen {
+                if (it.isEmpty()) {
+                    return@andThen
+                }
+                val get = it[0]
+                fullSqlPathField.text = get.paramVal
+            }
+            .handle()
+
+        TaskHandler<List<PageParamsVo>>()
+            .whenCall {
+                PageParamsDao.getByParamCode(keyOutput)
+            }
+            .andThen {
+                if (it.isEmpty()) {
+                    return@andThen
+                }
+                val get = it[0]
+                incrSqlPathField.text = get.paramVal
+            }
+            .handle()
+
+        PageParamsDao.getByParamCode(keyOutput)
+
+    }
+
+
+    /**
+     * 保存页面参数
+     */
+    private fun savePageParam() {
+        TaskHandler.backRun {
+            var dto = PageParamsDto().apply {
+                paramCode = keyInput
+                paramVal = fullSqlPathField.text
+                lastUseTimestamp = System.currentTimeMillis()
+            }
+            PageParamsDao.replaceInto(dto)
+
+            dto = PageParamsDto().apply {
+                paramCode = keyOutput
+                paramVal = incrSqlPathField.text
+                lastUseTimestamp = System.currentTimeMillis()
+            }
+            PageParamsDao.replaceInto(dto)
+        }
+    }
+
+    private fun chooseInputFile() {
+        val fileChooser = FileChooser().apply {
+            title = "选择原始 SQL 文件"
+            extensionFilters.add(FileChooser.ExtensionFilter("SQL Files", "*.sql"))
+        }
+        val file = fileChooser.showOpenDialog(scene.window)
+        if (file != null) {
+            fullSqlPathField.text = file.absolutePath
+            // 自动推测输出路径：原文件名 + _incr.sql
+            if (incrSqlPathField.text.isEmpty()) {
+                incrSqlPathField.text = File(file.parent, "generated_increment.sql").absolutePath
+            }
+        }
+    }
+
+    private fun chooseOutputPath() {
+        // 提供两个选项：选文件夹或选文件
+        val alert = Alert(
+            Alert.AlertType.CONFIRMATION, "请选择输出保存方式",
+            ButtonType("指定文件夹"), ButtonType("指定具体文件"), ButtonType.CANCEL
+        )
+
+        val result = alert.showAndWait()
+        if (result.get().text == "指定文件夹") {
+            val dir = DirectoryChooser().apply { title = "选择输出目录" }.showDialog(scene.window)
+            if (dir != null) incrSqlPathField.text = dir.absolutePath
+        } else if (result.get().text == "指定具体文件") {
+            val file = FileChooser().apply {
+                title = "另存为"
+                extensionFilters.add(FileChooser.ExtensionFilter("SQL Files", "*.sql"))
+            }.showSaveDialog(scene.window)
+            if (file != null) incrSqlPathField.text = file.absolutePath
+        }
     }
 
     private fun handleConversion() {
+        savePageParam()
+
         val inputPath = fullSqlPathField.text
-        val outputPath = incrSqlPathField.text
-        val keyFields = keyFieldsField.text.split(",").map { it.trim().lowercase() }
-        val mode = modeComboBox.value
+        var outputPath = incrSqlPathField.text
+        val keyFields = keyFieldsField.text.split(",").map { it.trim().lowercase() }.filter { it.isNotEmpty() }
 
         if (inputPath.isEmpty() || outputPath.isEmpty()) {
-            log("错误: 请指定输入和输出路径")
+            log("❌ 错误: 请完整填写输入和输出路径")
             return
         }
 
+        // 逻辑处理：如果是文件夹，自动补全文件名
+        val outFile = File(outputPath)
+        if (outFile.isDirectory) {
+            outputPath = File(outFile, "increment_result.sql").absolutePath
+        }
+
         try {
-            processSql(inputPath, outputPath, keyFields, mode)
-            log("✅ 转换成功! 输出至: $outputPath")
+            processSql(inputPath, outputPath, keyFields, modeComboBox.value)
+            log("✅ 成功! 结果已保存至: $outputPath")
         } catch (e: Exception) {
-            log("❌ 发生错误: ${e.message}")
+            log("❌ 失败: ${e.message}")
         }
     }
 
     private fun processSql(input: String, output: String, keyFields: List<String>, mode: String) {
         val content = File(input).readText(StandardCharsets.UTF_8)
-
-        // 1. 预处理：按分号分割，并过滤掉非 INSERT 语句
-        val stmts = content.split(";")
-            .map { it.trim() }
-            .filter { it.startsWith("insert", ignoreCase = true) }
-
+        val stmts = content.split(";").map { it.trim() }.filter { it.lowercase().startsWith("insert") }
         val resultSql = mutableListOf<String>()
 
         for (stmt in stmts) {
             try {
                 val info = parseInsert(stmt)
-
-                // 2. 核心映射：将小写的字段名映射到其原始的值片段（包括单引号）
-                // zip 会成对匹配 columns 和 values
                 val kvMap = info.columns.map { it.lowercase() }.zip(info.values).toMap()
 
-                // 3. 构建 WHERE 子句
-                val whereParts = mutableListOf<String>()
-                for (key in keyFields) {
-                    val valueSnippet = kvMap[key.lowercase()]
-                    if (valueSnippet != null) {
-                        // 尽量寻找原始 SQL 中的列名写法（保持大小写）
-                        val originalColName = info.columns.find { it.equals(key, ignoreCase = true) } ?: key
-                        whereParts.add("$originalColName = $valueSnippet")
+                val whereParts = keyFields.mapNotNull { key ->
+                    kvMap[key]?.let { value ->
+                        val originalCol = info.columns.find { it.equals(key, ignoreCase = true) } ?: key
+                        "$originalCol = $value"
                     }
                 }
 
-                if (whereParts.isEmpty()) {
-                    log("⚠️ 跳过语句：找不到主键字段 $keyFields \n语句: ${stmt.take(50)}...")
+                if (whereParts.size < keyFields.size) {
+                    log("⚠️ 跳过: 无法找齐所有主键字段 ${keyFields} 在语句中")
                     continue
                 }
 
                 val whereClause = whereParts.joinToString(" AND ")
 
-                // 4. 根据模式生成结果
                 when (mode) {
                     "Delete-Insert" -> {
                         resultSql.add("DELETE FROM ${info.table} WHERE $whereClause;")
                         resultSql.add("$stmt;")
                     }
+
                     "Insert-Select-Not-Exists" -> {
-                        val cols = info.columns.joinToString(", ")
-                        val vals = info.values.joinToString(", ")
-                        val sql = """
-                        INSERT INTO ${info.table} ($cols)
-                        SELECT $vals FROM DUAL
-                        WHERE NOT EXISTS (SELECT 1 FROM ${info.table} WHERE $whereClause);
-                    """.trimIndent()
-                        resultSql.add(sql)
+                        resultSql.add(
+                            """
+                            INSERT INTO ${info.table} (${info.columns.joinToString(", ")})
+                            SELECT ${info.values.joinToString(", ")} FROM DUAL
+                            WHERE NOT EXISTS (SELECT 1 FROM ${info.table} WHERE $whereClause);
+                        """.trimIndent()
+                        )
                     }
                 }
-                resultSql.add("") // 空行分隔
-
+                resultSql.add("")
             } catch (e: Exception) {
-                log("❌ 解析失败: ${e.message}")
+                log("❌ 解析行失败: ${e.message}")
             }
         }
-
-        if (resultSql.isNotEmpty()) {
-            File(output).writeText(resultSql.joinToString("\n"), StandardCharsets.UTF_8)
-        } else {
-            log("⚠️ 未生成任何 SQL，请检查输入文件和主键配置。")
-        }
+        File(output).writeText(resultSql.joinToString("\n"), StandardCharsets.UTF_8)
     }
 
-    /**
-     * 修正后的 splitValues：支持识别单引号内的内容，并完整保留引号字符
-     */
+    private fun parseInsert(stmt: String): SqlInfo {
+        val regex =
+            Regex("(?i)insert\\s+into\\s+(\\w+)\\s*\\((.*?)\\)\\s*values\\s*\\((.*)\\)", RegexOption.DOT_MATCHES_ALL)
+        val match = regex.find(stmt) ?: throw Exception("不符合 INSERT 结构")
+        val (table, colStr, valStr) = match.destructured
+        return SqlInfo(table, colStr.split(",").map { it.trim() }, splitValues(valStr))
+    }
+
     private fun splitValues(valuesStr: String): List<String> {
         val result = mutableListOf<String>()
         val sb = StringBuilder()
         var inString = false
-
         for (c in valuesStr) {
             when {
-                // 碰到单引号，切换状态并存入 sb
                 c == '\'' -> {
-                    inString = !inString
-                    sb.append(c)
+                    inString = !inString; sb.append(c)
                 }
-                // 只有在字符串外面的逗号才视作分隔符
+
                 c == ',' && !inString -> {
-                    result.add(sb.toString().trim())
-                    sb.setLength(0)
+                    result.add(sb.toString().trim()); sb.setLength(0)
                 }
+
                 else -> sb.append(c)
             }
         }
-        // 最后一项
-        if (sb.isNotEmpty()) {
-            result.add(sb.toString().trim())
-        }
+        result.add(sb.toString().trim())
         return result
-    }
-
-    /**
-     * 配合使用的 parseInsert 正则解析函数
-     */
-    private fun parseInsert(stmt: String): SqlInfo {
-        // 正则：忽略大小写，匹配 insert into 表名 (字段) values (值)
-        val regex = Regex("(?i)insert\\s+into\\s+(\\w+)\\s*\\((.*?)\\)\\s*values\\s*\\((.*)\\)", RegexOption.DOT_MATCHES_ALL)
-        val match = regex.find(stmt) ?: throw Exception("SQL 格式不规范，无法匹配 INSERT 结构")
-
-        val (table, colStr, valStr) = match.destructured
-
-        val columns = colStr.split(",").map { it.trim() }
-        val values = splitValues(valStr)
-
-        if (columns.size != values.size) {
-            throw Exception("字段数量(${columns.size})与值数量(${values.size})不匹配")
-        }
-
-        return SqlInfo(table, columns, values)
     }
 
     private fun log(msg: String) = logArea.appendText("$msg\n")

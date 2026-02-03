@@ -10,7 +10,7 @@ import java.sql.Connection
  * @author Nonoas
  * @date 2022/1/6
  */
-class PageParamsDao(conn: Connection?) : BaseDao(conn) {
+object PageParamsDao {
     /**
      * 根据主键删除
      */

@@ -7,11 +7,14 @@ import indi.nonoas.worktools.platform.ui.TaskHandler
 import indi.nonoas.worktools.platform.ui.UIFactory
 import indi.nonoas.worktools.platform.ui.component.ItemCloseableComboBox
 import indi.nonoas.worktools.platform.ui.component.MyAlert
-import indi.nonoas.worktools.platform.utils.DBUtil
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.Insets
-import javafx.scene.control.*
+import javafx.scene.control.Alert
+import javafx.scene.control.Button
+import javafx.scene.control.SplitPane
+import javafx.scene.control.TextArea
+import javafx.scene.control.TextField
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.util.StringConverter
@@ -58,7 +61,7 @@ class SQLExtraction private constructor() : VBox(10.0) {
                 // todo 不应使用runLater
                 Platform.runLater {
                     val dto = listView?.items?.get(index) as PageParamsVo
-                    PageParamsDao(DBUtil.getConnection()).deleteById(dto.id)
+                    PageParamsDao.deleteById(dto.id)
                     cbSql.items.removeAt(index)
                 }
             }
@@ -94,7 +97,7 @@ class SQLExtraction private constructor() : VBox(10.0) {
 
         TaskHandler<List<PageParamsVo>>()
             .whenCall {
-                PageParamsDao(DBUtil.getConnection()).getByParamCode(PKEY_SQL_PREFIX)
+                PageParamsDao.getByParamCode(PKEY_SQL_PREFIX)
             }
             .andThen { vos ->
                 cbSql.items.clear()
@@ -111,13 +114,12 @@ class SQLExtraction private constructor() : VBox(10.0) {
      */
     private fun savePageParam() {
         Thread {
-            val conn = DBUtil.getConnection()
             val dto = PageParamsDto().apply {
                 paramCode = PKEY_SQL_PREFIX
                 paramVal = cbSql.value.paramVal
                 lastUseTimestamp = System.currentTimeMillis()
             }
-            PageParamsDao(conn).replaceInto(dto)
+            PageParamsDao.replaceInto(dto)
             initCbSqlItems()
         }.start()
     }
