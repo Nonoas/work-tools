@@ -1,11 +1,9 @@
 package indi.nonoas.worktools.platform;
 
-import indi.nonoas.worktools.platform.view.FloatingTabPane;
+import indi.nonoas.worktools.platform.ui.component.FloatingTabPane;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -16,19 +14,15 @@ public class MainApp extends Application {
         FloatingTabPane floatingPane = new FloatingTabPane();
 
         // 准备第一个页面的内容
-        StackPane page1 = new StackPane(new Rectangle(600, 400, Color.LIGHTBLUE), new Text("这是首页"));
+        StackPane page1 = new StackPane(new Text("这是首页"));
         // 准备第二个页面的内容
-        StackPane page2 = new StackPane(new Rectangle(600, 400, Color.LIGHTCORAL), new Text("这是设置页"));
+        StackPane page2 = new StackPane(new Text("这是设置页"));
 
         // 使用 addTab 方法添加
         floatingPane.addTab("首页", page1);
         floatingPane.addTab("设置", page2);
 
         Scene scene = new Scene(floatingPane, 600, 400);
-
-        // 可选：加一点 CSS 让标签栏更好看
-        scene.getStylesheets().add("data:text/css," +
-                ".tab-header-area { -fx-background-color: rgba(255,255,255,0.8); -fx-background-radius: 10 10 0 0; }");
 
         stage.setTitle("悬浮 TabPane 测试");
         stage.setScene(scene);

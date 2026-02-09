@@ -1,6 +1,5 @@
 package indi.nonoas.worktools.platform.view
 
-import github.nonoas.jfx.flat.ui.ResourceManager
 import github.nonoas.jfx.flat.ui.control.Card
 import github.nonoas.jfx.flat.ui.control.UIFactory
 import github.nonoas.jfx.flat.ui.pane.JustifiedFlowPane
@@ -11,7 +10,6 @@ import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import indi.nonoas.worktools.platform.ext.PluginManager
 import indi.nonoas.worktools.platform.ext.Searchable
 import indi.nonoas.worktools.platform.global.ExtensionManager
-import indi.nonoas.worktools.platform.global.message.MessageBus
 import indi.nonoas.worktools.platform.global.message.MsgBusManager
 import indi.nonoas.worktools.platform.pojo.dto.FuncSettingDto
 import indi.nonoas.worktools.platform.pojo.params.FuncSettingQry
@@ -19,6 +17,7 @@ import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.platform.service.impl.FuncSettingService
 import indi.nonoas.worktools.platform.ui.Reinitializable
 import indi.nonoas.worktools.platform.ui.component.BaseStage
+import indi.nonoas.worktools.platform.ui.component.FloatingTabPane
 import indi.nonoas.worktools.platform.ui.component.SearchListener
 import indi.nonoas.worktools.platform.ui.component.SearchTextField
 import javafx.event.EventHandler
@@ -27,6 +26,7 @@ import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.Tab
 import javafx.scene.control.ToolBar
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
@@ -56,6 +56,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     }
 
     private val fpFuncListPane = ScrollPane()
+
+    private val funcTabPane = FloatingTabPane()
 
     /**
      * 小提示标签
@@ -274,9 +276,28 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     /**
      * 切换主面板
      */
-    fun routeCenter(factory: FuncPaneFactory) {
-        rootPane.center = factory.getRootView()
-        setTitle(factory.getName())
+    private fun routeCenter(factory: FuncPaneFactory) {
+        val name = factory.getName()
+        val code = factory.getCode()
+
+        rootPane.center = funcTabPane
+
+        var tabCurr: Tab? = null
+        for (tab in funcTabPane.tabs) {
+            if (tab.userData == code) {
+                tabCurr = tab
+                break
+            }
+        }
+
+        if (tabCurr == null) {
+            val rootView = factory.getRootView()
+            tabCurr = funcTabPane.addTab(name, rootView)
+            tabCurr.userData = code
+        }
+
+        funcTabPane.selectionModel.select(tabCurr)
+        setTitle(name)
     }
 
     /**
