@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.platform.controller
 
 import indi.nonoas.worktools.platform.common.DataBinder.getBindModel
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Parent
 
@@ -18,10 +19,10 @@ open class BaseParentController : FuncPaneFactory {
      * @return 数据类实例
     </T> */
     protected fun <T> getBindModel(tClass: Class<T>): T? {
-        return getBindModel(getRootView(), tClass)
+        return null
     }
 
-    override fun getRootView(): Parent {
+    override fun create(): FuncPane {
         TODO("Not yet implemented")
     }
 

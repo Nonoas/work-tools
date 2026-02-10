@@ -2,6 +2,7 @@ package indi.nonoas.worktools.platform.controller
 
 import github.nonoas.jfx.flat.ui.pane.SVGImage
 import indi.nonoas.worktools.platform.common.ColorSerials
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.view.env.JdkVersionPane
 import javafx.scene.Node
 import javafx.scene.Parent
@@ -13,9 +14,6 @@ import javafx.scene.paint.Color
  * @date 2024/5/24 10:45
  */
 class JdkVersionController: BaseParentController() {
-    override fun getRootView(): Parent {
-        return JdkVersionPane()
-    }
 
     override fun getCode(): String {
         return "JdkVersion"
@@ -41,5 +39,9 @@ class JdkVersionController: BaseParentController() {
             prefWidth = 32.0
             prefHeight = 32.0
         }
+    }
+
+    override fun create(): FuncPane {
+        return JdkVersionPane()
     }
 }

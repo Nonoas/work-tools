@@ -57,7 +57,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
     private val fpFuncListPane = ScrollPane()
 
-    private val funcTabPane = FloatingTabPane()
+    private val funcTabPane = MainFuncPane()
 
     /**
      * 小提示标签
@@ -291,8 +291,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         }
 
         if (tabCurr == null) {
-            val rootView = factory.getRootView()
-            tabCurr = funcTabPane.addTab(name, rootView)
+            tabCurr = funcTabPane.open(factory)
             tabCurr.userData = code
         }
 

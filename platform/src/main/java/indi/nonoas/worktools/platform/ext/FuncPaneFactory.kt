@@ -4,7 +4,6 @@ import indi.nonoas.worktools.platform.common.ColorSerials
 import indi.nonoas.worktools.platform.global.ExtensionManager
 import indi.nonoas.worktools.platform.ui.component.FontIconView
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.paint.Color
 import org.kordamp.ikonli.material2.Material2AL
 
@@ -18,7 +17,7 @@ interface FuncPaneFactory {
      *
      * @return UI 控制器绑定的根视图
      */
-    fun getRootView(): Parent
+    fun create(): FuncPane
 
     fun getCode(): String {
         return javaClass.simpleName
@@ -32,9 +31,11 @@ interface FuncPaneFactory {
     fun getDescription(): String
 
     fun getGraphic(): Node {
-        return FontIconView(Material2AL.EXTENSION,
+        return FontIconView(
+            Material2AL.EXTENSION,
             40,
-            Color.web(ColorSerials.GREEN.secureRandomColor))
+            Color.web(ColorSerials.GREEN.secureRandomColor)
+        )
     }
 
     companion object {

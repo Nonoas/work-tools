@@ -3,11 +3,13 @@ package indi.nonoas.worktools.platform.view.env
 import atlantafx.base.theme.Styles
 import cn.hutool.core.io.FileUtil
 import indi.nonoas.worktools.platform.common.CommonInsets
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ui.TaskHandler
 import indi.nonoas.worktools.platform.utils.DesktopUtil
 import indi.nonoas.worktools.platform.utils.UIUtil
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
@@ -17,7 +19,7 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 
-class JdkVersionPane : HBox(CommonInsets.SPACING_1) {
+class JdkVersionPane : HBox(CommonInsets.SPACING_1), FuncPane {
 
     private val JAVA_HOME = "JAVA_HOME"
 
@@ -73,13 +75,15 @@ class JdkVersionPane : HBox(CommonInsets.SPACING_1) {
         enable.setOnAction {
             val selectedJdk = tableView.selectionModel.selectedItem
             TaskHandler<Unit>()
-                    .whenCall{ DesktopUtil.changeEnvVar(JAVA_HOME, selectedJdk.content!!)}
-                    .andThen {}
-                    .handle()
+                .whenCall { DesktopUtil.changeEnvVar(JAVA_HOME, selectedJdk.content!!) }
+                .andThen {}
+                .handle()
         }
 
-        val vbox = VBox(CommonInsets.SPACING_1,
-                nameField, pathField, addButton, editButton, deleteButton, enable)
+        val vbox = VBox(
+            CommonInsets.SPACING_1,
+            nameField, pathField, addButton, editButton, deleteButton, enable
+        )
         vbox.isFillWidth = true
         children.addAll(tableView, vbox)
 
@@ -106,12 +110,12 @@ class JdkVersionPane : HBox(CommonInsets.SPACING_1) {
             createTimestamp = System.currentTimeMillis()
         })
         EnvVarDao.insert(
-                EnvVar().apply {
-                    this.name = JAVA_HOME
-                    content = path
-                    desc = name
-                    createTimestamp = System.currentTimeMillis()
-                }
+            EnvVar().apply {
+                this.name = JAVA_HOME
+                content = path
+                desc = name
+                createTimestamp = System.currentTimeMillis()
+            }
         )
         clearForm(nameField, pathField)
     }
@@ -119,5 +123,13 @@ class JdkVersionPane : HBox(CommonInsets.SPACING_1) {
     private fun clearForm(nameField: TextField, pathField: TextField) {
         nameField.clear()
         pathField.clear()
+    }
+
+    override fun getRootView(): Parent {
+        return this
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
     }
 }

@@ -1,8 +1,8 @@
 package indi.nonoas.worktools.launcher
 
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.image.ImageView
 
 /**
@@ -10,8 +10,8 @@ import javafx.scene.image.ImageView
  * @datetime 2022/5/12 20:48
  */
 class ExecFileController : FuncPaneFactory {
-    override fun getRootView(): Parent {
-        return ExecFilePane.instance!!
+    override fun create(): FuncPane {
+        return ExecFilePane()
     }
 
     override fun getCode(): String {

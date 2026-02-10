@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.platform.controller
 
 import indi.nonoas.worktools.platform.common.FuncCode
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import indi.nonoas.worktools.platform.view.db.SQLExtraction
 import javafx.scene.Parent
@@ -11,7 +12,7 @@ import javafx.scene.Parent
  */
 @FuncCode("SQLExtraction")
 class SQLExtractionController : FuncPaneFactory {
-    override fun getRootView(): Parent {
+    override fun create(): FuncPane {
         return SQLExtraction.instance
     }
 

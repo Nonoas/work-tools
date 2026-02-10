@@ -5,6 +5,7 @@ import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.SkinBase;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -18,6 +19,8 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
     private final StackPane contentArea = new StackPane();
     // 悬浮的标签栏
     private final HBox headerBar = new HBox(8);
+
+    private boolean menuShowing = false;
 
     public FloatingTabPaneSkin(TabPane tabPane) {
         super(tabPane);
@@ -72,6 +75,17 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
             // 建议在 CSS 中定义此样式
             btn.getStyleClass().add("floating-tab-button");
 
+            ContextMenu contextMenu = tab.getContextMenu();
+            if (contextMenu != null) {
+                contextMenu.setOnShowing(e -> menuShowing = true);
+                contextMenu.setOnHiding(e -> menuShowing = false);
+                btn.setContextMenu(contextMenu);
+                btn.setOnContextMenuRequested(e -> {
+                    headerBar.setVisible(true);
+                    headerBar.setOpacity(1);
+                });
+            }
+
             btn.setOnAction(e -> pane.getSelectionModel().select(tab));
             headerBar.getChildren().add(btn);
         }
@@ -100,14 +114,17 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
         });
 
         getSkinnable().setOnMouseExited(e -> {
+            if (menuShowing) return;
+
             fadeIn.stop();
             fadeOut.playFromStart();
             fadeOut.setOnFinished(ev -> {
-                if (headerBar.getOpacity() == 0) {
+                if (!menuShowing && headerBar.getOpacity() == 0) {
                     headerBar.setVisible(false);
                 }
             });
         });
+
     }
 
     @Override

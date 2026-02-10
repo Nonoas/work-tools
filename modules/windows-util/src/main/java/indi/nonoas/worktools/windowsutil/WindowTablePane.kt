@@ -5,6 +5,7 @@ import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef.HWND
 import github.nonoas.jfx.flat.ui.concurrent.TaskHandler
 import github.nonoas.jfx.flat.ui.control.Switch
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.global.message.MessageBus
 import indi.nonoas.worktools.platform.global.message.MsgBusManager
 import indi.nonoas.worktools.platform.ui.component.SearchListener
@@ -18,6 +19,7 @@ import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.TableCell
@@ -37,7 +39,7 @@ import java.util.stream.Collectors
  * @author huangshengsheng
  * @date 2025/12/3 22:29
  */
-class WindowTablePane private constructor() : VBox() {
+class WindowTablePane private constructor() : VBox(), FuncPane {
     private val windowList: ObservableList<WindowInfo> = FXCollections.observableArrayList()
 
     private val table = TableView<WindowInfo>()
@@ -205,5 +207,13 @@ class WindowTablePane private constructor() : VBox() {
 
     companion object {
         val instance: WindowTablePane = WindowTablePane()
+    }
+
+    override fun getRootView(): Parent {
+        return this
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
     }
 }

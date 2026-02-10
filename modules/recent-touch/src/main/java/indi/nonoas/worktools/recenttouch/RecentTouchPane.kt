@@ -2,6 +2,7 @@ package indi.nonoas.worktools.recenttouch
 
 import indi.nonoas.worktools.platform.common.CommonInsets
 import indi.nonoas.worktools.platform.dao.RtpLinkListDao
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.pojo.po.RtpLinkListPo
 import indi.nonoas.worktools.platform.pojo.vo.RtpLinkListVo
 import indi.nonoas.worktools.platform.ui.TaskHandler
@@ -9,6 +10,7 @@ import indi.nonoas.worktools.platform.ui.component.ExceptionAlter
 import indi.nonoas.worktools.platform.utils.UIUtil
 import javafx.event.EventHandler
 import javafx.geometry.Pos
+import javafx.scene.Parent
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
@@ -33,7 +35,7 @@ import java.io.File
  * @author Nonoas
  * @date 2021/9/5
  */
-class RecentTouchPane private constructor() : VBox(10.0) {
+class RecentTouchPane private constructor() : VBox(10.0), FuncPane {
 
     private val lv = ListView<RtpLinkListVo>().apply {
         setCellFactory { lv ->
@@ -203,6 +205,14 @@ class RecentTouchPane private constructor() : VBox(10.0) {
     // 私有构造器
     init {
         initView()
+    }
+
+    override fun getRootView(): Parent {
+        return this
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
     }
 
 }

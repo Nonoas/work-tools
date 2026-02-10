@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.windowsutil
 
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Node
 import javafx.scene.Parent
@@ -11,7 +12,7 @@ import javafx.scene.image.ImageView
  * @datetime 2022/5/12 20:48
  */
 class WindowsUtilController : FuncPaneFactory {
-    override fun getRootView(): Parent {
+    override fun create(): FuncPane {
         return WindowTablePane.instance
     }
 

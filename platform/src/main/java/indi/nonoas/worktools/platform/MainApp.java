@@ -3,6 +3,7 @@ package indi.nonoas.worktools.platform;
 import indi.nonoas.worktools.platform.ui.component.FloatingTabPane;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Control;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -14,7 +15,8 @@ public class MainApp extends Application {
         FloatingTabPane floatingPane = new FloatingTabPane();
 
         // 准备第一个页面的内容
-        StackPane page1 = new StackPane(new Text("这是首页"));
+        StackPane page1 = new StackPane(new Control() {
+        });
         // 准备第二个页面的内容
         StackPane page2 = new StackPane(new Text("这是设置页"));
 

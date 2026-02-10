@@ -1,5 +1,6 @@
 package indi.nonoas.worktools.website
 
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Node
 import javafx.scene.Parent
@@ -10,7 +11,7 @@ import javafx.scene.image.ImageView
  * @datetime 2022/5/12 20:48
  */
 class BootWebsiteController : FuncPaneFactory {
-    override fun getRootView(): Parent {
+    override fun create(): FuncPane {
         return BootWebsitePane.getInstance()
     }
 

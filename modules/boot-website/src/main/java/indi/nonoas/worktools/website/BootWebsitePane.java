@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.website;
 
 import github.nonoas.jfx.flat.ui.AppState;
+import indi.nonoas.worktools.platform.ext.FuncPane;
 import indi.nonoas.worktools.platform.global.message.MsgBusManager;
 import indi.nonoas.worktools.platform.ui.component.FXAlert;
 import indi.nonoas.worktools.platform.ui.component.SearchListener;
@@ -10,6 +11,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -26,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class BootWebsitePane extends StackPane {
+public class BootWebsitePane extends StackPane implements FuncPane {
 
     private final ObservableList<WebsiteData> data = FXCollections.observableArrayList();
 
@@ -237,6 +239,16 @@ public class BootWebsitePane extends StackPane {
         urlField.clear();
         aliasField.clear();
         table.getSelectionModel().clearSelection();
+    }
+
+    @Override
+    public Parent getRootView() {
+        return BootWebsitePane.getInstance();
+    }
+
+    @Override
+    public void dispose() {
+
     }
 
     /**

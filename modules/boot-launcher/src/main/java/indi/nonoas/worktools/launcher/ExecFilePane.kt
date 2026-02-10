@@ -2,10 +2,12 @@ package indi.nonoas.worktools.launcher
 
 import indi.nonoas.worktools.platform.common.CommonInsets
 import indi.nonoas.worktools.platform.dao.ExecFileDao
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.platform.ui.TaskHandler
 import indi.nonoas.worktools.platform.ui.component.ExecFileButton
 import javafx.event.EventHandler
+import javafx.scene.Parent
 import javafx.scene.input.DragEvent
 import javafx.scene.input.TransferMode
 import javafx.scene.layout.FlowPane
@@ -19,9 +21,13 @@ import org.apache.logging.log4j.LogManager
  * @author Nonoas
  * @date 2021/9/4
  */
-class ExecFilePane(spacing: Double) : VBox(spacing) {
+class ExecFilePane(spacing: Double) : VBox(spacing), FuncPane {
 
     private val flowPane = FlowPane(CommonInsets.SPACING_1, CommonInsets.SPACING_1)
+
+    init {
+
+    }
 
     /**
      * 文件拖入模式设置
@@ -59,7 +65,7 @@ class ExecFilePane(spacing: Double) : VBox(spacing) {
 
     }
 
-    private constructor() : this(16.0) {
+    constructor() : this(16.0) {
         initView()
     }
 
@@ -100,5 +106,13 @@ class ExecFilePane(spacing: Double) : VBox(spacing) {
                 return field
             }
             private set
+    }
+
+    override fun getRootView(): Parent {
+        return instance!!
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
     }
 }

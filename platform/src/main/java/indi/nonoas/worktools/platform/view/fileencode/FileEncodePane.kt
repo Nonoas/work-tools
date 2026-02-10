@@ -1,11 +1,13 @@
 import cn.hutool.core.io.FileUtil
 import cn.hutool.core.util.CharsetUtil
 import indi.nonoas.worktools.platform.common.CommonInsets
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ui.TaskHandler
 import indi.nonoas.worktools.platform.ui.UIFactory
 import indi.nonoas.worktools.platform.ui.component.MyAlert
 import javafx.application.Platform
 import javafx.event.EventHandler
+import javafx.scene.Parent
 import javafx.scene.control.Alert
 import javafx.scene.control.ComboBox
 import javafx.scene.control.TextArea
@@ -19,7 +21,7 @@ import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicBoolean
 import indi.nonoas.worktools.platform.utils.FileUtil as FU
 
-class FileEncodePane : VBox(10.0) {
+class FileEncodePane : VBox(10.0), FuncPane {
 
     private val tf_dirPath = TextField().apply {
         promptText = "源文件/文件夹"
@@ -164,5 +166,13 @@ class FileEncodePane : VBox(10.0) {
                 CharsetUtil.CHARSET_ISO_8859_1
             )
         }
+    }
+
+    override fun getRootView(): Parent {
+        return instance!!
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
     }
 }

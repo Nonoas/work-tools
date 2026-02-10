@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.platform.controller
 
 import indi.nonoas.worktools.platform.common.FuncCode
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import indi.nonoas.worktools.platform.view.ClassExtractPane
 import javafx.scene.Parent
@@ -11,8 +12,9 @@ import javafx.scene.Parent
  */
 @FuncCode("ClassExtract")
 class ClassExtractController : FuncPaneFactory {
-    override fun getRootView(): Parent {
-        return ClassExtractPane.instance!!
+
+    override fun create(): FuncPane {
+        TODO("Not yet implemented")
     }
 
     override fun getName(): String {

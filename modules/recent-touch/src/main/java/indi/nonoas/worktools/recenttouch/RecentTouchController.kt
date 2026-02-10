@@ -2,6 +2,7 @@ package indi.nonoas.worktools.recenttouch
 
 import indi.nonoas.worktools.platform.common.ColorSerials
 import indi.nonoas.worktools.platform.common.Colors
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import indi.nonoas.worktools.platform.ui.component.FontIconView
 import javafx.scene.Node
@@ -14,7 +15,7 @@ import org.kordamp.ikonli.material2.Material2MZ
  * @datetime 2022/5/12 21:06
  */
 class RecentTouchController : FuncPaneFactory {
-    override fun getRootView(): Parent {
+    override fun create(): FuncPane {
         return RecentTouchPane.instance
     }
 

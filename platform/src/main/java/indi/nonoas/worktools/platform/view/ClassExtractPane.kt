@@ -3,10 +3,12 @@ package indi.nonoas.worktools.platform.view
 import cn.hutool.core.io.FileUtil
 import cn.hutool.core.util.StrUtil
 import indi.nonoas.worktools.platform.common.CommonInsets
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ui.UIFactory
 import indi.nonoas.worktools.platform.ui.component.MyAlert
 import javafx.event.EventHandler
 import javafx.geometry.Pos
+import javafx.scene.Parent
 import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.TextArea
@@ -23,7 +25,7 @@ import java.util.*
  * @author Nonoas
  * @date 2021/9/4
  */
-class ClassExtractPane private constructor() : VBox(16.0) {
+class ClassExtractPane private constructor() : VBox(16.0), FuncPane {
 
     private val logger = LogManager.getLogger(ClassExtractPane::class.java)
 
@@ -171,5 +173,13 @@ class ClassExtractPane private constructor() : VBox(16.0) {
     //私有构造器
     init {
         initView()
+    }
+
+    override fun getRootView(): Parent {
+        return instance!!
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
     }
 }

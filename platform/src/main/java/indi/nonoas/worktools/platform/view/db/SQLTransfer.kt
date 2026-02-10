@@ -2,11 +2,13 @@ package indi.nonoas.worktools.platform.view.db
 
 import github.nonoas.jfx.flat.ui.concurrent.TaskHandler
 import indi.nonoas.worktools.platform.dao.PageParamsDao
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.pojo.dto.PageParamsDto
 import indi.nonoas.worktools.platform.pojo.vo.PageParamsVo
 import indi.nonoas.worktools.platform.utils.DBUtil
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.Parent
 import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.ButtonType
@@ -24,7 +26,7 @@ import javafx.stage.FileChooser
 import java.io.File
 import java.nio.charset.StandardCharsets
 
-class SQLTransfer : VBox() {
+class SQLTransfer : VBox(),FuncPane {
 
     private val keyInput: String = "SQLTransfer\$input"
     private val keyOutput: String = "SQLTransfer\$onput"
@@ -280,4 +282,12 @@ class SQLTransfer : VBox() {
     private fun log(msg: String) = logArea.appendText("$msg\n")
 
     data class SqlInfo(val table: String, val columns: List<String>, val values: List<String>)
+
+    override fun getRootView(): Parent {
+        return this
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
+    }
 }

@@ -2,10 +2,12 @@ package indi.nonoas.worktools.platform.view.todolist
 
 import TodoListView
 import indi.nonoas.worktools.platform.common.CommonInsets
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ui.UIFactory
 import indi.nonoas.worktools.platform.ui.component.MyAlert
 import javafx.application.Platform
 import javafx.event.EventHandler
+import javafx.scene.Parent
 import javafx.scene.control.Alert
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
@@ -25,7 +27,7 @@ import java.time.LocalTime
  * @author huangshengsheng
  * @date 2024/5/13 17:21
  */
-class TodoListPane : VBox(10.0) {
+class TodoListPane : VBox(10.0), FuncPane {
 
     private val listView = TodoListView()
 
@@ -74,5 +76,13 @@ class TodoListPane : VBox(10.0) {
                 MyAlert(Alert.AlertType.WARNING, "Biu弟,${now}了嘞，下班吗").show()
             }
         }
+    }
+
+    override fun getRootView(): Parent {
+        return this
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
     }
 }

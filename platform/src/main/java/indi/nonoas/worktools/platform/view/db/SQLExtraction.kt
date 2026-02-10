@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.platform.view.db
 
 import indi.nonoas.worktools.platform.dao.PageParamsDao
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.pojo.dto.PageParamsDto
 import indi.nonoas.worktools.platform.pojo.vo.PageParamsVo
 import indi.nonoas.worktools.platform.ui.TaskHandler
@@ -10,6 +11,7 @@ import indi.nonoas.worktools.platform.ui.component.MyAlert
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.Insets
+import javafx.scene.Parent
 import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.SplitPane
@@ -24,7 +26,7 @@ import javafx.util.StringConverter
  * @author Nonoas
  * @date 2021/9/15
  */
-class SQLExtraction private constructor() : VBox(10.0) {
+class SQLExtraction private constructor() : VBox(10.0), FuncPane {
 
     private val cbSql: ItemCloseableComboBox<PageParamsVo> =
         ItemCloseableComboBox()
@@ -170,6 +172,14 @@ class SQLExtraction private constructor() : VBox(10.0) {
 
     init {
         initView()
+    }
+
+    override fun getRootView(): Parent {
+        return this
+    }
+
+    override fun dispose() {
+        TODO("Not yet implemented")
     }
 
 

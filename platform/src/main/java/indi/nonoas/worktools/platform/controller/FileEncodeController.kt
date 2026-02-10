@@ -1,6 +1,7 @@
 package indi.nonoas.worktools.platform.controller
 
 import indi.nonoas.worktools.platform.common.FuncCode
+import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Parent
 
@@ -12,7 +13,7 @@ import javafx.scene.Parent
 @FuncCode("FileEncode")
 class FileEncodeController : FuncPaneFactory {
 
-    override fun getRootView(): Parent {
+    override fun create(): FuncPane {
         return FileEncodePane.instance!!
     }
 

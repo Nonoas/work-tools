@@ -22,4 +22,5 @@ public class FloatingTabPane extends TabPane {
     protected Skin<?> createDefaultSkin() {
         return new FloatingTabPaneSkin(this);
     }
+
 }

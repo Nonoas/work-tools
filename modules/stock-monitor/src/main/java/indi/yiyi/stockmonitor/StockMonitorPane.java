@@ -6,6 +6,7 @@ import github.nonoas.jfx.flat.ui.Resource;
 import github.nonoas.jfx.flat.ui.ResourceManager;
 import github.nonoas.jfx.flat.ui.concurrent.TaskHandler;
 import github.nonoas.jfx.flat.ui.stage.ToastQueue;
+import indi.nonoas.worktools.platform.ext.FuncPane;
 import indi.yiyi.stockmonitor.data.Stock;
 import indi.yiyi.stockmonitor.data.StockGroup;
 import indi.yiyi.stockmonitor.data.StockRow;
@@ -25,6 +26,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
@@ -63,7 +65,7 @@ import java.util.function.Supplier;
  * @date 2025/8/20
  * @since 1.0.0
  */
-public class StockMonitorPane extends BorderPane implements Resource {
+public class StockMonitorPane extends BorderPane implements Resource, FuncPane {
 
     private static final StockMonitorPane instance = new StockMonitorPane();
 
@@ -451,5 +453,16 @@ public class StockMonitorPane extends BorderPane implements Resource {
     @Override
     public void release() throws Exception {
         scheduler.shutdownNow();
+    }
+
+    @NotNull
+    @Override
+    public Parent getRootView() {
+        return this;
+    }
+
+    @Override
+    public void dispose() {
+
     }
 }
