@@ -5,6 +5,7 @@ import github.nonoas.jfx.flat.ui.theme.Styles
 import indi.nonoas.worktools.platform.global.message.MessageBus
 import indi.nonoas.worktools.platform.global.message.MsgBusManager
 import javafx.event.EventHandler
+import javafx.scene.control.ComboBox
 import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.control.Tooltip
@@ -23,10 +24,11 @@ class SearchTextField : CustomTextField(), EventHandler<KeyEvent> {
 
     private var messageBus: MessageBus = MsgBusManager.getGlobalBus()
 
-    private var leftGlobal = Label(" Qry_>").apply {
+        private var leftGlobal = Label(" Qry_>").apply {
         styleClass.addAll("hint", Styles.TEXT_MUTED, Styles.TEXT_SMALL)
         tooltip = Tooltip("全局模式")
     }
+
 
     private var leftCurr = Label(" Cur_>").apply {
         styleClass.addAll("hint", Styles.TEXT_MUTED, Styles.TEXT_SMALL)

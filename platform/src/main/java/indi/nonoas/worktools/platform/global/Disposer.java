@@ -93,6 +93,8 @@ public class Disposer {
             DisposableInfo parentInfo = disposables.get(parent);
             if (parentInfo != null) {
                 parentInfo.addChild(disposable);
+            } else {
+                throw new RuntimeException("parent is not registered");
             }
         }
         

@@ -3,7 +3,6 @@ package indi.nonoas.worktools.website
 import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.image.ImageView
 
 /**
@@ -12,7 +11,9 @@ import javafx.scene.image.ImageView
  */
 class BootWebsiteController : FuncPaneFactory {
     override fun create(): FuncPane {
-        return BootWebsitePane.getInstance()
+        val bootWebsitePane = BootWebsitePane()
+        bootWebsitePane.initSearchEvent()
+        return bootWebsitePane
     }
 
     override fun getCode(): String {

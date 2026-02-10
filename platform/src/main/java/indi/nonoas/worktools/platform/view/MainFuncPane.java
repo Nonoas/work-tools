@@ -17,7 +17,6 @@ public class MainFuncPane extends FloatingTabPane {
 
     public Tab open(FuncPaneFactory factory) {
         FuncPane funcPane = factory.create();
-
         Disposer.register(funcPane);
 
         Parent rootView = funcPane.getRootView();

@@ -39,23 +39,16 @@ public class BootWebsitePane extends StackPane implements FuncPane {
 
     private final TableView<WebsiteData> table = new TableView<>();
 
-    private static final BootWebsitePane INSTANCE = new BootWebsitePane();
-
-    private BootWebsitePane() {
+    public BootWebsitePane() {
         setPadding(new Insets(15));
         VBox root = new VBox(12);
 
         // 2. 加载现有数据
         loadDataFromDb();
-        initSearchEvent();
 
         root.getChildren().add(buildForm());
         root.getChildren().add(buildTable());
         getChildren().add(root);
-    }
-
-    public static BootWebsitePane getInstance() {
-        return INSTANCE;
     }
 
     /**
@@ -98,8 +91,8 @@ public class BootWebsitePane extends StackPane implements FuncPane {
     /**
      * ------------------ 搜索框 ------------------
      **/
-    private void initSearchEvent() {
-        MsgBusManager.getCurrentBus().connect().subscribe(SearchListener.Companion.getTOPIC(), new SearchListener() {
+    public void initSearchEvent() {
+        MsgBusManager.getCurrentBus().connect(this).subscribe(SearchListener.Companion.getTOPIC(), new SearchListener() {
             @Override
             public void onKeyPressed(@NotNull KeyEvent event) {
 
@@ -243,7 +236,7 @@ public class BootWebsitePane extends StackPane implements FuncPane {
 
     @Override
     public Parent getRootView() {
-        return BootWebsitePane.getInstance();
+        return this;
     }
 
     @Override

@@ -2,6 +2,7 @@ package indi.nonoas.worktools.platform.global.message;
 
 import cn.hutool.core.collection.CollectionUtil;
 import indi.nonoas.worktools.platform.global.Disposable;
+import indi.nonoas.worktools.platform.global.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationHandler;
@@ -55,6 +56,15 @@ public class MessageBus {
 
     public Connection connect() {
         return new Connection(this);
+    }
+
+    public Connection connect(Disposable parent) {
+        Connection connection = new Connection(this);
+        if (parent == null) {
+            return new Connection(this);
+        }
+        Disposer.register(parent, connection);
+        return connection;
     }
 
     static class MessagePublisher implements InvocationHandler {
