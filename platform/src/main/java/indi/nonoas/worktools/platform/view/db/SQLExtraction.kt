@@ -26,71 +26,16 @@ import javafx.util.StringConverter
  * @author Nonoas
  * @date 2021/9/15
  */
-class SQLExtraction private constructor() : VBox(10.0), FuncPane {
+class SQLExtraction private constructor() : FuncPane() {
 
     private val cbSql: ItemCloseableComboBox<PageParamsVo> =
         ItemCloseableComboBox()
+    private val root = VBox(10.0)
     private val tfParam: TextField = TextField()
     private val taLogBefore: TextArea = TextArea()
     private val taLogAfter: TextArea = TextArea()
     private val btnExchange: Button = UIFactory.getPrimaryButton("转换")
 
-    private fun initView() {
-        this.padding = Insets(20.0)
-        this.isFillWidth = true
-
-        cbSql.apply {
-            promptText = "SQL前缀"
-            maxWidth = Double.MAX_VALUE
-            isEditable = true
-            converter = object : StringConverter<PageParamsVo>() {
-                override fun toString(vo: PageParamsVo?): String {
-                    if (null == vo || null == vo.paramVal) {
-                        return ""
-                    }
-                    return vo.paramVal
-                }
-
-                override fun fromString(str: String): PageParamsVo {
-                    return PageParamsVo().apply {
-                        paramCode = PKEY_SQL_PREFIX
-                        paramVal = str
-                    }
-                }
-
-            }
-            setOnItemClosed { _, listView, index ->
-                // todo 不应使用runLater
-                Platform.runLater {
-                    val dto = listView?.items?.get(index) as PageParamsVo
-                    PageParamsDao.deleteById(dto.id)
-                    cbSql.items.removeAt(index)
-                }
-            }
-        }
-
-        initCbSqlItems()
-
-        tfParam.apply {
-            promptText = "参数前缀"
-            text = "当前参数:"
-        }
-        taLogBefore.promptText = "SQL日志替换前"
-        taLogAfter.promptText = "替换后"
-
-        val splitPane = SplitPane(taLogBefore, taLogAfter)
-
-        setVgrow(splitPane, Priority.ALWAYS)
-        setPrefSize(800.0, 600.0)
-
-        this.children.addAll(cbSql, tfParam, btnExchange, splitPane)
-
-        btnExchange.onAction = EventHandler {
-            taLogAfter.text = extractSQL(taLogBefore.text.trim())
-            savePageParam()
-        }
-
-    }
 
     /**
      * 初始化sql前缀列表
@@ -170,12 +115,62 @@ class SQLExtraction private constructor() : VBox(10.0), FuncPane {
         private const val PKEY_SQL_PREFIX = "SQLExtraction\$sqlPrefix"
     }
 
-    init {
-        initView()
-    }
-
     override fun getRootView(): Parent {
-        return this
+        root.padding = Insets(20.0)
+        root.isFillWidth = true
+
+        cbSql.apply {
+            promptText = "SQL前缀"
+            maxWidth = Double.MAX_VALUE
+            isEditable = true
+            converter = object : StringConverter<PageParamsVo>() {
+                override fun toString(vo: PageParamsVo?): String {
+                    if (null == vo || null == vo.paramVal) {
+                        return ""
+                    }
+                    return vo.paramVal
+                }
+
+                override fun fromString(str: String): PageParamsVo {
+                    return PageParamsVo().apply {
+                        paramCode = PKEY_SQL_PREFIX
+                        paramVal = str
+                    }
+                }
+
+            }
+            setOnItemClosed { _, listView, index ->
+                // todo 不应使用runLater
+                Platform.runLater {
+                    val dto = listView?.items?.get(index) as PageParamsVo
+                    PageParamsDao.deleteById(dto.id)
+                    cbSql.items.removeAt(index)
+                }
+            }
+        }
+
+        initCbSqlItems()
+
+        tfParam.apply {
+            promptText = "参数前缀"
+            text = "当前参数:"
+        }
+        taLogBefore.promptText = "SQL日志替换前"
+        taLogAfter.promptText = "替换后"
+
+        val splitPane = SplitPane(taLogBefore, taLogAfter)
+
+        VBox.setVgrow(splitPane, Priority.ALWAYS)
+        root.setPrefSize(800.0, 600.0)
+
+        root.children.addAll(cbSql, tfParam, btnExchange, splitPane)
+
+        btnExchange.onAction = EventHandler {
+            taLogAfter.text = extractSQL(taLogBefore.text.trim())
+            savePageParam()
+        }
+
+        return root
     }
 
     override fun dispose() {

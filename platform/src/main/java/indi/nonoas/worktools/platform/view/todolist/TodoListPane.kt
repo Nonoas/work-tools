@@ -27,7 +27,7 @@ import java.time.LocalTime
  * @author huangshengsheng
  * @date 2024/5/13 17:21
  */
-class TodoListPane : VBox(10.0), FuncPane {
+class TodoListPane : FuncPane() {
 
     private val listView = TodoListView()
 
@@ -35,34 +35,20 @@ class TodoListPane : VBox(10.0), FuncPane {
         maxWidth = Double.MAX_VALUE
     }
 
-    init {
-        padding = CommonInsets.ROOT_PANE_PADDING
-        isFillWidth = true
-
-
-
-        setVgrow(listView,Priority.ALWAYS)
-
-        children.addAll(listView, btnAdd)
-
-        btnAdd.onAction = EventHandler {
-            listView.items.addAll(TodoListVo("待办事项${listView.items.size}"))
-        }
-        // add()
-    }
+    private val root = VBox(10.0)
 
     private fun add() {
         val scheduler = StdSchedulerFactory.getDefaultScheduler()
         scheduler.start()
 
         val job = JobBuilder.newJob(MyJob::class.java)
-                .withIdentity("myJob", "group1")
-                .build()
+            .withIdentity("myJob", "group1")
+            .build()
 
         val trigger: Trigger = TriggerBuilder.newTrigger()
-                .withIdentity("myTrigger", "group1")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0/3 * * * * ?")) // 每天早上9点执行
-                .build()
+            .withIdentity("myTrigger", "group1")
+            .withSchedule(CronScheduleBuilder.cronSchedule("0/3 * * * * ?")) // 每天早上9点执行
+            .build()
 
         scheduler.scheduleJob(job, trigger)
     }
@@ -79,7 +65,17 @@ class TodoListPane : VBox(10.0), FuncPane {
     }
 
     override fun getRootView(): Parent {
-        return this
+        root.padding = CommonInsets.ROOT_PANE_PADDING
+        root.isFillWidth = true
+
+        VBox.setVgrow(listView, Priority.ALWAYS)
+
+        root.children.addAll(listView, btnAdd)
+
+        btnAdd.onAction = EventHandler {
+            listView.items.addAll(TodoListVo("待办事项${listView.items.size}"))
+        }
+        return root
     }
 
     override fun dispose() {

@@ -21,13 +21,11 @@ import org.apache.logging.log4j.LogManager
  * @author Nonoas
  * @date 2021/9/4
  */
-class ExecFilePane(spacing: Double) : VBox(spacing), FuncPane {
+class ExecFilePane(spacing: Double) : FuncPane() {
 
     private val flowPane = FlowPane(CommonInsets.SPACING_1, CommonInsets.SPACING_1)
 
-    init {
-
-    }
+    private val root = VBox(spacing)
 
     /**
      * 文件拖入模式设置
@@ -70,14 +68,14 @@ class ExecFilePane(spacing: Double) : VBox(spacing), FuncPane {
     }
 
     private fun initView() {
-        padding = CommonInsets.PADDING_20
+        root.padding = CommonInsets.PADDING_20
 
         flowPane.apply {
             onDragOver = dragOverHandler
             onDragDropped = dragDropHandler
         }
-        setVgrow(flowPane, Priority.ALWAYS)
-        children.setAll(flowPane)
+        VBox.setVgrow(flowPane, Priority.ALWAYS)
+        root.children.setAll(flowPane)
 
         TaskHandler<List<ExecFileVo>>().whenCall {
             ExecFileDao.findAll()
@@ -109,7 +107,7 @@ class ExecFilePane(spacing: Double) : VBox(spacing), FuncPane {
     }
 
     override fun getRootView(): Parent {
-        return instance!!
+        return root
     }
 
     override fun dispose() {

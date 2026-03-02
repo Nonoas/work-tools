@@ -35,7 +35,9 @@ import java.io.File
  * @author Nonoas
  * @date 2021/9/5
  */
-class RecentTouchPane private constructor() : VBox(10.0), FuncPane {
+class RecentTouchPane private constructor() : FuncPane() {
+
+    private val root = VBox(10.0)
 
     private val lv = ListView<RtpLinkListVo>().apply {
         setCellFactory { lv ->
@@ -117,18 +119,6 @@ class RecentTouchPane private constructor() : VBox(10.0), FuncPane {
 
     private val logger: Logger = LogManager.getLogger(RecentTouchPane::class.java)
 
-    private fun initView() {
-        alignment = Pos.BOTTOM_RIGHT
-        padding = CommonInsets.PADDING_20
-        lv.apply {
-            onDragOver = dragOverHandler
-            onDragDropped = dragDropHandler
-        }
-        children.addAll(lv)
-        setVgrow(lv, Priority.ALWAYS)
-        initFromDB()
-    }
-
     private fun initFromDB() {
         TaskHandler<MutableList<RtpLinkListPo>>()
             .whenCall { RtpLinkListDao.getAll() }
@@ -202,13 +192,17 @@ class RecentTouchPane private constructor() : VBox(10.0), FuncPane {
         val instance: RecentTouchPane by lazy { RecentTouchPane() }
     }
 
-    // 私有构造器
-    init {
-        initView()
-    }
-
     override fun getRootView(): Parent {
-        return this
+        root.alignment = Pos.BOTTOM_RIGHT
+        root.padding = CommonInsets.PADDING_20
+        lv.apply {
+            onDragOver = dragOverHandler
+            onDragDropped = dragDropHandler
+        }
+        root.children.addAll(lv)
+        VBox.setVgrow(lv, Priority.ALWAYS)
+        initFromDB()
+        return root
     }
 
     override fun dispose() {

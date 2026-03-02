@@ -39,14 +39,80 @@ import java.util.stream.Collectors
  * @author huangshengsheng
  * @date 2025/12/3 22:29
  */
-class WindowTablePane private constructor() : VBox(), FuncPane {
+class WindowTablePane private constructor() : FuncPane()  {
     private val windowList: ObservableList<WindowInfo> = FXCollections.observableArrayList()
 
     private val table = TableView<WindowInfo>()
 
-    init {
-        spacing = 5.0
-        padding = Insets(5.0)
+    private val root = VBox()
+
+    private fun refreshWindowList() {
+        windowList.clear()
+        val tmpList: MutableList<WindowInfo> = FXCollections.observableArrayList()
+        TaskHandler<List<WindowInfo>>().whenCall {
+            val desktopWindows = com.sun.jna.platform.WindowUtils.getAllWindows(true)
+            for (dw in desktopWindows) {
+                val title = dw.title
+                if (title.isNotEmpty()) {
+                    val hwnd = dw.hwnd
+                    val windowIcon = com.sun.jna.platform.WindowUtils.getWindowIcon(hwnd)
+                    var imageView: ImageView
+                    if (windowIcon != null) {
+                        val fxImage = SwingFXUtils.toFXImage(windowIcon, null)
+                        imageView = ImageView(fxImage)
+                    } else {
+                        imageView = ImageView()
+                    }
+                    imageView.fitWidth = 16.0
+                    imageView.fitHeight = 16.0
+                    tmpList.add(WindowInfo(dw.hwnd, title, imageView))
+                }
+            }
+            tmpList
+        }
+            .andThen { c: List<WindowInfo>? ->
+                windowList.addAll(
+                    c!!
+                )
+            }
+            .handle()
+    }
+
+    fun queryFilter(keyword: String?) {
+        if (keyword.isNullOrBlank()) {
+            table.items = windowList
+            return
+        }
+        val collect = windowList.stream()
+            .filter { windowInfo: WindowInfo -> windowInfo.title.uppercase(Locale.getDefault()).contains(keyword.uppercase(
+                Locale.getDefault()
+            )) }
+            .collect(
+                Collectors.toCollection { FXCollections.observableArrayList() }
+            )
+        table.setItems(collect)
+    }
+
+
+    private val allWindows: List<HWND>
+        get() {
+            val list: MutableList<HWND> = ArrayList()
+            User32.INSTANCE.EnumWindows({ hwnd: HWND, data: Pointer? ->
+                if (User32.INSTANCE.IsWindowVisible(hwnd)) {
+                    list.add(hwnd)
+                }
+                true
+            }, null)
+            return list
+        }
+
+    companion object {
+        val instance: WindowTablePane = WindowTablePane()
+    }
+
+    override fun getRootView(): Parent {
+        root.spacing = 5.0
+        root.padding = Insets(5.0)
 
         // 标题列
         val titleCol = TableColumn<WindowInfo, String>("窗口标题")
@@ -124,93 +190,26 @@ class WindowTablePane private constructor() : VBox(), FuncPane {
         table.columns.addAll(titleCol, topMostCol)
         table.items = windowList
 
-        setVgrow(table, Priority.ALWAYS)
+        VBox.setVgrow(table, Priority.ALWAYS)
 
         val refreshBtn = Button("刷新列表")
         refreshBtn.onAction = EventHandler { e: ActionEvent? -> refreshWindowList() }
 
-        children.addAll(refreshBtn, table)
+        root.children.addAll(refreshBtn, table)
 
         refreshWindowList()
 
         MsgBusManager.getCurrentBus()
             .connect().subscribe(TOPIC, object : SearchListener {
 
-            override fun onTextChange(keyword: String) {
-                queryFilter(keyword)
-            }
-
-            override fun onEntered(event: KeyEvent) {
-            }
-        })
-    }
-
-    private fun refreshWindowList() {
-        windowList.clear()
-        val tmpList: MutableList<WindowInfo> = FXCollections.observableArrayList()
-        TaskHandler<List<WindowInfo>>().whenCall {
-            val desktopWindows = com.sun.jna.platform.WindowUtils.getAllWindows(true)
-            for (dw in desktopWindows) {
-                val title = dw.title
-                if (title.isNotEmpty()) {
-                    val hwnd = dw.hwnd
-                    val windowIcon = com.sun.jna.platform.WindowUtils.getWindowIcon(hwnd)
-                    var imageView: ImageView
-                    if (windowIcon != null) {
-                        val fxImage = SwingFXUtils.toFXImage(windowIcon, null)
-                        imageView = ImageView(fxImage)
-                    } else {
-                        imageView = ImageView()
-                    }
-                    imageView.fitWidth = 16.0
-                    imageView.fitHeight = 16.0
-                    tmpList.add(WindowInfo(dw.hwnd, title, imageView))
+                override fun onTextChange(keyword: String) {
+                    queryFilter(keyword)
                 }
-            }
-            tmpList
-        }
-            .andThen { c: List<WindowInfo>? ->
-                windowList.addAll(
-                    c!!
-                )
-            }
-            .handle()
-    }
 
-    fun queryFilter(keyword: String?) {
-        if (keyword.isNullOrBlank()) {
-            table.items = windowList
-            return
-        }
-        val collect = windowList.stream()
-            .filter { windowInfo: WindowInfo -> windowInfo.title.uppercase(Locale.getDefault()).contains(keyword.uppercase(
-                Locale.getDefault()
-            )) }
-            .collect(
-                Collectors.toCollection { FXCollections.observableArrayList() }
-            )
-        table.setItems(collect)
-    }
-
-
-    private val allWindows: List<HWND>
-        get() {
-            val list: MutableList<HWND> = ArrayList()
-            User32.INSTANCE.EnumWindows({ hwnd: HWND, data: Pointer? ->
-                if (User32.INSTANCE.IsWindowVisible(hwnd)) {
-                    list.add(hwnd)
+                override fun onEntered(event: KeyEvent) {
                 }
-                true
-            }, null)
-            return list
-        }
-
-    companion object {
-        val instance: WindowTablePane = WindowTablePane()
-    }
-
-    override fun getRootView(): Parent {
-        return this
+            })
+        return root
     }
 
     override fun dispose() {

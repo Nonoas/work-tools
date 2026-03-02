@@ -65,7 +65,7 @@ import java.util.function.Supplier;
  * @date 2025/8/20
  * @since 1.0.0
  */
-public class StockMonitorPane extends BorderPane implements Resource, FuncPane {
+public class StockMonitorPane extends FuncPane implements Resource {
 
     private static final StockMonitorPane instance = new StockMonitorPane();
 
@@ -75,8 +75,10 @@ public class StockMonitorPane extends BorderPane implements Resource, FuncPane {
 
     private static final Logger LOG = LogManager.getLogger(StockMonitorPane.class);
     private final TabPane tabPane = new TabPane();
-    private final ScheduledExecutorService scheduler;
+    private ScheduledExecutorService scheduler;
     private final Map<String, StockGroup> groups = new ConcurrentHashMap<>();
+
+    private final BorderPane root = new BorderPane();
 
     private final Map<String, String> marketDict = Map.of(
             "0", "SZ",
@@ -89,46 +91,7 @@ public class StockMonitorPane extends BorderPane implements Resource, FuncPane {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private final Supplier<Stage> stageSupplier = () -> (Stage) getScene().getWindow();
-
-    private StockMonitorPane() {
-        getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
-        MenuBar menuBar = getMenuBar();
-
-        tabPane.setSide(Side.BOTTOM);
-        tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
-            @Override
-            public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
-                if (newValue != null && scheduler != null) {
-                    TaskHandler.backRun(() -> fetchAndUpdate());
-                }
-            }
-        });
-
-        /* 股票下跌色 (默认绿色) */
-        String mergedStyle = String.format(
-                "-stock-up-color: %s; -stock-down-color: %s;",
-                AppConfig.getConfigManager().get("color.up", "#e53935"),
-                AppConfig.getConfigManager().get("color.down", "#1d9f3e;")
-        );
-        tabPane.setStyle(mergedStyle);
-
-        // 加载分组中的股票
-        initGroups();
-
-        setCenter(tabPane);
-        setTop(menuBar);
-
-        // 启动定时抓取
-        scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "fetch-thread");
-            t.setDaemon(true);
-            return t;
-        });
-        scheduler.scheduleAtFixedRate(this::fetchAndUpdate, 0, 3, TimeUnit.SECONDS);
-
-        ResourceManager.getInstance().register(this);
-    }
+    private final Supplier<Stage> stageSupplier = () -> (Stage) root.getScene().getWindow();
 
     @NotNull
     private MenuBar getMenuBar() {
@@ -458,7 +421,43 @@ public class StockMonitorPane extends BorderPane implements Resource, FuncPane {
     @NotNull
     @Override
     public Parent getRootView() {
-        return this;
+        root.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+        MenuBar menuBar = getMenuBar();
+
+        tabPane.setSide(Side.BOTTOM);
+        tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
+            @Override
+            public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
+                if (newValue != null && scheduler != null) {
+                    TaskHandler.backRun(() -> fetchAndUpdate());
+                }
+            }
+        });
+
+        /* 股票下跌色 (默认绿色) */
+        String mergedStyle = String.format(
+                "-stock-up-color: %s; -stock-down-color: %s;",
+                AppConfig.getConfigManager().get("color.up", "#e53935"),
+                AppConfig.getConfigManager().get("color.down", "#1d9f3e;")
+        );
+        tabPane.setStyle(mergedStyle);
+
+        // 加载分组中的股票
+        initGroups();
+
+        root.setCenter(tabPane);
+        root.setTop(menuBar);
+
+        // 启动定时抓取
+        scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "fetch-thread");
+            t.setDaemon(true);
+            return t;
+        });
+        scheduler.scheduleAtFixedRate(this::fetchAndUpdate, 0, 3, TimeUnit.SECONDS);
+
+        ResourceManager.getInstance().register(this);
+        return root;
     }
 
     @Override

@@ -19,9 +19,11 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 
-class JdkVersionPane : HBox(CommonInsets.SPACING_1), FuncPane {
+class JdkVersionPane : FuncPane() {
 
     private val JAVA_HOME = "JAVA_HOME"
+
+    private val root = HBox(CommonInsets.SPACING_1)
 
     private val nameField = TextField().apply { promptText = "JDK 名称" }
 
@@ -29,8 +31,42 @@ class JdkVersionPane : HBox(CommonInsets.SPACING_1), FuncPane {
 
     private val jdkVersions: ObservableList<EnvVar> = FXCollections.observableArrayList()
 
-    init {
-        padding = CommonInsets.PADDING_20
+    private fun onAdd() {
+        val name = nameField.text
+        val path = pathField.text
+        if (name.isBlank() || path.isBlank()) {
+            return
+        }
+
+        if (!FileUtil.exist(path)) {
+            UIUtil.error("${path}路径不存在")
+            return
+        }
+
+        jdkVersions.add(EnvVar().apply {
+            this.name = JAVA_HOME
+            content = path
+            desc = name
+            createTimestamp = System.currentTimeMillis()
+        })
+        EnvVarDao.insert(
+            EnvVar().apply {
+                this.name = JAVA_HOME
+                content = path
+                desc = name
+                createTimestamp = System.currentTimeMillis()
+            }
+        )
+        clearForm(nameField, pathField)
+    }
+
+    private fun clearForm(nameField: TextField, pathField: TextField) {
+        nameField.clear()
+        pathField.clear()
+    }
+
+    override fun getRootView(): Parent {
+        root.padding = CommonInsets.PADDING_20
 
         val tableView = TableView<EnvVar>()
         val nameColumn = TableColumn<EnvVar, String>("名称")
@@ -42,7 +78,7 @@ class JdkVersionPane : HBox(CommonInsets.SPACING_1), FuncPane {
         tableView.columns.addAll(nameColumn, pathColumn)
         tableView.items = jdkVersions
 
-        setHgrow(tableView, Priority.ALWAYS)
+        HBox.setHgrow(tableView, Priority.ALWAYS)
 
         val addButton = Button("新增")
         addButton.setOnAction { onAdd() }
@@ -85,48 +121,11 @@ class JdkVersionPane : HBox(CommonInsets.SPACING_1), FuncPane {
             nameField, pathField, addButton, editButton, deleteButton, enable
         )
         vbox.isFillWidth = true
-        children.addAll(tableView, vbox)
+        root.children.addAll(tableView, vbox)
 
         val vars = EnvVarDao.queryByName(JAVA_HOME)
         jdkVersions.addAll(vars)
-    }
-
-    private fun onAdd() {
-        val name = nameField.text
-        val path = pathField.text
-        if (name.isBlank() || path.isBlank()) {
-            return
-        }
-
-        if (!FileUtil.exist(path)) {
-            UIUtil.error("${path}路径不存在")
-            return
-        }
-
-        jdkVersions.add(EnvVar().apply {
-            this.name = JAVA_HOME
-            content = path
-            desc = name
-            createTimestamp = System.currentTimeMillis()
-        })
-        EnvVarDao.insert(
-            EnvVar().apply {
-                this.name = JAVA_HOME
-                content = path
-                desc = name
-                createTimestamp = System.currentTimeMillis()
-            }
-        )
-        clearForm(nameField, pathField)
-    }
-
-    private fun clearForm(nameField: TextField, pathField: TextField) {
-        nameField.clear()
-        pathField.clear()
-    }
-
-    override fun getRootView(): Parent {
-        return this
+        return root
     }
 
     override fun dispose() {

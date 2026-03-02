@@ -28,28 +28,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class BootWebsitePane extends StackPane implements FuncPane {
+public class BootWebsitePane extends FuncPane {
 
     private final ObservableList<WebsiteData> data = FXCollections.observableArrayList();
 
+    private final StackPane root = new StackPane();
     private final TextField commandField = new TextField();
     private final TextField urlField = new TextField();
     private final TextField aliasField = new TextField();
-    private final TextField searchField = new TextField();
 
     private final TableView<WebsiteData> table = new TableView<>();
-
-    public BootWebsitePane() {
-        setPadding(new Insets(15));
-        VBox root = new VBox(12);
-
-        // 2. 加载现有数据
-        loadDataFromDb();
-
-        root.getChildren().add(buildForm());
-        root.getChildren().add(buildTable());
-        getChildren().add(root);
-    }
 
     /**
      * 从数据库读取并填充到表格
@@ -236,7 +224,19 @@ public class BootWebsitePane extends StackPane implements FuncPane {
 
     @Override
     public Parent getRootView() {
-        return this;
+        root.setPadding(new Insets(15));
+        VBox rootBox = new VBox(12);
+
+        // 2. 加载现有数据
+        loadDataFromDb();
+
+        rootBox.getChildren().add(buildForm());
+        rootBox.getChildren().add(buildTable());
+
+        root.getChildren().add(rootBox);
+
+        initSearchEvent();
+        return root;
     }
 
     @Override

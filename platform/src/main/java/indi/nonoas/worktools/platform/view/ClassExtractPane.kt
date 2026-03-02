@@ -16,6 +16,7 @@ import javafx.scene.control.TextField
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
+import javafx.scene.layout.VBox.setVgrow
 import javafx.stage.DirectoryChooser
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -25,9 +26,11 @@ import java.util.*
  * @author Nonoas
  * @date 2021/9/4
  */
-class ClassExtractPane private constructor() : VBox(16.0), FuncPane {
+class ClassExtractPane private constructor() : FuncPane() {
 
     private val logger = LogManager.getLogger(ClassExtractPane::class.java)
+
+    private val root = VBox(16.0)
 
     /**
      * 文本框：输出路径
@@ -38,30 +41,6 @@ class ClassExtractPane private constructor() : VBox(16.0), FuncPane {
     private val textArea = TextArea()
 
     private val btnExtract = UIFactory.getPrimaryButton("提取")
-
-    private fun initView() {
-        tfOutPutPath.promptText = "选择输出路径"
-        HBox.setHgrow(tfOutPutPath, Priority.ALWAYS)
-
-        btnOutPutBrow.onAction = EventHandler { onOutPutBrow() }
-
-        textArea.apply {
-            promptText = "粘贴java文件路径至此，以换行分隔"
-            isEditable = true
-            setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE)
-        }
-        setVgrow(textArea, Priority.ALWAYS)
-
-        val hbExclude = HBox(10.0, tfOutPutPath, btnOutPutBrow)
-        hbExclude.alignment = Pos.CENTER_LEFT
-
-        padding = CommonInsets.PADDING_20
-
-        children.addAll(hbExclude, textArea)
-
-        // 初始化按钮组
-        initBtnGroup()
-    }
 
     /**
      * 选择输出路径
@@ -83,7 +62,7 @@ class ClassExtractPane private constructor() : VBox(16.0), FuncPane {
         }
 
         hBox.children.addAll(btnExtract)
-        children.add(hBox)
+        root.children.add(hBox)
     }
 
     /**
@@ -170,13 +149,29 @@ class ClassExtractPane private constructor() : VBox(16.0), FuncPane {
             private set
     }
 
-    //私有构造器
-    init {
-        initView()
-    }
-
     override fun getRootView(): Parent {
-        return instance!!
+        tfOutPutPath.promptText = "选择输出路径"
+        HBox.setHgrow(tfOutPutPath, Priority.ALWAYS)
+
+        btnOutPutBrow.onAction = EventHandler { onOutPutBrow() }
+
+        textArea.apply {
+            promptText = "粘贴java文件路径至此，以换行分隔"
+            isEditable = true
+            setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE)
+        }
+        setVgrow(textArea, Priority.ALWAYS)
+
+        val hbExclude = HBox(10.0, tfOutPutPath, btnOutPutBrow)
+        hbExclude.alignment = Pos.CENTER_LEFT
+
+        root.padding = CommonInsets.PADDING_20
+
+        root.children.addAll(hbExclude, textArea)
+
+        // 初始化按钮组
+        initBtnGroup()
+        return root
     }
 
     override fun dispose() {

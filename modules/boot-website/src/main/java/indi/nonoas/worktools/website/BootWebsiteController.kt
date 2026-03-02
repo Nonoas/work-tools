@@ -10,9 +10,9 @@ import javafx.scene.image.ImageView
  * @datetime 2022/5/12 20:48
  */
 class BootWebsiteController : FuncPaneFactory {
+
     override fun create(): FuncPane {
         val bootWebsitePane = BootWebsitePane()
-        bootWebsitePane.initSearchEvent()
         return bootWebsitePane
     }
 

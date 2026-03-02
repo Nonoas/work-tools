@@ -21,8 +21,9 @@ import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicBoolean
 import indi.nonoas.worktools.platform.utils.FileUtil as FU
 
-class FileEncodePane : VBox(10.0), FuncPane {
+class FileEncodePane : FuncPane() {
 
+    private val root = VBox(10.0)
     private val tf_dirPath = TextField().apply {
         promptText = "源文件/文件夹"
         HBox.setHgrow(this, Priority.ALWAYS)
@@ -36,7 +37,7 @@ class FileEncodePane : VBox(10.0), FuncPane {
         isEditable = false
         prefRowCount = 12
         isWrapText = true // ✅ 正确写法
-        setVgrow(this, Priority.ALWAYS)
+        VBox.setVgrow(this, Priority.ALWAYS)
     }
 
     // 最大保留行数（可按需调整）
@@ -48,18 +49,6 @@ class FileEncodePane : VBox(10.0), FuncPane {
     // 行环形缓冲与刷新合并标志
     private val logLines: ArrayDeque<String> = ArrayDeque(maxLogLines + 64)
     private val flushScheduled = AtomicBoolean(false)
-
-    init {
-        padding = CommonInsets.PADDING_20
-
-        btn_brow.onAction = EventHandler { onDirPathBrow() }
-        btn_Run.onAction = EventHandler { onRun() }
-
-        val hBox = HBox(10.0, tf_dirPath, btn_brow)
-        val hb_charset = HBox(10.0, ccb_tarCharset)
-
-        children.addAll(hBox, hb_charset, btn_Run, logArea)
-    }
 
     private fun onRun() {
         val file = File(tf_dirPath.text)
@@ -138,7 +127,7 @@ class FileEncodePane : VBox(10.0), FuncPane {
 
     private fun onDirPathBrow() {
         val fileChooser = DirectoryChooser()
-        val file = fileChooser.showDialog(scene.window) ?: return
+        val file = fileChooser.showDialog(root.scene.window) ?: return
         tf_dirPath.text = file.absolutePath
         appendLog("选择目录: ${file.absolutePath}")
     }
@@ -169,7 +158,16 @@ class FileEncodePane : VBox(10.0), FuncPane {
     }
 
     override fun getRootView(): Parent {
-        return instance!!
+        root.padding = CommonInsets.PADDING_20
+
+        btn_brow.onAction = EventHandler { onDirPathBrow() }
+        btn_Run.onAction = EventHandler { onRun() }
+
+        val hBox = HBox(10.0, tf_dirPath, btn_brow)
+        val hb_charset = HBox(10.0, ccb_tarCharset)
+
+        root.children.addAll(hBox, hb_charset, btn_Run, logArea)
+        return root
     }
 
     override fun dispose() {

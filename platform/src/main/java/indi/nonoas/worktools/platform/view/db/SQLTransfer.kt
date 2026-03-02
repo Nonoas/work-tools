@@ -26,10 +26,12 @@ import javafx.stage.FileChooser
 import java.io.File
 import java.nio.charset.StandardCharsets
 
-class SQLTransfer : VBox(),FuncPane {
+class SQLTransfer : FuncPane() {
 
     private val keyInput: String = "SQLTransfer\$input"
     private val keyOutput: String = "SQLTransfer\$onput"
+
+    private val root = VBox()
 
     private val fullSqlPathField = TextField()
     private val incrSqlPathField = TextField()
@@ -42,50 +44,6 @@ class SQLTransfer : VBox(),FuncPane {
     private val logArea = TextArea().apply {
         isEditable = false
         promptText = "运行日志..."
-    }
-
-    init {
-        spacing = 15.0
-        padding = Insets(20.0)
-
-        val grid = GridPane().apply {
-            hgap = 10.0
-            vgap = 15.0
-            alignment = Pos.TOP_LEFT
-
-            // --- 输入文件选择 ---
-            add(Label("输入 SQL 文件:"), 0, 0)
-            val inputHBox = HBox(5.0, fullSqlPathField.apply { HBox.setHgrow(this, Priority.ALWAYS) },
-                Button("选择").apply { setOnAction { chooseInputFile() } })
-            add(inputHBox, 1, 0)
-
-            // --- 输出路径选择 ---
-            add(Label("输出路径/文件:"), 0, 1)
-            val outputHBox = HBox(5.0, incrSqlPathField.apply { HBox.setHgrow(this, Priority.ALWAYS) },
-                Button("选择").apply { setOnAction { chooseOutputPath() } })
-            add(outputHBox, 1, 1)
-
-            add(Label("主键字段:"), 0, 2)
-            add(keyFieldsField.apply { promptText = "多个主键请用逗号分隔" }, 1, 2)
-
-            add(Label("生成模式:"), 0, 3)
-            add(modeComboBox, 1, 3)
-
-            // 设置列约束，让第二列自动拉伸
-            val col2 = ColumnConstraints().apply { hgrow = Priority.ALWAYS }
-            columnConstraints.addAll(ColumnConstraints(), col2)
-        }
-
-        val runBtn = Button("执行转换").apply {
-            prefWidth = 200.0
-            style = "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;"
-            setOnAction { handleConversion() }
-        }
-
-        children.addAll(grid, runBtn, Label("运行日志:"), logArea)
-        setVgrow(logArea, Priority.ALWAYS)
-
-        initForm()
     }
 
     private fun initForm() {
@@ -146,7 +104,7 @@ class SQLTransfer : VBox(),FuncPane {
             title = "选择原始 SQL 文件"
             extensionFilters.add(FileChooser.ExtensionFilter("SQL Files", "*.sql"))
         }
-        val file = fileChooser.showOpenDialog(scene.window)
+        val file = fileChooser.showOpenDialog(root.scene.window)
         if (file != null) {
             fullSqlPathField.text = file.absolutePath
             // 自动推测输出路径：原文件名 + _incr.sql
@@ -165,13 +123,13 @@ class SQLTransfer : VBox(),FuncPane {
 
         val result = alert.showAndWait()
         if (result.get().text == "指定文件夹") {
-            val dir = DirectoryChooser().apply { title = "选择输出目录" }.showDialog(scene.window)
+            val dir = DirectoryChooser().apply { title = "选择输出目录" }.showDialog(root.scene.window)
             if (dir != null) incrSqlPathField.text = dir.absolutePath
         } else if (result.get().text == "指定具体文件") {
             val file = FileChooser().apply {
                 title = "另存为"
                 extensionFilters.add(FileChooser.ExtensionFilter("SQL Files", "*.sql"))
-            }.showSaveDialog(scene.window)
+            }.showSaveDialog(root.scene.window)
             if (file != null) incrSqlPathField.text = file.absolutePath
         }
     }
@@ -284,7 +242,48 @@ class SQLTransfer : VBox(),FuncPane {
     data class SqlInfo(val table: String, val columns: List<String>, val values: List<String>)
 
     override fun getRootView(): Parent {
-        return this
+        root.spacing = 15.0
+        root.padding = Insets(20.0)
+
+        val grid = GridPane().apply {
+            hgap = 10.0
+            vgap = 15.0
+            alignment = Pos.TOP_LEFT
+
+            // --- 输入文件选择 ---
+            add(Label("输入 SQL 文件:"), 0, 0)
+            val inputHBox = HBox(5.0, fullSqlPathField.apply { HBox.setHgrow(this, Priority.ALWAYS) },
+                Button("选择").apply { setOnAction { chooseInputFile() } })
+            add(inputHBox, 1, 0)
+
+            // --- 输出路径选择 ---
+            add(Label("输出路径/文件:"), 0, 1)
+            val outputHBox = HBox(5.0, incrSqlPathField.apply { HBox.setHgrow(this, Priority.ALWAYS) },
+                Button("选择").apply { setOnAction { chooseOutputPath() } })
+            add(outputHBox, 1, 1)
+
+            add(Label("主键字段:"), 0, 2)
+            add(keyFieldsField.apply { promptText = "多个主键请用逗号分隔" }, 1, 2)
+
+            add(Label("生成模式:"), 0, 3)
+            add(modeComboBox, 1, 3)
+
+            // 设置列约束，让第二列自动拉伸
+            val col2 = ColumnConstraints().apply { hgrow = Priority.ALWAYS }
+            columnConstraints.addAll(ColumnConstraints(), col2)
+        }
+
+        val runBtn = Button("执行转换").apply {
+            prefWidth = 200.0
+            style = "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;"
+            setOnAction { handleConversion() }
+        }
+
+        root.children.addAll(grid, runBtn, Label("运行日志:"), logArea)
+        VBox.setVgrow(logArea, Priority.ALWAYS)
+
+        initForm()
+        return root
     }
 
     override fun dispose() {
