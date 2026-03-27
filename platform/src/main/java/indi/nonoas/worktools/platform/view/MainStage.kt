@@ -18,8 +18,9 @@ import indi.nonoas.worktools.platform.service.impl.FuncSettingService
 import indi.nonoas.worktools.platform.ui.Reinitializable
 import indi.nonoas.worktools.platform.ui.component.BaseStage
 import indi.nonoas.worktools.platform.ui.component.FloatingTabPane
+import indi.nonoas.worktools.platform.ui.component.LlmSearchListener
 import indi.nonoas.worktools.platform.ui.component.SearchListener
-import indi.nonoas.worktools.platform.ui.component.SearchTextField
+import indi.nonoas.worktools.platform.ui.component.SearchModeTextField
 import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.Menu
@@ -49,7 +50,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private val rootPane = BorderPane()
     private var toolBar = ToolBar()
     private val menuBar = MenuBar()
-    private val tfSearch = SearchTextField()
+    private val tfSearch = SearchModeTextField()
+    private val llmResultPane = LlmResultPane()
 
     private val fpFuncList = JustifiedFlowPane(10.0, 10.0, 200.0).apply {
         padding = CommonInsets.PADDING_20
@@ -97,7 +99,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         // 监听窗口显示
         stage.showingProperty().addListener { _, _, newValue ->
             if (newValue) {
-                tfSearch.requestFocus()
+                tfSearch.focusInput()
             }
         }
 
@@ -241,6 +243,28 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
                 override fun onEntered(event: KeyEvent) {
                     resultPane?.handle(event)
+                }
+            })
+
+        MsgBusManager.getGlobalBus().connect()
+            .subscribe(LlmSearchListener.TOPIC, object : LlmSearchListener {
+                override fun onLoading(prompt: String) {
+                    llmResultPane.showLoading(prompt)
+                    rootPane.center = llmResultPane
+                }
+
+                override fun onResponse(prompt: String, response: String) {
+                    llmResultPane.showResponse(prompt, response)
+                    rootPane.center = llmResultPane
+                }
+
+                override fun onError(prompt: String, message: String) {
+                    llmResultPane.showError(prompt, message)
+                    rootPane.center = llmResultPane
+                }
+
+                override fun onCleared() {
+                    rootPane.center = fpFuncListPane
                 }
             })
     }

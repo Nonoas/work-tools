@@ -43,4 +43,6 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("org.yaml:snakeyaml:2.2")
+    implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
+    implementation("dev.langchain4j:langchain4j:1.0.0-beta3")
 }

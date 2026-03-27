@@ -2,6 +2,8 @@ package indi.nonoas.worktools.platform.utils
 
 import org.mozilla.universalchardet.UniversalDetector
 import java.io.*
+import java.nio.file.Files
+import java.nio.file.Paths
 
 
 /**
@@ -115,5 +117,15 @@ object FileUtil {
             detector.reset()
             return charset
         }
+    }
+
+    @JvmStatic
+    fun readTextFromProjectRelativePath(relativePath: String): String {
+        val currentDir = Paths.get(System.getProperty("user.dir"))
+        val absolutePath = currentDir.resolve(relativePath)
+        if (!Files.exists(absolutePath)) {
+            throw FileNotFoundException("文件不存在: ${absolutePath.toAbsolutePath()}")
+        }
+        return Files.readString(absolutePath)
     }
 }
