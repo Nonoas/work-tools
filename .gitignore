@@ -7,3 +7,5 @@ build
 config/apikey
 config/context
 .vscode
+AGENTS.md
+RTK.md
