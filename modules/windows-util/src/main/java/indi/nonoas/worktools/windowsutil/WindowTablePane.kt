@@ -30,20 +30,22 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import java.util.Locale
-import java.util.function.Supplier
 import java.util.stream.Collectors
-
 
 /**
  * @author huangshengsheng
  * @date 2025/12/3 22:29
  */
-class WindowTablePane private constructor() : FuncPane()  {
+class WindowTablePane private constructor() : FuncPane() {
     private val windowList: ObservableList<WindowInfo> = FXCollections.observableArrayList()
 
     private val table = TableView<WindowInfo>()
 
     private val root = VBox()
+
+    private val refreshBtn = Button("刷新列表")
+
+    private var viewInitialized = false
 
     private fun refreshWindowList() {
         windowList.clear()
@@ -55,12 +57,10 @@ class WindowTablePane private constructor() : FuncPane()  {
                 if (title.isNotEmpty()) {
                     val hwnd = dw.hwnd
                     val windowIcon = com.sun.jna.platform.WindowUtils.getWindowIcon(hwnd)
-                    var imageView: ImageView
-                    if (windowIcon != null) {
-                        val fxImage = SwingFXUtils.toFXImage(windowIcon, null)
-                        imageView = ImageView(fxImage)
+                    val imageView = if (windowIcon != null) {
+                        ImageView(SwingFXUtils.toFXImage(windowIcon, null))
                     } else {
-                        imageView = ImageView()
+                        ImageView()
                     }
                     imageView.fitWidth = 16.0
                     imageView.fitHeight = 16.0
@@ -69,10 +69,8 @@ class WindowTablePane private constructor() : FuncPane()  {
             }
             tmpList
         }
-            .andThen { c: List<WindowInfo>? ->
-                windowList.addAll(
-                    c!!
-                )
+            .andThen { windows ->
+                windowList.addAll(windows!!)
             }
             .handle()
     }
@@ -83,15 +81,13 @@ class WindowTablePane private constructor() : FuncPane()  {
             return
         }
         val collect = windowList.stream()
-            .filter { windowInfo: WindowInfo -> windowInfo.title.uppercase(Locale.getDefault()).contains(keyword.uppercase(
-                Locale.getDefault()
-            )) }
-            .collect(
-                Collectors.toCollection { FXCollections.observableArrayList() }
-            )
-        table.setItems(collect)
+            .filter { windowInfo ->
+                windowInfo.title.uppercase(Locale.getDefault())
+                    .contains(keyword.uppercase(Locale.getDefault()))
+            }
+            .collect(Collectors.toCollection { FXCollections.observableArrayList() })
+        table.items = collect
     }
-
 
     private val allWindows: List<HWND>
         get() {
@@ -109,59 +105,50 @@ class WindowTablePane private constructor() : FuncPane()  {
         val instance: WindowTablePane = WindowTablePane()
     }
 
-    override fun getRootView(): Parent {
+    private fun initView() {
+        if (viewInitialized) {
+            return
+        }
+
         root.spacing = 5.0
         root.padding = Insets(5.0)
 
-        // 标题列
         val titleCol = TableColumn<WindowInfo, String>("窗口标题")
-        titleCol.setCellValueFactory { data: TableColumn.CellDataFeatures<WindowInfo, String> -> data.value.titleProperty() }
+        titleCol.setCellValueFactory { data -> data.value.titleProperty() }
         titleCol.setCellFactory {
             object : TableCell<WindowInfo?, String?>() {
                 override fun updateItem(item: String?, empty: Boolean) {
                     super.updateItem(item, empty)
                     if (empty || item == null) {
                         graphic = null
-                    } else {
-                        // 1. 尝试安全获取数据，避免异常副作用
-                        try {
-                            // **注意：getTableColumn() 确保我们获取的是当前列的数据模型**
-                            // getIndex() 是获取当前单元格的行索引
-                            val info = tableView.items[index]!!
+                        return
+                    }
 
-                            // 确保 getIcon() 快速且不触发阻塞操作
-                            val icon = info.icon
-                            val title = info.title
-
-                            // 2. 正常构建 UI
-                            val hBox = HBox(10.0, icon, Label(title))
-                            hBox.alignment = Pos.CENTER_LEFT
-                            graphic = hBox
-                        } catch (e: IndexOutOfBoundsException) {
-                            // 预防 getIndex() 或 getItems().get() 出现问题
-                            graphic = null
-                        } catch (e: Exception) {
-                            // 3. **关键点：如果这里出现异常，绝不能直接调用 showAndWait**
-                            // 应该记录日志，或者显示一个占位符，然后稍后安全地处理异常
-                            System.err.println("Error rendering TableCell: " + e.message)
-                            graphic = Label("渲染错误")
-                        }
+                    try {
+                        val info = tableView.items[index]!!
+                        val hBox = HBox(10.0, info.icon, Label(info.title))
+                        hBox.alignment = Pos.CENTER_LEFT
+                        graphic = hBox
+                    } catch (_: IndexOutOfBoundsException) {
+                        graphic = null
+                    } catch (e: Exception) {
+                        System.err.println("Error rendering TableCell: ${e.message}")
+                        graphic = Label("渲染错误")
                     }
                 }
             }
         }
         titleCol.prefWidth = 400.0
 
-        // 置顶按钮列
         val topMostCol = TableColumn<WindowInfo, Boolean>("置顶")
         topMostCol.isResizable = false
-        topMostCol.setCellValueFactory { data: TableColumn.CellDataFeatures<WindowInfo, Boolean> -> data.value.topMostProperty() }
-        topMostCol.setCellFactory { col: TableColumn<WindowInfo, Boolean>? ->
+        topMostCol.setCellValueFactory { data -> data.value.topMostProperty() }
+        topMostCol.setCellFactory {
             object : TableCell<WindowInfo?, Boolean?>() {
                 private val switchBtn = Switch()
 
                 private val listener =
-                    ChangeListener { ov: ObservableValue<out Boolean>?, oldVal: Boolean?, newVal: Boolean ->
+                    ChangeListener { _: ObservableValue<out Boolean>?, _: Boolean?, newVal: Boolean ->
                         val info = tableView.items[index]!!
                         if (newVal) {
                             WindowUtils.setTopMost(info.hwnd)
@@ -172,35 +159,40 @@ class WindowTablePane private constructor() : FuncPane()  {
 
                 override fun updateItem(item: Boolean?, empty: Boolean) {
                     super.updateItem(item, empty)
+                    switchBtn.selectedProperty().removeListener(listener)
                     if (empty || item == null) {
-                        switchBtn.selectedProperty().removeListener(listener)
                         graphic = null
-                    } else {
-                        // 更新现有实例的状态
-                        switchBtn.isSelected = item
-                        switchBtn.selectedProperty().addListener(listener)
-                        graphic = switchBtn
+                        return
                     }
+
+                    switchBtn.isSelected = item
+                    switchBtn.selectedProperty().addListener(listener)
+                    graphic = switchBtn
                 }
             }
         }
 
         table.columnResizePolicy = TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
-        table.columns.addAll(titleCol, topMostCol)
+        table.columns.setAll(titleCol, topMostCol)
         table.items = windowList
 
         VBox.setVgrow(table, Priority.ALWAYS)
 
-        val refreshBtn = Button("刷新列表")
-        refreshBtn.onAction = EventHandler { e: ActionEvent? -> refreshWindowList() }
-
+        refreshBtn.onAction = EventHandler { _: ActionEvent? -> refreshWindowList() }
         root.children.setAll(refreshBtn, table)
 
+        viewInitialized = true
+    }
+
+    override fun getRootView(): Parent {
+        initView()
+        root.children.setAll(refreshBtn, table)
+        table.items = windowList
         refreshWindowList()
 
         MsgBusManager.getCurrentBus()
-            .connect(this).subscribe(TOPIC, object : SearchListener {
-
+            .connect(this)
+            .subscribe(TOPIC, object : SearchListener {
                 override fun onTextChange(keyword: String) {
                     queryFilter(keyword)
                 }
