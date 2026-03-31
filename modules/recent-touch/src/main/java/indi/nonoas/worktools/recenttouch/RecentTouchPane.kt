@@ -120,6 +120,7 @@ class RecentTouchPane private constructor() : FuncPane() {
     private val logger: Logger = LogManager.getLogger(RecentTouchPane::class.java)
 
     private fun initFromDB() {
+        lv.items.clear()
         TaskHandler<MutableList<RtpLinkListPo>>()
             .whenCall { RtpLinkListDao.getAll() }
             .andThen { pos ->
@@ -199,14 +200,15 @@ class RecentTouchPane private constructor() : FuncPane() {
             onDragOver = dragOverHandler
             onDragDropped = dragDropHandler
         }
-        root.children.addAll(lv)
+        root.children.setAll(lv)
         VBox.setVgrow(lv, Priority.ALWAYS)
         initFromDB()
         return root
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
+        lv.items.clear()
+        root.children.clear()
     }
 
 }

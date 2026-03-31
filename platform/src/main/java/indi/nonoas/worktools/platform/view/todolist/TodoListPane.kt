@@ -79,6 +79,6 @@ class TodoListPane : FuncPane() {
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
+        root.children.clear()
     }
 }

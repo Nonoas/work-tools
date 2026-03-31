@@ -129,6 +129,7 @@ class JdkVersionPane : FuncPane() {
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
+        root.children.clear()
+        jdkVersions.clear()
     }
 }

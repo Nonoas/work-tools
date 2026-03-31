@@ -9,7 +9,7 @@ import javafx.scene.Parent
  * @author Nonoas
  * @datetime 2022/5/12 20:49
  */
-open class BaseParentController : FuncPaneFactory {
+abstract class BaseParentController : FuncPaneFactory {
 
     /**
      * 将 tClass 的数据类与 rootView 的组件属性绑定
@@ -22,9 +22,7 @@ open class BaseParentController : FuncPaneFactory {
         return null
     }
 
-    override fun create(): FuncPane {
-        TODO("Not yet implemented")
-    }
+    abstract override fun create(): FuncPane
 
     override fun getName(): String {
         return getCode()

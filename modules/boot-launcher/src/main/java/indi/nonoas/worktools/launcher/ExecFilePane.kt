@@ -111,6 +111,7 @@ class ExecFilePane(spacing: Double) : FuncPane() {
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
+        flowPane.children.clear()
+        root.children.clear()
     }
 }

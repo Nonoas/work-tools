@@ -166,11 +166,11 @@ class FileEncodePane : FuncPane() {
         val hBox = HBox(10.0, tf_dirPath, btn_brow)
         val hb_charset = HBox(10.0, ccb_tarCharset)
 
-        root.children.addAll(hBox, hb_charset, btn_Run, logArea)
+        root.children.setAll(hBox, hb_charset, btn_Run, logArea)
         return root
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
+        root.children.clear()
     }
 }

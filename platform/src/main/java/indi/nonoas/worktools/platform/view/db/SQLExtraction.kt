@@ -163,7 +163,7 @@ class SQLExtraction private constructor() : FuncPane() {
         VBox.setVgrow(splitPane, Priority.ALWAYS)
         root.setPrefSize(800.0, 600.0)
 
-        root.children.addAll(cbSql, tfParam, btnExchange, splitPane)
+        root.children.setAll(cbSql, tfParam, btnExchange, splitPane)
 
         btnExchange.onAction = EventHandler {
             taLogAfter.text = extractSQL(taLogBefore.text.trim())
@@ -174,7 +174,7 @@ class SQLExtraction private constructor() : FuncPane() {
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
+        root.children.clear()
     }
 
 

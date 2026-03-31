@@ -14,7 +14,7 @@ import javafx.scene.Parent
 class ClassExtractController : FuncPaneFactory {
 
     override fun create(): FuncPane {
-        TODO("Not yet implemented")
+        return ClassExtractPane.instance!!
     }
 
     override fun getName(): String {

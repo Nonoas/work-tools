@@ -167,6 +167,7 @@ class ClassExtractPane private constructor() : FuncPane() {
 
         root.padding = CommonInsets.PADDING_20
 
+        root.children.clear()
         root.children.addAll(hbExclude, textArea)
 
         // 初始化按钮组
@@ -175,6 +176,6 @@ class ClassExtractPane private constructor() : FuncPane() {
     }
 
     override fun dispose() {
-        TODO("Not yet implemented")
+        root.children.clear()
     }
 }
