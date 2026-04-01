@@ -17,10 +17,10 @@ import indi.nonoas.worktools.platform.pojo.vo.ExecFileVo
 import indi.nonoas.worktools.platform.service.impl.FuncSettingService
 import indi.nonoas.worktools.platform.ui.Reinitializable
 import indi.nonoas.worktools.platform.ui.component.BaseStage
-import indi.nonoas.worktools.platform.ui.component.FloatingTabPane
 import indi.nonoas.worktools.platform.ui.component.LlmSearchListener
 import indi.nonoas.worktools.platform.ui.component.SearchListener
 import indi.nonoas.worktools.platform.ui.component.SearchModeTextField
+import javafx.collections.ListChangeListener
 import javafx.event.EventHandler
 import javafx.scene.control.Button
 import javafx.scene.control.Menu
@@ -59,7 +59,13 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
     private val fpFuncListPane = ScrollPane()
 
-    private val funcTabPane = MainFuncPane()
+    private val funcTabPane = MainFuncPane().apply {
+        tabs.addListener (ListChangeListener {change->
+            if (change.list.isEmpty()) {
+                rootPane.center = fpFuncListPane
+            }
+        })
+    }
 
     /**
      * 小提示标签

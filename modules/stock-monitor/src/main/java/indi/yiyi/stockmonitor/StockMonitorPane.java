@@ -2,11 +2,10 @@ package indi.yiyi.stockmonitor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import github.nonoas.jfx.flat.ui.Resource;
-import github.nonoas.jfx.flat.ui.ResourceManager;
 import github.nonoas.jfx.flat.ui.concurrent.TaskHandler;
 import github.nonoas.jfx.flat.ui.stage.ToastQueue;
 import indi.nonoas.worktools.platform.ext.FuncPane;
+import indi.nonoas.worktools.platform.ui.component.FXAlert;
 import indi.yiyi.stockmonitor.data.Stock;
 import indi.yiyi.stockmonitor.data.StockGroup;
 import indi.yiyi.stockmonitor.data.StockRow;
@@ -15,7 +14,6 @@ import indi.yiyi.stockmonitor.utils.FileUtil;
 import indi.yiyi.stockmonitor.utils.GroupConfig;
 import indi.yiyi.stockmonitor.utils.UIUtil;
 import indi.yiyi.stockmonitor.view.AIStage;
-import indi.nonoas.worktools.platform.ui.component.FXAlert;
 import indi.yiyi.stockmonitor.view.StockColorSettingsDialog;
 import indi.yiyi.stockmonitor.view.StockSearchDialog;
 import indi.yiyi.stockmonitor.view.StockTab;
@@ -48,6 +46,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -65,13 +65,10 @@ import java.util.function.Supplier;
  * @date 2025/8/20
  * @since 1.0.0
  */
-public class StockMonitorPane extends FuncPane implements Resource {
-
-    private static final StockMonitorPane instance = new StockMonitorPane();
-
-    public static StockMonitorPane getInstance() {
-        return instance;
-    }
+public class StockMonitorPane extends FuncPane {
+    private static final DateTimeFormatter SOURCE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter SOURCE_TIME_WITH_SECONDS_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DISPLAY_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyMMdd HH:mm:ss");
 
     private static final Logger LOG = LogManager.getLogger(StockMonitorPane.class);
     private final TabPane tabPane = new TabPane();
@@ -92,6 +89,16 @@ public class StockMonitorPane extends FuncPane implements Resource {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final Supplier<Stage> stageSupplier = () -> (Stage) root.getScene().getWindow();
+    private final ChangeListener<Tab> tabSelectionListener = new ChangeListener<>() {
+        @Override
+        public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
+            if (newValue != null && scheduler != null) {
+                TaskHandler.backRun(() -> fetchAndUpdate());
+            }
+        }
+    };
+    private boolean initialized;
+    private volatile boolean disposed;
 
     @NotNull
     private MenuBar getMenuBar() {
@@ -217,6 +224,8 @@ public class StockMonitorPane extends FuncPane implements Resource {
 
     private void fetchAndUpdate() {
         try {
+            if (disposed) return;
+
             Tab selected = tabPane.getSelectionModel().getSelectedItem();
             if (selected == null) return;
 
@@ -234,6 +243,8 @@ public class StockMonitorPane extends FuncPane implements Resource {
                     .toList();
 
             Platform.runLater(() -> {
+                if (disposed) return;
+
                 StockTableView table = group.getTableView();
                 for (Optional<StockRow> opt : results) {
                     if (opt.isEmpty()) continue;
@@ -246,6 +257,7 @@ public class StockMonitorPane extends FuncPane implements Resource {
                     } else {
                         StockRow existed = table.getRowByKey().get(key);
                         existed.setName(row.getName());
+                        existed.setLastUpdateTime(row.getLastUpdateTime());
                         existed.setPrice(row.getPrice());
                         existed.setChangeRate(row.getChangeRate());
                         existed.setChangeRateStr(row.getChangeRateStr());
@@ -304,6 +316,7 @@ public class StockMonitorPane extends FuncPane implements Resource {
             String[] arr = last.split(",");
             if (arr.length < 3) return Optional.empty();
 
+            String lastUpdateTime = formatLastUpdateTime(arr[0]);
             double currPrice = Double.parseDouble(arr[2]);
             double changeRate = (preClose == 0) ? 0 : (currPrice - preClose) / preClose;
             double changeAmt = currPrice - preClose;
@@ -317,6 +330,7 @@ public class StockMonitorPane extends FuncPane implements Resource {
                     stockCode,
                     codeShown,
                     name,
+                    lastUpdateTime,
                     currPrice,
                     changeRate,
                     changeRateStr,
@@ -328,6 +342,17 @@ public class StockMonitorPane extends FuncPane implements Resource {
         } catch (Exception ex) {
             System.err.println("parse error: " + ex.getMessage());
             return Optional.empty();
+        }
+    }
+
+    private String formatLastUpdateTime(String rawTime) {
+        try {
+            DateTimeFormatter sourceFormatter = rawTime.length() > 16
+                    ? SOURCE_TIME_WITH_SECONDS_FORMATTER
+                    : SOURCE_TIME_FORMATTER;
+            return LocalDateTime.parse(rawTime, sourceFormatter).format(DISPLAY_TIME_FORMATTER);
+        } catch (Exception ex) {
+            return rawTime;
         }
     }
 
@@ -386,6 +411,7 @@ public class StockMonitorPane extends FuncPane implements Resource {
                         table.getItems().add(row);
                     } else {
                         existed.setName(row.getName());
+                        existed.setLastUpdateTime(row.getLastUpdateTime());
                         existed.setPrice(row.getPrice());
                         existed.setChangeRate(row.getChangeRate());
                         existed.setChangeRateStr(row.getChangeRateStr());
@@ -413,26 +439,20 @@ public class StockMonitorPane extends FuncPane implements Resource {
     }
 
 
-    @Override
-    public void release() throws Exception {
-        scheduler.shutdownNow();
-    }
-
     @NotNull
     @Override
     public Parent getRootView() {
+        if (initialized) {
+            return root;
+        }
+        disposed = false;
+        initialized = true;
+
         root.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
         MenuBar menuBar = getMenuBar();
 
         tabPane.setSide(Side.BOTTOM);
-        tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
-            @Override
-            public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
-                if (newValue != null && scheduler != null) {
-                    TaskHandler.backRun(() -> fetchAndUpdate());
-                }
-            }
-        });
+        tabPane.getSelectionModel().selectedItemProperty().addListener(tabSelectionListener);
 
         /* 股票下跌色 (默认绿色) */
         String mergedStyle = String.format(
@@ -455,13 +475,21 @@ public class StockMonitorPane extends FuncPane implements Resource {
             return t;
         });
         scheduler.scheduleAtFixedRate(this::fetchAndUpdate, 0, 3, TimeUnit.SECONDS);
-
-        ResourceManager.getInstance().register(this);
         return root;
     }
 
     @Override
     public void dispose() {
-
+        disposed = true;
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+            scheduler = null;
+        }
+        tabPane.getSelectionModel().selectedItemProperty().removeListener(tabSelectionListener);
+        tabPane.getTabs().clear();
+        groups.clear();
+        root.setCenter(null);
+        root.setTop(null);
+        initialized = false;
     }
 }

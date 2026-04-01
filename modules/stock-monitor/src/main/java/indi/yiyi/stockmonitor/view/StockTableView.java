@@ -52,11 +52,6 @@ public class StockTableView extends TableView<StockRow> {
     public StockTableView(StockGroup stockGroup) {
         this.stockGroup = stockGroup;
 
-        TableColumn<StockRow, Number> colIndex = new AlignedTableColumn<>("序号", AlignedTableColumn.Alignment.CENTER);
-        colIndex.setPrefWidth(40);
-        colIndex.setMinWidth(50);
-        colIndex.setCellValueFactory(c -> c.getValue().indexProperty());
-
         TableColumn<StockRow, String> colCode = new TableColumn<>("股票代码");
         colCode.setPrefWidth(120);
         colCode.setCellValueFactory(c -> c.getValue().codeProperty());
@@ -64,6 +59,10 @@ public class StockTableView extends TableView<StockRow> {
         TableColumn<StockRow, String> colName = new AlignedTableColumn<>("股票名称", AlignedTableColumn.Alignment.CENTER);
         colName.setPrefWidth(140);
         colName.setCellValueFactory(c -> c.getValue().nameProperty());
+
+        TableColumn<StockRow, String> colLastUpdateTime = new AlignedTableColumn<>("最近更新时间", AlignedTableColumn.Alignment.CENTER);
+        colLastUpdateTime.setPrefWidth(150);
+        colLastUpdateTime.setCellValueFactory(c -> c.getValue().lastUpdateTimeProperty());
 
         TableColumn<StockRow, Number> colChangeRate = new AlignedTableColumn<>("涨跌幅", AlignedTableColumn.Alignment.CENTER);
 
@@ -83,7 +82,7 @@ public class StockTableView extends TableView<StockRow> {
         colChangeAmt.setCellValueFactory(c -> c.getValue().changeAmtProperty());
         colChangeAmt.setCellFactory(formatNumber());
 
-        getColumns().addAll(colIndex, colCode, colName, colChangeRate, colPrice, colChangeAmt);
+        getColumns().addAll(colCode, colName, colChangeRate, colPrice, colChangeAmt, colLastUpdateTime);
         setItems(data);
         setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_NEXT_COLUMN);
 

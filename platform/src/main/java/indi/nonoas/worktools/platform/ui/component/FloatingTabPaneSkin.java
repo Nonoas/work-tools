@@ -56,7 +56,12 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
         TabPane pane = getSkinnable();
 
         rebuildHeaders();
-        pane.getTabs().addListener((ListChangeListener<Tab>) c -> rebuildHeaders());
+        pane.getTabs().addListener(new ListChangeListener<Tab>() {
+            @Override
+            public void onChanged(Change<? extends Tab> c) {
+                FloatingTabPaneSkin.this.rebuildHeaders();
+            }
+        });
 
         pane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> showContent(newTab));
 

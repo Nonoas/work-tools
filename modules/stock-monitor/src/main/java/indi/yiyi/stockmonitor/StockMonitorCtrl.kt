@@ -3,7 +3,6 @@ package indi.yiyi.stockmonitor
 import indi.nonoas.worktools.platform.controller.BaseParentController
 import indi.nonoas.worktools.platform.ext.FuncPane
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.image.ImageView
 
 class StockMonitorCtrl : BaseParentController() {
@@ -23,6 +22,6 @@ class StockMonitorCtrl : BaseParentController() {
     }
 
     override fun create(): FuncPane {
-        return StockMonitorPane.getInstance()
+        return StockMonitorPane()
     }
 }

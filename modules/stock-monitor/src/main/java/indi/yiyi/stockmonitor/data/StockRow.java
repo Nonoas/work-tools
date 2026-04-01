@@ -19,6 +19,7 @@ public class StockRow {
     private final IntegerProperty index = new SimpleIntegerProperty(0);
     private final StringProperty code = new SimpleStringProperty("");
     private final StringProperty name = new SimpleStringProperty("");
+    private final StringProperty lastUpdateTime = new SimpleStringProperty("");
     private final DoubleProperty price = new SimpleDoubleProperty(0);
     private final DoubleProperty changeRate = new SimpleDoubleProperty(0);
     private final StringProperty changeRateStr = new SimpleStringProperty("");
@@ -29,6 +30,7 @@ public class StockRow {
                     String rawCode,
                     String codeShown,
                     String name,
+                    String lastUpdateTime,
                     double price,
                     double changeRate,
                     String changeRateStr,
@@ -38,6 +40,7 @@ public class StockRow {
         setIndex(index);
         setCode(codeShown);
         setName(name);
+        setLastUpdateTime(lastUpdateTime);
         setPrice(price);
         setChangeRate(changeRate);
         setChangeRateStr(changeRateStr);
@@ -64,6 +67,10 @@ public class StockRow {
 
     public StringProperty nameProperty() {
         return name;
+    }
+
+    public StringProperty lastUpdateTimeProperty() {
+        return lastUpdateTime;
     }
 
     public DoubleProperty priceProperty() {
@@ -105,6 +112,14 @@ public class StockRow {
 
     public void setName(String v) {
         name.set(v);
+    }
+
+    public String getLastUpdateTime() {
+        return lastUpdateTime.get();
+    }
+
+    public void setLastUpdateTime(String v) {
+        lastUpdateTime.set(v);
     }
 
     public double getPrice() {

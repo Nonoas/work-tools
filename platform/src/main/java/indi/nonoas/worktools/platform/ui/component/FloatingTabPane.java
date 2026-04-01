@@ -8,7 +8,6 @@ import javafx.scene.control.TabPane;
 public class FloatingTabPane extends TabPane {
 
     public FloatingTabPane() {
-
     }
 
     public Tab addTab(String title, Node content) {

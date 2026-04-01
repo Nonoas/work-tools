@@ -20,7 +20,7 @@ object UIFactory {
      */
     fun getBaseScene(parent: Parent?): Scene {
         val scene = Scene(parent)
-        scene.stylesheets.add("css/style.css")
+        scene.stylesheets.add("css/platform.css")
         return scene
     }
 
