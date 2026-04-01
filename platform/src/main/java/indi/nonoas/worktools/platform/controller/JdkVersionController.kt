@@ -5,7 +5,6 @@ import indi.nonoas.worktools.platform.common.ColorSerials
 import indi.nonoas.worktools.platform.ext.FuncPane
 import indi.nonoas.worktools.platform.view.env.JdkVersionPane
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.paint.Color
 
 /**

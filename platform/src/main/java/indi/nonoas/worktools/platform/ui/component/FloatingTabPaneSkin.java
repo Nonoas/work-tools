@@ -56,12 +56,7 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
         TabPane pane = getSkinnable();
 
         rebuildHeaders();
-        pane.getTabs().addListener(new ListChangeListener<Tab>() {
-            @Override
-            public void onChanged(Change<? extends Tab> c) {
-                FloatingTabPaneSkin.this.rebuildHeaders();
-            }
-        });
+        pane.getTabs().addListener((ListChangeListener<Tab>) c -> FloatingTabPaneSkin.this.rebuildHeaders());
 
         pane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> showContent(newTab));
 
@@ -156,7 +151,7 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
     }
 
     private void showHeader() {
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(180), headerBar);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(90), headerBar);
         fadeIn.setToValue(1);
 
         headerBar.setVisible(true);
@@ -165,7 +160,7 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
     }
 
     private void hideHeader() {
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(160), headerBar);
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(80), headerBar);
         fadeOut.setToValue(0);
         fadeOut.playFromStart();
         fadeOut.setOnFinished(ev -> {
@@ -181,7 +176,7 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
         contentArea.resizeRelocate(x, y, w, h);
 
         for (Node child : contentArea.getChildren()) {
-            child.resizeRelocate(0, 0, w, h);
+//            child.resizeRelocate(0, 0, w, h);
         }
 
         double tw = toggleButton.prefWidth(-1);
