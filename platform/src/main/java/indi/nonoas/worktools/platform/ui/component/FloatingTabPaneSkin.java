@@ -176,7 +176,7 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
         contentArea.resizeRelocate(x, y, w, h);
 
         for (Node child : contentArea.getChildren()) {
-//            child.resizeRelocate(0, 0, w, h);
+            child.resizeRelocate(0, 0, w, h);
         }
 
         double tw = toggleButton.prefWidth(-1);
