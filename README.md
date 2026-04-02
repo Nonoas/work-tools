@@ -1,39 +1,157 @@
-# WorkTool
+# WorkTools
 
-> **NOTICE:**
-> >功能通用化，涉及个人及集体隐私的文件切勿上传！
+> **注意：** 功能通用化，涉及个人及集体隐私的文件切勿上传！
 
+## 项目架构
 
-## 添加工具面板
+WorkTools 是一个基于 JavaFX 的桌面应用框架，采用 Gradle 多模块架构。
 
-### 1.源码形式添加
+### 技术栈
 
-1. `indi.nonoas.worktools.view` 包下新建工具面板子包；
-2. 一般新建子类继承 `javafx.scene.layout.Pane` 或其子类，用于布局组件。继承简单布局例如：VBox，HBox 类；
-3. 在 MainStage 中添加按钮用于跳转到新建的工具面板；
-4. `indi.nonoas.worktools.view.MainStage.initToolBar` 方法中添加按，以及初始化按钮点击事件。
+- **JDK**: 17
+- **Kotlin**: 1.9.0
+- **JavaFX**: 21.0.3
+- **构建工具**: Gradle (Kotlin DSL)
 
-### 2. 插件形式添加
+### 模块结构
 
-1. 将主程序打包成 jar；
-2. 新建 Java 项目用来开发插件，引入主程序 jar 包作为依赖；
-3. 插件项目中提供一个实现了`indi.nonoas.worktools.ext.PluginService`接口的类，作为插件的主入口；
-4. 项目类路径下添加 META-INF 目录，该目录下添加文件`plugin.json`，内容如下：
-```json
-{
-  "name": "测试插件",
-  "version": "1.0",
-  "mainClass": "indi.testplugin.TestPlugin"
+```
+worktools/
+├── platform/              # 核心平台模块（必选）
+│   ├── 提供基础 API、UI 组件
+│   ├── 插件系统
+│   └── 公共依赖
+├── modules/               # 功能模块（可选）
+│   ├── boot-launcher/     # 启动器
+│   ├── boot-website/      # 常用网站快捷启动
+│   ├── recent-touch/      # 最近访问文件
+│   ├── stock-monitor/     # 股票监控
+│   └── windows-util/      # Windows 工具集
+└── assets/                # 资源文件
+```
+
+## 快速开始
+
+### 运行项目
+
+```bash
+./gradlew run
+```
+
+### 打包应用
+
+打包完整应用（包含 JRE）：
+
+```bash
+./gradlew packageMyApp
+```
+
+打包结果位于 `build/launch/` 目录下。
+
+## 开发指南
+
+### 添加新模块
+
+1. 在 `modules/` 目录下创建新文件夹（如 `my-module`）
+2. 创建 `build.gradle.kts` 文件：
+
+```kotlin
+plugins {
+    id("org.jetbrains.kotlin.jvm")
+    id("org.openjfx.javafxplugin")
+}
+
+dependencies {
+    // 自动引入 platform 模块
 }
 ```
-`name`：插件名称；<br>
-`version`：插件版本；<br>
-`mainClass`：插件主类名（实现了`indi.nonoas.worktools.ext.PluginService`接口的类）
-5. 将插件打成 jar 包（不需要包含2中引入的主程序jar），置于主程序的`plugins`目录下，插件文件夹名称需与插件主类所在 jar 包文件名相同。
 
-## 生成可执行 jar
+3. 在根目录 `build.gradle.kts` 中的 `selectedModules` 列表添加模块：
 
-终端指令 
-```bash
-mvn clean kotlin:compile package
+```kotlin
+val selectedModules = listOf(
+    // ... 已有模块
+    ":modules:my-module",
+)
 ```
+
+### 开发功能模块
+
+功能模块自动依赖 `platform` 模块，可直接使用平台提供的 API：
+
+```kotlin
+// 创建工具面板
+class MyToolPanel : VBox() {
+    init {
+        // 使用 platform 提供的组件
+    }
+}
+```
+
+### 插件开发
+
+#### 1. 插件配置
+
+在插件项目 `resources/META-INF/` 目录下创建 `plugin.yml`：
+
+```yaml
+version: 1.0.0
+id: indi.myplugin.example
+name: 示例插件
+extensions:
+  indi.nonoas.worktools.platform.ext.FuncPaneFactory:
+    - indi.myplugin.MyToolPanel
+```
+
+配置说明：
+- `version`: 插件版本号
+- `id`: 插件唯一标识符（全限定名格式）
+- `name`: 插件显示名称
+- `extensions`: 扩展点注册，key 为扩展点接口全限定名，value 为实现类列表
+
+#### 2. 插件主类
+
+实现 `FuncPaneFactory` 接口创建功能面板：
+
+```kotlin
+class MyToolPanel : FuncPaneFactory {
+    override fun getPane(): Pane {
+        return VBox().apply {
+            // 自定义面板内容
+        }
+    }
+    
+    override fun getName(): String {
+        return "我的工具"
+    }
+}
+```
+
+#### 3. 打包与部署
+
+```bash
+# 插件单独打包（不包含 platform）
+./gradlew jar
+
+# 将插件 jar 放入主程序 plugins/ 目录
+```
+
+## 配置说明
+
+### gradle.properties
+
+```properties
+jfxVersion=21.0.3           # JavaFX 版本
+kotlinVersion=1.9.0         # Kotlin 版本
+myMainClassName=indi.nonoas.worktools.platform.MainKt  # 主类
+platformName=platform       # 平台模块名称
+```
+
+## 常用命令
+
+| 命令 | 说明 |
+|------|------|
+| `./gradlew run` | 运行应用 |
+| `./gradlew build` | 构建所有模块 |
+| `./gradlew packageMyApp` | 打包完整应用 |
+| `./gradlew :platform:publishToMavenLocal` | 发布 platform 到本地 Maven |
