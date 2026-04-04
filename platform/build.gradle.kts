@@ -1,21 +1,97 @@
+import org.gradle.kotlin.dsl.version
 import org.openjfx.gradle.JavaFXOptions
+import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    kotlin("jvm") version "1.9.0"
+    id("java-library")
     id("org.openjfx.javafxplugin")
     id("maven-publish")
+    id("signing")
+    id("org.jetbrains.dokka") version "1.9.20"
+    signing
 }
 
-group = "indi.nonoas.worktools"
-version = "1.0.0"
+group = "io.github.nonoas"
+version = "1.0.0-SNAPSHOT"
+
+repositories {
+    maven("https://mirrors.huaweicloud.com/repository/maven/")
+    maven("https://maven.aliyun.com/repository/central/")
+    mavenCentral()
+}
+
+java {
+    withSourcesJar()
+}
+
+tasks.withType<Javadoc> {
+    (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
+    options.encoding = "UTF-8"
+}
+
+val dokkaJavadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    dependsOn(tasks.named("dokkaJavadoc"))
+    from(tasks.named<DokkaTask>("dokkaJavadoc").flatMap { it.outputDirectory })
+}
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            from(components["java"]) // 获取 java 组件
+            from(components["java"])
+            artifact(dokkaJavadocJar)
+
+            artifactId = "work-tools-platform"
+
+            pom {
+                name.set(artifactId)
+                description.set("A javafx plugin pretty platform")
+                url.set("https://github.com/Nonoas/work-tools")
+
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+
+                developers {
+                    developer {
+                        name.set("Nonoas")
+                        email.set("nonoaswy@163.com")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/Nonoas/work-tools.git")
+                    developerConnection.set("scm:git:ssh://github.com:Nonoas/work-tools.git")
+                    url.set("https://github.com/Nonoas/work-tools")
+                }
+            }
         }
     }
 }
+
+val gpgKeyName = (findProperty("signing.gnupg.keyName") ?: findProperty("signing.keyId")) as String?
+val gpgPassphrase = (findProperty("signing.gnupg.passphrase") ?: findProperty("signing.password")) as String?
+val gpgExecutable = (findProperty("signing.gnupg.executable") as String?) ?: "gpg"
+
+if (gpgKeyName != null && findProperty("signing.gnupg.keyName") == null) {
+    extra["signing.gnupg.keyName"] = gpgKeyName
+}
+if (gpgPassphrase != null && findProperty("signing.gnupg.passphrase") == null) {
+    extra["signing.gnupg.passphrase"] = gpgPassphrase
+}
+if (findProperty("signing.gnupg.executable") == null) {
+    extra["signing.gnupg.executable"] = gpgExecutable
+}
+
+signing {
+    useGpgCmd()
+    sign(publishing.publications["mavenJava"])
+}
+
 
 val jfxVersion: String by project
 the<JavaFXOptions>().apply {
@@ -23,7 +99,6 @@ the<JavaFXOptions>().apply {
     modules = listOf("javafx.controls", "javafx.swing")
 }
 
-// platform 独有依赖
 dependencies {
     api("io.github.nonoas:jfx-flat-ui:1.0.3")
     api("org.apache.logging.log4j:log4j-core:2.20.0")

@@ -2,7 +2,7 @@
 name: 快速启动
 id: indi.nonoas.worktools.launcher
 extensions:
-  indi.nonoas.worktools.platform.ext.FuncPaneFactory:
+  io.github.nonoas.worktools.platform.ext.FuncPaneFactory:
     - indi.nonoas.worktools.launcher.ExecFileController
-  indi.nonoas.worktools.platform.ext.Searchable:
+  io.github.nonoas.worktools.platform.ext.Searchable:
     - indi.nonoas.worktools.launcher.ExecFileSearcher

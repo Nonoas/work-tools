@@ -1,4 +1,5 @@
 import io.github.fvarrui.javapackager.gradle.PackageTask
+import org.gradle.kotlin.dsl.version
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.openjfx.gradle.JavaFXOptions
 
@@ -17,6 +18,20 @@ plugins {
     application
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
     id("org.openjfx.javafxplugin") version "0.0.14"
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(
+                uri("https://central.sonatype.com/repository/maven-snapshots/")
+            )
+            username .set(findProperty("sonatypeUsername") as String?)
+            password.set(findProperty("sonatypePassword") as String?)
+        }
+    }
 }
 
 val jfxVersion: String by project
@@ -30,8 +45,8 @@ the<JavaFXOptions>().apply {
 
 apply(plugin = "io.github.fvarrui.javapackager.plugin")
 
-group = "indi.nonoas"
-version = "1.3.3"
+group = "io.github.nonoas"
+version = "1.3.3-SNAPSHOT"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -96,9 +111,9 @@ println("Selected optional modules: $selectedModules")
 
 dependencies {
     implementation(project(":$platformName"))
-    selectedModules.forEach {
-        implementation(project(it))
-    }
+//    selectedModules.forEach {
+//        implementation(project(it))
+//    }
 }
 
 tasks.named<JavaExec>("run") {
@@ -121,8 +136,16 @@ tasks.register<PackageTask>("packageMyApp") {
 
     // Java 模块配置
     modules = listOf(
-        "java.base", "java.management", "java.net.http", "java.scripting", "java.sql",
-        "java.naming", "jdk.jsobject", "jdk.unsupported", "jdk.unsupported.desktop", "jdk.xml.dom",
+        "java.base",
+        "java.management",
+        "java.net.http",
+        "java.scripting",
+        "java.sql",
+        "java.naming",
+        "jdk.jsobject",
+        "jdk.unsupported",
+        "jdk.unsupported.desktop",
+        "jdk.xml.dom",
         "jdk.crypto.ec"
     )
 

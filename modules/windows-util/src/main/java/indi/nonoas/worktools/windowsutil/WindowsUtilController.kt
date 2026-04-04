@@ -1,7 +1,7 @@
 package indi.nonoas.worktools.windowsutil
 
-import indi.nonoas.worktools.platform.ext.FuncPane
-import indi.nonoas.worktools.platform.ext.FuncPaneFactory
+import io.github.nonoas.worktools.platform.ext.FuncPane
+import io.github.nonoas.worktools.platform.ext.FuncPaneFactory
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.image.ImageView

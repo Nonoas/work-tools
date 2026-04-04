@@ -1,0 +1,45 @@
+package io.github.nonoas.worktools.platform.dao
+
+import cn.hutool.db.Entity
+import io.github.nonoas.worktools.platform.pojo.po.RtpLinkListPo
+import io.github.nonoas.worktools.platform.pojo.vo.RtpLinkListVo
+import io.github.nonoas.worktools.platform.utils.DBUtil
+
+/**
+ * RtpLinkListDao
+ *
+ * @author huangshengsheng
+ * @date 2024/5/16 10:09
+ */
+object RtpLinkListDao {
+
+    const val TABLE_NAME = "RTP_LINKLIST"
+
+    fun add(po: RtpLinkListPo): Int {
+        val entity = Entity.parse(po, true, true)
+        entity.tableName = TABLE_NAME
+        return DBUtil.use().insert(entity)
+    }
+
+    fun replace(vo: RtpLinkListVo) {
+        val entity = Entity.parse(vo.covertPo(), true, true)
+        entity.tableName = TABLE_NAME
+        if (vo.id != null) {
+            DBUtil.use().insertOrUpdate(entity, "id")
+        } else {
+            DBUtil.use().insertOrUpdate(entity, "link")
+        }
+    }
+
+    fun delById(id: String): Int {
+        return DBUtil.use().del(TABLE_NAME, "id", id)
+    }
+
+    fun getAll(): MutableList<RtpLinkListPo> {
+        return DBUtil.use().query(
+            "select id,name,link,last_use_timestamp " +
+                    "from rtp_linklist order by last_use_timestamp desc",
+            RtpLinkListPo::class.java
+        )
+    }
+}

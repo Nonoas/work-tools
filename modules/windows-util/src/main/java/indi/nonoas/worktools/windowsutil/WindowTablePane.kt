@@ -5,10 +5,10 @@ import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef.HWND
 import github.nonoas.jfx.flat.ui.concurrent.TaskHandler
 import github.nonoas.jfx.flat.ui.control.Switch
-import indi.nonoas.worktools.platform.ext.FuncPane
-import indi.nonoas.worktools.platform.global.message.MsgBusManager
-import indi.nonoas.worktools.platform.ui.component.SearchListener
-import indi.nonoas.worktools.platform.ui.component.SearchListener.Companion.TOPIC
+import io.github.nonoas.worktools.platform.ext.FuncPane
+import io.github.nonoas.worktools.platform.global.message.MsgBusManager
+import io.github.nonoas.worktools.platform.ui.component.SearchListener
+import io.github.nonoas.worktools.platform.ui.component.SearchListener.Companion.TOPIC
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections

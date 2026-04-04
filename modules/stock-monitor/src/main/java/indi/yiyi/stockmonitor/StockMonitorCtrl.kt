@@ -1,7 +1,7 @@
 package indi.yiyi.stockmonitor
 
-import indi.nonoas.worktools.platform.controller.BaseParentController
-import indi.nonoas.worktools.platform.ext.FuncPane
+import io.github.nonoas.worktools.platform.controller.BaseParentController
+import io.github.nonoas.worktools.platform.ext.FuncPane
 import javafx.scene.Node
 import javafx.scene.image.ImageView
 

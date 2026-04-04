@@ -2,5 +2,5 @@ version: 1.3.2-SNAPSHOT
 id: indi.nonoas.worktools.windowsutil
 name: Windows工具
 extensions:
-  indi.nonoas.worktools.platform.ext.FuncPaneFactory:
+  io.github.nonoas.worktools.platform.ext.FuncPaneFactory:
     - indi.nonoas.worktools.windowsutil.WindowsUtilController

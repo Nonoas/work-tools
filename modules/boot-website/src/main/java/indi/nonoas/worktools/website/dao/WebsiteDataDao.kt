@@ -1,6 +1,6 @@
 package indi.nonoas.worktools.website.dao
 
-import indi.nonoas.worktools.platform.utils.DBUtil
+import io.github.nonoas.worktools.platform.utils.DBUtil
 import indi.nonoas.worktools.website.BootWebsitePane
 import java.sql.ResultSet
 

@@ -6,7 +6,7 @@ import dev.langchain4j.agent.tool.ToolSpecifications;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
-import indi.nonoas.worktools.platform.ui.component.BaseStage;
+import io.github.nonoas.worktools.platform.ui.component.BaseStage;
 import indi.yiyi.stockmonitor.data.Stock;
 import javafx.application.Platform;
 import javafx.geometry.Insets;

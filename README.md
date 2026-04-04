@@ -99,7 +99,7 @@ version: 1.0.0
 id: indi.myplugin.example
 name: 示例插件
 extensions:
-  indi.nonoas.worktools.platform.ext.FuncPaneFactory:
+  io.github.nonoas.worktools.platform.ext.FuncPaneFactory:
     - indi.myplugin.MyToolPanel
 ```
 
@@ -143,7 +143,7 @@ class MyToolPanel : FuncPaneFactory {
 ```properties
 jfxVersion=21.0.3           # JavaFX 版本
 kotlinVersion=1.9.0         # Kotlin 版本
-myMainClassName=indi.nonoas.worktools.platform.MainKt  # 主类
+myMainClassName=io.github.nonoas.worktools.platform.MainKt  # 主类
 platformName=platform       # 平台模块名称
 ```
 

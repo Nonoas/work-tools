@@ -1,8 +1,8 @@
-id: indi.nonoas.worktools.platform
+id: io.github.nonoas.worktools.platform
 name: worktools平台
 extensions:
-  indi.nonoas.worktools.platform.ext.FuncPaneFactory:
-    - indi.nonoas.worktools.platform.controller.JdkVersionController
-    - indi.nonoas.worktools.platform.controller.SQLTransferController
-    - indi.nonoas.worktools.platform.controller.TodoListController
-    - indi.nonoas.worktools.platform.controller.FileEncodeController
+  io.github.nonoas.worktools.platform.ext.FuncPaneFactory:
+    - io.github.nonoas.worktools.platform.controller.JdkVersionController
+    - io.github.nonoas.worktools.platform.controller.SQLTransferController
+    - io.github.nonoas.worktools.platform.controller.TodoListController
+    - io.github.nonoas.worktools.platform.controller.FileEncodeController
