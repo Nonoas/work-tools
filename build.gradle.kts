@@ -24,10 +24,9 @@ plugins {
 nexusPublishing {
     repositories {
         sonatype {
+            // OSSRH was shut down on 2025-06-30. Publish via Sonatype Central's compatibility API.
             nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
-            snapshotRepositoryUrl.set(
-                uri("https://central.sonatype.com/repository/maven-snapshots/")
-            )
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
             username .set(findProperty("sonatypeUsername") as String?)
             password.set(findProperty("sonatypePassword") as String?)
         }
@@ -37,6 +36,11 @@ nexusPublishing {
 val jfxVersion: String by project
 val myMainClassName: String by project
 val platformName: String by project
+val appVersion: String by project
+val platformVersion: String by project
+val publishPlatform = providers.gradleProperty("publishPlatform")
+    .map(String::toBoolean)
+    .orElse(false)
 
 the<JavaFXOptions>().apply {
     version = jfxVersion
@@ -46,7 +50,7 @@ the<JavaFXOptions>().apply {
 apply(plugin = "io.github.fvarrui.javapackager.plugin")
 
 group = "io.github.nonoas"
-version = "1.3.3-SNAPSHOT"
+version = if (publishPlatform.get()) platformVersion else appVersion
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17

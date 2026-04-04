@@ -12,8 +12,10 @@ plugins {
     signing
 }
 
+val platformVersion: String by project
+
 group = "io.github.nonoas"
-version = "1.0.0-SNAPSHOT"
+version = platformVersion
 
 repositories {
     maven("https://mirrors.huaweicloud.com/repository/maven/")
@@ -90,6 +92,25 @@ if (findProperty("signing.gnupg.executable") == null) {
 signing {
     useGpgCmd()
     sign(publishing.publications["mavenJava"])
+}
+
+tasks.register("closeSonatypeStagingRepository") {
+    group = "publishing"
+    description = "Closes the Sonatype staging repository via the root nexus-publish task."
+    dependsOn(rootProject.tasks.named("closeSonatypeStagingRepository"))
+}
+
+tasks.register("closeAndReleaseSonatypeStagingRepository") {
+    group = "publishing"
+    description = "Closes and releases the Sonatype staging repository via the root nexus-publish task."
+    dependsOn(rootProject.tasks.named("closeAndReleaseSonatypeStagingRepository"))
+}
+
+tasks.register("publishPlatformReleaseToSonatype") {
+    group = "publishing"
+    description = "Publishes the platform module, then closes and releases the Sonatype staging repository."
+    dependsOn("publishMavenJavaPublicationToSonatypeRepository")
+    dependsOn("closeAndReleaseSonatypeStagingRepository")
 }
 
 

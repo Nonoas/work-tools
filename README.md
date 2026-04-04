@@ -145,6 +145,8 @@ jfxVersion=21.0.3           # JavaFX 版本
 kotlinVersion=1.9.0         # Kotlin 版本
 myMainClassName=io.github.nonoas.worktools.platform.MainKt  # 主类
 platformName=platform       # 平台模块名称
+appVersion=1.3.3-SNAPSHOT   # 主应用版本
+platformVersion=1.0.0-SNAPSHOT # platform 发布版本
 ```
 
 ## 常用命令
@@ -155,3 +157,6 @@ platformName=platform       # 平台模块名称
 | `./gradlew build` | 构建所有模块 |
 | `./gradlew packageMyApp` | 打包完整应用 |
 | `./gradlew :platform:publishToMavenLocal` | 发布 platform 到本地 Maven |
+| `./gradlew -PpublishPlatform=true publishToSonatype` | 独立发布 platform SNAPSHOT 到 Sonatype Central |
+| `./gradlew -PpublishPlatform=true publishToSonatype closeAndReleaseSonatypeStagingRepository` | 独立发布 platform 正式版到 Sonatype Central |
+| `./gradlew -PpublishPlatform=true :platform:publishPlatformReleaseToSonatype` | 等价的一键正式版发布命令 |
