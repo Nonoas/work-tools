@@ -29,7 +29,8 @@ class BootWebsiteController : FuncPaneFactory {
     }
 
     override fun getGraphic(): Node {
-        return ImageView("images/website.png")
+        val imageUrl = javaClass.getResource("/images/website.png")?.toExternalForm() ?: ""
+        return ImageView(imageUrl)
             .apply {
                 isPreserveRatio = true;
                 isSmooth = true

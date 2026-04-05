@@ -39,6 +39,14 @@ public class Plugin {
 
     private ClassLoader classLoader;
 
+    private PluginSourceType sourceType = PluginSourceType.CLASSPATH;
+
+    private PluginState state = PluginState.DISCOVERED;
+
+    private String errorMessage;
+
+    private PluginContext context;
+
     public String getName() {
         return name;
     }
@@ -105,5 +113,45 @@ public class Plugin {
 
     public ClassLoader getClassLoader() {
         return classLoader;
+    }
+
+    public PluginSourceType getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(PluginSourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public PluginState getState() {
+        return state;
+    }
+
+    public void setState(PluginState state) {
+        this.state = state;
+    }
+
+    public boolean isEnabled() {
+        return state == PluginState.ENABLED;
+    }
+
+    public boolean isExternalPlugin() {
+        return sourceType == PluginSourceType.EXTERNAL_DIRECTORY;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public PluginContext getContext() {
+        return context;
+    }
+
+    public void setContext(PluginContext context) {
+        this.context = context;
     }
 }

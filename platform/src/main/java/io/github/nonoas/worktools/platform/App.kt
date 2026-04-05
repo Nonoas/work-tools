@@ -8,6 +8,7 @@ import github.nonoas.jfx.flat.ui.theme.LightTheme
 import io.github.nonoas.worktools.platform.common.Identifier
 import io.github.nonoas.worktools.platform.config.DBConfigEnum
 import io.github.nonoas.worktools.platform.config.FlyWayMigration
+import io.github.nonoas.worktools.platform.dao.FuncSettingDao
 import io.github.nonoas.worktools.platform.ext.PluginManager
 import io.github.nonoas.worktools.platform.ui.TaskHandler
 import io.github.nonoas.worktools.platform.ui.component.BaseStage
@@ -103,6 +104,7 @@ class App : AutoReleaseApplication() {
         }
 
         dbMigrate()
+        syncPluginStates()
 
         jIntellitype = JIntellitype.getInstance()
 
@@ -126,12 +128,18 @@ class App : AutoReleaseApplication() {
         FlyWayMigration(ds).migrate()
     }
 
+    private fun syncPluginStates() {
+        val enableStates = FuncSettingDao().getAll().associate { it.funcCode to it.isEnableFlag }
+        PluginManager.applyEnableStates(enableStates)
+    }
+
     @Throws(Exception::class)
     override fun stop() {
         super.stop()
         if (hasRun) {
             exitProcess(0)
         }
+        PluginManager.shutdown()
         fileLock?.release()
         channel?.close()
         // 清楚系统全局热键
@@ -256,5 +264,3 @@ class App : AutoReleaseApplication() {
         }
     }
 }
-
-

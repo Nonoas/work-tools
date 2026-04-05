@@ -7,6 +7,11 @@
     "name": { "type": "string", "description": "插件名称" },
     "version": { "type": "string", "description": "插件版本号" },
     "mainClass": { "type": "string", "description": "插件主类全限定名" },
+    "depends": {
+      "type": "array",
+      "description": "依赖的插件 id 列表",
+      "items": { "type": "string" }
+    },
     "extensions": {
       "type": "object",
       "description": "扩展点映射",

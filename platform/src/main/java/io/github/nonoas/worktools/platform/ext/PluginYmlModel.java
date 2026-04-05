@@ -34,6 +34,8 @@ public class PluginYmlModel {
 
     private Map<String, List<String>> extensions;
 
+    private List<String> depends;
+
     public String getName() {
         return name;
     }
@@ -88,5 +90,13 @@ public class PluginYmlModel {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public List<String> getDepends() {
+        return depends;
+    }
+
+    public void setDepends(List<String> depends) {
+        this.depends = depends;
     }
 }

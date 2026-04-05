@@ -25,7 +25,8 @@ class WindowsUtilController : FuncPaneFactory {
     }
 
     override fun getGraphic(): Node {
-        return ImageView("images/windows64x64.png")
+        val imageUrl = javaClass.getResource("/images/windows64x64.png")?.toExternalForm() ?: ""
+        return ImageView(imageUrl)
             .apply {
                 isPreserveRatio = true;
                 isSmooth = true

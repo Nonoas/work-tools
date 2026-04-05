@@ -33,7 +33,8 @@ class AboutAlerts private constructor() : MyAlert(AlertType.INFORMATION, null) {
     }
 
     private fun buildContent(): VBox {
-        val logo = ImageView(Image("image/logo.png")).apply {
+        val logoUrl = javaClass.getResource("/image/logo.png")?.toExternalForm() ?: ""
+        val logo = ImageView(Image(logoUrl)).apply {
             fitWidth = 56.0
             fitHeight = 56.0
             isPreserveRatio = true

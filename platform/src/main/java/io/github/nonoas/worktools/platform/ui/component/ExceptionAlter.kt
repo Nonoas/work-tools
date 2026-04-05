@@ -46,7 +46,8 @@ class ExceptionAlter(e: Throwable) : javafx.scene.control.Alert(AlertType.ERROR,
         title = "程序异常"
         headerText = "ლ(ٱ٥ٱლ)，程序出现了一些问题"
         contentText = e.message
-        val image = Image("image/logo.png")
+        val logoUrl = javaClass.getResource("/image/logo.png")?.toExternalForm() ?: ""
+        val image = Image(logoUrl)
         val pane = dialogPane
         pane.stylesheets.add("css/platform.css")
         val stage = pane.scene.window as Stage

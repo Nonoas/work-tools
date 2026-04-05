@@ -17,7 +17,8 @@ open class BaseStage : github.nonoas.jfx.flat.ui.stage.AppStage() {
     init {
         setTitle(TITLE)
         stage.scene.stylesheets.addAll("css/platform.css")
-        addIcons(Collections.singleton(Image("image/logo.png")))
+        val logoUrl = javaClass.getResource("/image/logo.png")?.toExternalForm() ?: ""
+        addIcons(Collections.singleton(Image(logoUrl)))
     }
 
 }

@@ -18,7 +18,7 @@ public class ExtensionManager {
      * @return 扩展列表，如果不存在则返回空列表（不会返回null）
      */
     public static <T> List<T> getExtensions(Class<T> clazz) {
-        List<Plugin> pluginList = PluginManager.getAll();
+        List<Plugin> pluginList = PluginManager.getEnabledPlugins();
         List<T> result = new ArrayList<>();
 
         Set<String> classNames = new HashSet<>();

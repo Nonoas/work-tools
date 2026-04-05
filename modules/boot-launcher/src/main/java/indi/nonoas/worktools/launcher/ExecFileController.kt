@@ -27,7 +27,8 @@ class ExecFileController : FuncPaneFactory {
     }
 
     override fun getGraphic(): Node {
-        return ImageView("images/rocket.png")
+        val imageUrl = javaClass.getResource("/images/rocket.png")?.toExternalForm() ?: ""
+        return ImageView(imageUrl)
             .apply {
                 isPreserveRatio = true;
                 isSmooth = true

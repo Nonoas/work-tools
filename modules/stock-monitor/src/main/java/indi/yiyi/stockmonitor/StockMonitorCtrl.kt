@@ -12,7 +12,8 @@ class StockMonitorCtrl : BaseParentController() {
     }
 
     override fun getGraphic(): Node {
-        return ImageView("image/stock-monitor-logo-64x64.png")
+        val imageUrl = javaClass.getResource("/image/stock-monitor-logo-64x64.png")?.toExternalForm() ?: ""
+        return ImageView(imageUrl)
             .apply {
                 isPreserveRatio = true;
                 isSmooth = true

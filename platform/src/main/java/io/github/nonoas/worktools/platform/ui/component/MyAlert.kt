@@ -14,7 +14,8 @@ open class MyAlert(alertType: AlertType?, contentText: String?, vararg buttons: 
 
     private fun initView() {
         headerText = null
-        val image = Image("image/logo.png")
+        val logoUrl = javaClass.getResource("/image/logo.png")?.toExternalForm() ?: ""
+        val image = Image(logoUrl)
         val pane = dialogPane
         pane.stylesheets.add("css/platform.css")
         val stage = pane.scene.window as Stage
