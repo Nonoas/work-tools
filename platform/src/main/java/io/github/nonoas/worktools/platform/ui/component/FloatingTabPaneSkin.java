@@ -13,6 +13,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 public class FloatingTabPaneSkin extends SkinBase<TabPane> {
@@ -23,6 +24,7 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
     private final StackPane contentArea = new StackPane();
     private final HBox headerBar = new HBox(8);
     private final Button toggleButton = new Button("插件");
+    private final Rectangle contentClip = new Rectangle();
 
     private boolean menuShowing = false;
     private boolean headerShown = false;
@@ -40,14 +42,19 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
     }
 
     private void buildUI() {
+        contentArea.setManaged(false);
+        contentArea.setClip(contentClip);
+
         headerBar.setPadding(new Insets(8, 12, 8, 12));
         headerBar.setMaxHeight(HBox.USE_PREF_SIZE);
         headerBar.setMaxWidth(HBox.USE_PREF_SIZE);
+        headerBar.setManaged(false);
         headerBar.setVisible(false);
         headerBar.setOpacity(0);
         headerBar.setPickOnBounds(false);
         headerBar.getStyleClass().add("floating-tab-header");
 
+        toggleButton.setManaged(false);
         toggleButton.setFocusTraversable(false);
         toggleButton.getStyleClass().add("floating-tab-toggle");
     }
@@ -174,10 +181,8 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
     @Override
     protected void layoutChildren(double x, double y, double w, double h) {
         contentArea.resizeRelocate(x, y, w, h);
-
-        for (Node child : contentArea.getChildren()) {
-            child.resizeRelocate(0, 0, w, h);
-        }
+        contentClip.setWidth(w);
+        contentClip.setHeight(h);
 
         double tw = toggleButton.prefWidth(-1);
         double th = toggleButton.prefHeight(-1);
@@ -193,6 +198,30 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
                 hw,
                 hh
         );
+    }
+
+    @Override
+    protected double computePrefWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
+        double contentPrefWidth = 0;
+        for (Tab tab : getSkinnable().getTabs()) {
+            Node content = tab.getContent();
+            if (content != null) {
+                contentPrefWidth = Math.max(contentPrefWidth, snapSizeX(content.prefWidth(-1)));
+            }
+        }
+        return leftInset + contentPrefWidth + rightInset;
+    }
+
+    @Override
+    protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
+        double contentPrefHeight = 0;
+        for (Tab tab : getSkinnable().getTabs()) {
+            Node content = tab.getContent();
+            if (content != null) {
+                contentPrefHeight = Math.max(contentPrefHeight, snapSizeY(content.prefHeight(-1)));
+            }
+        }
+        return topInset + contentPrefHeight + bottomInset;
     }
 
     @Override
