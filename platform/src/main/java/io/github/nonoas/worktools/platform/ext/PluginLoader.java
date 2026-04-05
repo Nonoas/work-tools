@@ -9,9 +9,22 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class PluginLoader {
 
@@ -57,48 +70,107 @@ public class PluginLoader {
             return new ArrayList<>();
         }
 
-        // 1. 先加载共享依赖库 (plugins/libs/)
         List<URL> sharedLibs = loadSharedLibraries(pluginDirectory);
 
-        try (var pathStream = Files.list(pluginDirectory)) {
-            pathStream.sorted()
-                .filter(PluginLoader::isPluginArtifact)
-                .forEach(path -> {
-                    PluginClassLoader pluginLoader = null;
-                    try {
-                        // 2. 构建类加载器 URL：共享依赖在前，插件自身在后
-                        List<URL> urls = new ArrayList<>(sharedLibs);
-                        urls.add(path.toUri().toURL());
+        try {
+            for (Path path : listPluginArtifacts(pluginDirectory)) {
+                PluginClassLoader pluginLoader = null;
+                try {
+                    List<URL> urls = new ArrayList<>(sharedLibs);
+                    urls.add(path.toUri().toURL());
 
-                        pluginLoader = new PluginClassLoader(
-                                urls.toArray(new URL[0]),
-                                PluginLoader.class.getClassLoader()
-                        );
+                    pluginLoader = new PluginClassLoader(
+                            urls.toArray(new URL[0]),
+                            PluginLoader.class.getClassLoader()
+                    );
 
-                        URL configUrl = resolveExternalConfigUrl(path);
-                        if (configUrl == null) {
-                            closeQuietly(pluginLoader);
-                            return;
-                        }
-
-                        URL pluginRoot = path.toUri().toURL();
-                        Plugin plugin = loadPlugin(configUrl, pluginRoot, pluginLoader, PluginSourceType.EXTERNAL_DIRECTORY);
-                        plugin.setPath(path.toAbsolutePath().normalize().toString());
-                        registerPlugin(instances, plugin);
-                    } catch (Exception e) {
+                    URL configUrl = resolveExternalConfigUrl(path);
+                    if (configUrl == null) {
                         closeQuietly(pluginLoader);
-                        LOG.error("Failed to load external plugin from: {}", path, e);
+                        continue;
                     }
-                });
+
+                    URL pluginRoot = path.toUri().toURL();
+                    Plugin plugin = loadPlugin(configUrl, pluginRoot, pluginLoader, PluginSourceType.EXTERNAL_DIRECTORY);
+                    plugin.setPath(path.toAbsolutePath().normalize().toString());
+                    registerPlugin(instances, plugin);
+                } catch (Exception e) {
+                    closeQuietly(pluginLoader);
+                    LOG.error("Failed to load external plugin from: {}", path, e);
+                }
+            }
         } catch (Exception e) {
             LOG.error("Failed to scan external plugin directory: {}", pluginDirectory, e);
         }
         return new ArrayList<>(instances.values());
     }
 
-    /**
-     * 加载共享依赖库目录 (plugins/libs/)
-     */
+    public static List<String> installPluginArchive(Path archivePath) throws Exception {
+        return installPluginArchive(archivePath, getExternalPluginsDir());
+    }
+
+    public static List<String> installPluginArchive(Path archivePath, Path pluginDirectory) throws Exception {
+        if (archivePath == null || !Files.isRegularFile(archivePath)) {
+            throw new IllegalArgumentException("Plugin archive does not exist: " + archivePath);
+        }
+        String fileName = archivePath.getFileName().toString().toLowerCase(Locale.ROOT);
+        if (!fileName.endsWith(".zip")) {
+            throw new IllegalArgumentException("Plugin archive must be a .zip file: " + archivePath);
+        }
+
+        Files.createDirectories(pluginDirectory);
+        Files.createDirectories(pluginDirectory.resolve("libs"));
+
+        LinkedHashSet<String> pluginDirs = new LinkedHashSet<>();
+        try (ZipFile zipFile = new ZipFile(archivePath.toFile())) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                String entryName = normalizeArchiveEntry(entry.getName());
+                if (entryName.isBlank()) {
+                    continue;
+                }
+                validateArchiveTarget(pluginDirectory, entryName);
+
+                String topLevel = entryName.substring(0, entryName.indexOf('/'));
+                if (!"libs".equals(topLevel)) {
+                    pluginDirs.add(topLevel);
+                }
+            }
+        }
+
+        for (String pluginDir : pluginDirs) {
+            deleteRecursively(pluginDirectory.resolve(pluginDir));
+        }
+
+        try (ZipFile zipFile = new ZipFile(archivePath.toFile())) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                String entryName = normalizeArchiveEntry(entry.getName());
+                if (entryName.isBlank()) {
+                    continue;
+                }
+
+                Path target = validateArchiveTarget(pluginDirectory, entryName);
+                if (entry.isDirectory()) {
+                    Files.createDirectories(target);
+                    continue;
+                }
+
+                Path parent = target.getParent();
+                if (parent != null) {
+                    Files.createDirectories(parent);
+                }
+                try (InputStream in = zipFile.getInputStream(entry)) {
+                    Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+
+        return new ArrayList<>(pluginDirs);
+    }
+
     private static List<URL> loadSharedLibraries(Path pluginDirectory) {
         List<URL> sharedLibs = new ArrayList<>();
         Path libsDir = pluginDirectory.resolve("libs");
@@ -107,18 +179,18 @@ public class PluginLoader {
             return sharedLibs;
         }
 
-        try (var pathStream = Files.list(libsDir)) {
+        try (Stream<Path> pathStream = Files.list(libsDir)) {
             pathStream
-                .filter(p -> p.toString().toLowerCase().endsWith(".jar"))
-                .sorted()
-                .forEach(p -> {
-                    try {
-                        sharedLibs.add(p.toUri().toURL());
-                        LOG.debug("Loaded shared library: {}", p.getFileName());
-                    } catch (Exception e) {
-                        LOG.warn("Failed to load shared library: {}", p, e);
-                    }
-                });
+                    .filter(p -> p.toString().toLowerCase(Locale.ROOT).endsWith(".jar"))
+                    .sorted()
+                    .forEach(p -> {
+                        try {
+                            sharedLibs.add(p.toUri().toURL());
+                            LOG.debug("Loaded shared library: {}", p.getFileName());
+                        } catch (Exception e) {
+                            LOG.warn("Failed to load shared library: {}", p, e);
+                        }
+                    });
         } catch (Exception e) {
             LOG.warn("Failed to scan shared libraries directory: {}", libsDir, e);
         }
@@ -129,16 +201,12 @@ public class PluginLoader {
         return sharedLibs;
     }
 
-    /**
-     * 解析 plugin.yml 的 URL，提取出插件 JAR 的根路径
-     */
     private static URL getPluginRoot(URL configUrl) throws Exception {
         String urlString = configUrl.toExternalForm();
         if (urlString.startsWith("jar:")) {
             return new URL(urlString.substring(4, urlString.indexOf("!/")));
-        } else {
-            return new URL(urlString.substring(0, urlString.length() - PLUGIN_YML.length()));
         }
+        return new URL(urlString.substring(0, urlString.length() - PLUGIN_YML.length()));
     }
 
     private static Plugin loadPlugin(URL configUrl,
@@ -235,7 +303,7 @@ public class PluginLoader {
         if (Files.isDirectory(path)) {
             return Files.exists(path.resolve(Paths.get("META-INF", "plugin.yml")));
         }
-        String fileName = path.getFileName().toString().toLowerCase();
+        String fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);
         return Files.isRegularFile(path) && fileName.endsWith(".jar");
     }
 
@@ -281,5 +349,72 @@ public class PluginLoader {
     private static <T> void addExtension(Map<Class<?>, List<?>> extensions, Class<T> interfaceClass, Object implObject) {
         List<T> list = (List<T>) extensions.computeIfAbsent(interfaceClass, k -> new ArrayList<T>());
         list.add(interfaceClass.cast(implObject));
+    }
+
+    private static List<Path> listPluginArtifacts(Path pluginDirectory) throws Exception {
+        List<Path> artifacts = new ArrayList<>();
+        try (Stream<Path> pathStream = Files.list(pluginDirectory)) {
+            for (Path path : pathStream.sorted().collect(Collectors.toList())) {
+                String fileName = path.getFileName().toString();
+                if ("libs".equalsIgnoreCase(fileName)) {
+                    continue;
+                }
+
+                if (Files.isDirectory(path)) {
+                    if (Files.exists(path.resolve(Paths.get("META-INF", "plugin.yml")))) {
+                        artifacts.add(path);
+                        continue;
+                    }
+                    try (Stream<Path> childStream = Files.list(path)) {
+                        artifacts.addAll(childStream
+                                .filter(PluginLoader::isPluginArtifact)
+                                .sorted()
+                                .collect(Collectors.toList()));
+                    }
+                    continue;
+                }
+
+                if (isPluginArtifact(path)) {
+                    artifacts.add(path);
+                }
+            }
+        }
+        return artifacts;
+    }
+
+    private static String normalizeArchiveEntry(String entryName) {
+        if (entryName == null) {
+            return "";
+        }
+        String normalized = entryName.replace('\\', '/');
+        while (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+        if (normalized.isBlank()) {
+            return "";
+        }
+        if (!normalized.contains("/")) {
+            throw new IllegalArgumentException("Plugin archive entry must be under a top-level directory: " + entryName);
+        }
+        return normalized;
+    }
+
+    private static Path validateArchiveTarget(Path pluginDirectory, String entryName) {
+        Path target = pluginDirectory.resolve(entryName).normalize();
+        if (!target.startsWith(pluginDirectory)) {
+            throw new IllegalArgumentException("Plugin archive contains illegal entry: " + entryName);
+        }
+        return target;
+    }
+
+    private static void deleteRecursively(Path path) throws Exception {
+        if (path == null || !Files.exists(path)) {
+            return;
+        }
+        try (Stream<Path> walk = Files.walk(path)) {
+            for (Path current : walk.sorted(Comparator.reverseOrder()).collect(Collectors.toList())) {
+                Files.deleteIfExists(current);
+            }
+        }
     }
 }

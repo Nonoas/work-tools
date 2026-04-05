@@ -9,6 +9,7 @@ import io.github.nonoas.worktools.platform.pojo.vo.FuncSettingVo
 import io.github.nonoas.worktools.platform.ui.TaskHandler
 import io.github.nonoas.worktools.platform.ui.UIFactory
 import io.github.nonoas.worktools.platform.ui.component.BaseStage
+import io.github.nonoas.worktools.platform.ui.component.MyAlert
 import io.github.nonoas.worktools.platform.utils.DBUtil
 import io.github.nonoas.worktools.platform.utils.DBUtil.withTransaction
 import javafx.beans.property.BooleanProperty
@@ -16,6 +17,7 @@ import javafx.collections.FXCollections
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.control.Alert
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
@@ -25,17 +27,26 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
+import javafx.stage.FileChooser
 import javafx.stage.Modality
+import java.io.File
 import java.util.Arrays
 
-/**
- * 功能入口：设置-插件
- */
 class PluginSettingStage : BaseStage() {
+
+    private data class PluginInstallResult(
+        val installedPlugins: List<String> = emptyList(),
+        val errorMessage: String? = null
+    )
 
     private var vos: List<FuncSettingVo> = emptyList()
 
     private val listView = ListView<FuncSettingVo>()
+
+    private val btnInstall = UIFactory.getPrimaryButton("安装插件").apply {
+        onAction = EventHandler { installPluginArchive() }
+        tooltip = Tooltip("选择插件 zip 包，自动安装到 plugins 目录")
+    }
 
     private val btnRefresh = Button("扫描外部插件").apply {
         onAction = EventHandler { reloadExternalPlugins() }
@@ -43,7 +54,7 @@ class PluginSettingStage : BaseStage() {
     }
 
     private fun initView() {
-        stage.width = 360.0
+        stage.width = 420.0
         stage.height = 500.0
 
         val btnApply = UIFactory.getPrimaryButton("应用").apply {
@@ -54,7 +65,7 @@ class PluginSettingStage : BaseStage() {
             onAction = EventHandler { onCancel() }
         }
 
-        val hBox = HBox(10.0, btnRefresh, btnApply, btnCancel).apply {
+        val hBox = HBox(10.0, btnInstall, btnRefresh, btnApply, btnCancel).apply {
             padding = CommonInsets.PADDING_T20
             alignment = Pos.CENTER_RIGHT
         }
@@ -134,9 +145,6 @@ class PluginSettingStage : BaseStage() {
             .handle()
     }
 
-    /**
-     * 点击“应用”后触发
-     */
     private fun onApply() {
         TaskHandler<Int?>()
             .whenCall {
@@ -170,6 +178,42 @@ class PluginSettingStage : BaseStage() {
             .handle()
     }
 
+    private fun installPluginArchive() {
+        val archive = choosePluginArchive() ?: return
+
+        TaskHandler<PluginInstallResult>()
+            .whenCall {
+                try {
+                    val installedPlugins = PluginLoader.installPluginArchive(archive.toPath())
+                    PluginManager.reloadExternalPlugins()
+                    val enableStates = FuncSettingDao().getAll().associate { it.funcCode to it.isEnableFlag }
+                    PluginManager.applyEnableStates(enableStates)
+                    PluginInstallResult(installedPlugins = installedPlugins)
+                } catch (e: Exception) {
+                    PluginInstallResult(errorMessage = e.message ?: "插件安装失败")
+                }
+            }
+            .andThen { result ->
+                if (result.errorMessage != null) {
+                    MyAlert(Alert.AlertType.ERROR, result.errorMessage).showAndWait()
+                    return@andThen
+                }
+
+                loadPlugins()
+                MainStage.instance?.reInit()
+                val installed = result.installedPlugins.joinToString(", ").ifBlank { archive.name }
+                MyAlert(Alert.AlertType.INFORMATION, "插件安装完成: $installed").showAndWait()
+            }
+            .handle()
+    }
+
+    private fun choosePluginArchive(): File? {
+        return FileChooser().apply {
+            title = "选择插件 zip 包"
+            extensionFilters.add(FileChooser.ExtensionFilter("Plugin Zip", "*.zip"))
+        }.showOpenDialog(stage)
+    }
+
     private fun onCancel() {
         close()
     }
@@ -179,7 +223,7 @@ class PluginSettingStage : BaseStage() {
         stage.apply {
             isResizable = false
             isAlwaysOnTop = true
-            width = 360.0
+            width = 420.0
             initModality(Modality.APPLICATION_MODAL)
         }
         initView()

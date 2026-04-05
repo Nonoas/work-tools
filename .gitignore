@@ -9,3 +9,5 @@ config/context
 .vscode
 AGENTS.md
 RTK.md
+.claude
+.agent

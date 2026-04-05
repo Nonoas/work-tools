@@ -32,6 +32,11 @@ public class PluginYmlModel {
      */
     private PluginService service;
 
+    /**
+     * 插件描述
+     */
+    private String description;
+
     private Map<String, List<String>> extensions;
 
     private List<String> depends;
@@ -98,5 +103,13 @@ public class PluginYmlModel {
 
     public void setDepends(List<String> depends) {
         this.depends = depends;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
