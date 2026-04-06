@@ -147,7 +147,7 @@ dependencies {
         )
     }
 
-    api("io.github.nonoas:jfx-flat-ui:1.0.3") {
+    api("io.github.nonoas:jfx-flat-ui:2.0.0-SNAPSHOT") {
         exclude(group = "org.openjfx")
     }
     api("org.apache.logging.log4j:log4j-core:2.20.0")

@@ -16,5 +16,6 @@ object CommonInsets {
     val PADDING_20 = Insets(ROOT_PADDING_WIDTH)
     val PADDING_T20_R20_L20 = Insets(ROOT_PADDING_WIDTH, ROOT_PADDING_WIDTH, 0.0, ROOT_PADDING_WIDTH)
     val PADDING_R10 = Insets(0.0, 10.0, 0.0, 0.0)
+    val PADDING_L10 = Insets(0.0, 0.0, 0.0, 10.0)
     val PADDING_T20 = Insets(20.0, 0.0, 0.0, 0.0)
 }

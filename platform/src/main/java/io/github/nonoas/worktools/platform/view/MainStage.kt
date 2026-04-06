@@ -22,22 +22,16 @@ import io.github.nonoas.worktools.platform.ui.component.SearchListener
 import io.github.nonoas.worktools.platform.ui.component.SearchModeTextField
 import javafx.collections.ListChangeListener
 import javafx.event.EventHandler
-import javafx.scene.control.Button
-import javafx.scene.control.Menu
-import javafx.scene.control.MenuBar
-import javafx.scene.control.MenuItem
-import javafx.scene.control.ScrollPane
-import javafx.scene.control.Tab
-import javafx.scene.control.ToolBar
-import javafx.scene.control.Tooltip
+import javafx.geometry.Pos
+import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
-import javafx.scene.layout.Priority
-import javafx.scene.layout.Region
+import javafx.scene.layout.HeaderBar
+import javafx.scene.layout.HeaderDragType
 import org.apache.logging.log4j.LogManager
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.material2.Material2AL
@@ -48,7 +42,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private val log = LogManager.getLogger(MainStage::class.java)
 
     private val rootPane = BorderPane()
-    private var toolBar = ToolBar()
     private val menuBar = MenuBar()
     private val tfSearch = SearchModeTextField()
     private val llmResultPane = LlmResultPane()
@@ -60,7 +53,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     private val fpFuncListPane = ScrollPane()
 
     private val funcTabPane = MainFuncPane().apply {
-        tabs.addListener (ListChangeListener {change->
+        tabs.addListener(ListChangeListener { change ->
             if (change.list.isEmpty()) {
                 rootPane.center = fpFuncListPane
             }
@@ -89,10 +82,10 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     }
 
     private fun initView() {
-        setAlwaysOnTop(true)
-        setResizable(true)
-        setMinHeight(400)
-        setMinWidth(600)
+        isAlwaysOnTop = true
+        isResizable = true
+        minHeight = 400.0
+        minWidth = 600.0
 
         // 监听宽高的变化，保存到静态变量
         stage.widthProperty().addListener { _, _, newValue ->
@@ -139,7 +132,6 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             content = fpFuncList
         }
         rootPane.apply {
-            top = toolBar
             center = fpFuncListPane
         }
         setContentView(rootPane)
@@ -185,11 +177,10 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             onAction = EventHandler { rootPane.center = fpFuncListPane }
         }
 
-        toolBar.items.add(btnListFunc)
+        headerBar.leading = btnListFunc
 
         // 搜索框
         initSearchTextField()
-        toolBar.items.add(tfSearch)
 
         Tooltip.install(
             lbTips, Tooltip(
@@ -200,11 +191,17 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         """.trimIndent()
             )
         )
-        toolBar.items.add(lbTips)
 
-        toolBar.items.add(Region().apply { HBox.setHgrow(this, Priority.ALWAYS) })
-        toolBar.items.add(HBox().apply { children.addAll(systemButtons) })
-        registryDragger(toolBar)
+        val headerCenter = HBox(CommonInsets.SPACING_1, tfSearch, lbTips).apply {
+            padding = CommonInsets.PADDING_10
+        }
+        headerCenter.alignment = Pos.CENTER
+        HeaderBar.setDragType(headerCenter, HeaderDragType.DRAGGABLE)
+        HeaderBar.setAlignment(headerCenter, Pos.CENTER)
+        headerBar.center =headerCenter
+
+        HeaderBar.setMargin(headerBar.leading, CommonInsets.PADDING_L10)
+        HeaderBar.setMargin(headerBar.trailing, CommonInsets.PADDING_R10)
     }
 
     /**
@@ -326,7 +323,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         }
 
         funcTabPane.selectionModel.select(tabCurr)
-        setTitle(name)
+        title = name
     }
 
     /**
