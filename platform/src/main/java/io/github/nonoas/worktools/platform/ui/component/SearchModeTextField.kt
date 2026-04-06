@@ -22,6 +22,7 @@ class SearchModeTextField(
 
         fields.forEach { field ->
             field.bindModeSwitcher(::switchMode)
+            field.bindModeSwitcher(::switchToMode)
             field.view.prefWidthProperty().bind(widthProperty())
         }
 
@@ -35,6 +36,25 @@ class SearchModeTextField(
         val nextField = currentField
         children.setAll(nextField.view)
         nextField.syncText(currentText)
+        nextField.updateMode(nextField.mode)
+
+        Platform.runLater {
+            nextField.focusInput()
+        }
+    }
+
+    private fun switchToMode(mode: SearchMode) {
+        if (currentField.mode == mode) {
+            return
+        }
+
+        val currentText = currentField.view.text.orEmpty()
+        currentIndex = fields.indexOfFirst { it.mode == mode }
+
+        val nextField = currentField
+        children.setAll(nextField.view)
+        nextField.syncText(currentText)
+        nextField.updateMode(nextField.mode)
 
         Platform.runLater {
             nextField.focusInput()

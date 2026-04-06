@@ -1,3 +1,19 @@
+pluginManagement {
+    val kotlinVersion: String by settings
+    val javafxPluginVersion: String by settings
+
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
+    }
+
+    plugins {
+        kotlin("jvm") version kotlinVersion
+        id("org.openjfx.javafxplugin") version javafxPluginVersion
+    }
+}
+
 // 开启特性
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

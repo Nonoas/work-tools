@@ -1,9 +1,10 @@
 import org.gradle.kotlin.dsl.version
 import org.openjfx.gradle.JavaFXOptions
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm")
     id("java-library")
     id("org.openjfx.javafxplugin")
     id("maven-publish")
@@ -13,6 +14,13 @@ plugins {
 }
 
 val platformVersion: String by project
+val kotlinVersion: String by project
+val javafxClassifier = when {
+    OperatingSystem.current().isWindows -> "win"
+    OperatingSystem.current().isLinux -> "linux"
+    OperatingSystem.current().isMacOsX -> if (System.getProperty("os.arch") == "aarch64") "mac-aarch64" else "mac"
+    else -> error("Unsupported operating system for JavaFX: ${OperatingSystem.current().name}")
+}
 
 group = "io.github.nonoas"
 version = platformVersion
@@ -115,19 +123,39 @@ tasks.register("publishPlatformReleaseToSonatype") {
 
 
 val jfxVersion: String by project
+val javafxModules = listOf(
+    "base",
+    "graphics",
+    "controls",
+    "swing",
+)
 the<JavaFXOptions>().apply {
     version = jfxVersion
-    modules = listOf("javafx.controls", "javafx.swing")
+    modules = listOf("javafx.controls", "javafx.swing", "javafx.graphics")
 }
 
 dependencies {
-    api("io.github.nonoas:jfx-flat-ui:1.0.3")
+    javafxModules.forEach { module ->
+        api(
+            mapOf(
+                "group" to "org.openjfx",
+                "name" to "javafx-$module",
+                "version" to jfxVersion,
+                "classifier" to javafxClassifier,
+                "ext" to "jar",
+            )
+        )
+    }
+
+    api("io.github.nonoas:jfx-flat-ui:1.0.3") {
+        exclude(group = "org.openjfx")
+    }
     api("org.apache.logging.log4j:log4j-core:2.20.0")
     api("net.java.dev.jna:jna:5.12.1")
     api("net.java.dev.jna:jna-platform:5.12.1")
 
     implementation("com.melloware:jintellitype:1.4.0")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     implementation("org.quartz-scheduler:quartz:2.3.2")
     implementation("com.h2database:h2:2.2.220")
     implementation("com.alibaba.fastjson2:fastjson2:2.0.47")
@@ -135,7 +163,9 @@ dependencies {
     implementation("org.flywaydb:flyway-core:10.12.0")
     implementation("cn.hutool:hutool-db:5.8.25")
     implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
-    implementation("io.github.mkpaz:atlantafx-base:2.0.1")
+    implementation("io.github.mkpaz:atlantafx-base:2.0.1") {
+        exclude(group = "org.openjfx")
+    }
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("org.yaml:snakeyaml:2.2")

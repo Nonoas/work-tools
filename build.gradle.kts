@@ -1,5 +1,6 @@
 import io.github.fvarrui.javapackager.gradle.PackageTask
 import org.gradle.kotlin.dsl.version
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.openjfx.gradle.JavaFXOptions
 
@@ -16,8 +17,8 @@ buildscript {
 plugins {
     java
     application
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    id("org.openjfx.javafxplugin") version "0.0.14"
+    kotlin("jvm")
+    id("org.openjfx.javafxplugin")
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
 
@@ -27,7 +28,7 @@ nexusPublishing {
             // OSSRH was shut down on 2025-06-30. Publish via Sonatype Central's compatibility API.
             nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
             snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
-            username .set(findProperty("sonatypeUsername") as String?)
+            username.set(findProperty("sonatypeUsername") as String?)
             password.set(findProperty("sonatypePassword") as String?)
         }
     }
@@ -53,8 +54,8 @@ group = "io.github.nonoas"
 version = if (publishPlatform.get()) platformVersion else appVersion
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_23
+    targetCompatibility = JavaVersion.VERSION_23
 }
 
 allprojects {
@@ -70,19 +71,26 @@ subprojects {
     apply(plugin = "org.openjfx.javafxplugin")
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_23
+        targetCompatibility = JavaVersion.VERSION_23
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(23))
+        }
+    }
+
+    kotlin {
+        jvmToolchain(23)
     }
 
     tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "17"
+        compilerOptions {
+            jvmTarget.set(JvmTarget.fromTarget("23"))
         }
     }
 
     the<JavaFXOptions>().apply {
         version = jfxVersion
-        modules = listOf("javafx.controls", "javafx.swing")
+        modules = listOf("javafx.controls", "javafx.swing", "javafx.graphics")
     }
 
     // 非 platform 模块引入 platform
@@ -95,9 +103,13 @@ subprojects {
 
 application {
     mainClass.set(myMainClassName)
+    applicationDefaultJvmArgs = listOf(
+        "-Djavafx.enablePreview=true"
+    )
 }
 
 tasks.withType<JavaExec> {
+    systemProperty("javafx.enablePreview", "true")
     jvmArgs(
         "--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
     )
@@ -128,6 +140,11 @@ tasks.named<JavaExec>("run") {
 // 统一打包 thin jar + libs
 tasks.register<PackageTask>("packageMyApp") {
     dependsOn(tasks.clean)
+
+    vmArgs = listOf(
+        "-Djavafx.enablePreview=true",
+        "--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
+    )
 
     // 打包哪些模块：platform 必选 + 可选模块
     val modulesToInclude = listOf(":platform") + selectedModules

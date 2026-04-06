@@ -200,6 +200,7 @@ class WorktoolsPluginConventionPlugin : Plugin<Project> {
                     workingDir(sandboxDir.asFile)
                     classpath(worktoolsHostRuntime)
                     mainClass.set(ext.hostMainClass)
+                    systemProperty("javafx.enablePreview", "true")
                     systemProperty("worktools.plugins.dir", sandboxPluginsDir.asFile.absolutePath)
                     jvmArgs("--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED")
                 }

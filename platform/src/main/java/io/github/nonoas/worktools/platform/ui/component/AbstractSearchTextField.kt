@@ -3,7 +3,9 @@ package io.github.nonoas.worktools.platform.ui.component
 import atlantafx.base.controls.CustomTextField
 import github.nonoas.jfx.flat.ui.theme.Styles
 import javafx.event.EventHandler
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
+import javafx.scene.control.MenuItem
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -14,6 +16,8 @@ abstract class AbstractSearchTextField(
 ) : CustomTextField(), SearchTextField, EventHandler<KeyEvent> {
 
     private var switchModeHandler: (() -> Unit)? = null
+    private var switchToSpecificModeHandler: ((SearchMode) -> Unit)? = null
+    private lateinit var modeLabel: Label
 
     override val view: CustomTextField
         get() = this
@@ -21,10 +25,39 @@ abstract class AbstractSearchTextField(
     init {
         promptText = prompt
         styleClass.add(Styles.ROUNDED)
-        left = Label(mode.prefix).apply {
+        modeLabel = Label(mode.prefix).apply {
             styleClass.addAll("hint", Styles.TEXT_MUTED, Styles.TEXT_SMALL)
             tooltip = Tooltip(mode.tooltipText)
+            style = "-fx-cursor: hand;"
+
+            val contextMenu = ContextMenu().apply {
+                items.addAll(
+                    MenuItem(SearchMode.GLOBAL.tooltipText).apply {
+                        setOnAction {
+                            switchToSpecificModeHandler?.invoke(SearchMode.GLOBAL)
+                        }
+                    },
+                    MenuItem(SearchMode.CURRENT.tooltipText).apply {
+                        setOnAction {
+                            switchToSpecificModeHandler?.invoke(SearchMode.CURRENT)
+                        }
+                    },
+                    MenuItem(SearchMode.LLM.tooltipText).apply {
+                        setOnAction {
+                            switchToSpecificModeHandler?.invoke(SearchMode.LLM)
+                        }
+                    }
+                )
+            }
+
+            setOnMouseClicked { event ->
+                if (event.button == javafx.scene.input.MouseButton.PRIMARY) {
+                    contextMenu.show(this, event.screenX, event.screenY)
+                }
+            }
         }
+
+        left = modeLabel
 
         textProperty().addListener { _, _, newValue ->
             onKeywordChanged(newValue.orEmpty())
@@ -42,6 +75,10 @@ abstract class AbstractSearchTextField(
         switchModeHandler = onSwitchMode
     }
 
+    override fun bindModeSwitcher(onSwitchMode: (SearchMode) -> Unit) {
+        switchToSpecificModeHandler = onSwitchMode
+    }
+
     override fun syncText(value: String) {
         val changed = text != value
         text = value
@@ -56,12 +93,44 @@ abstract class AbstractSearchTextField(
         positionCaret(text.length)
     }
 
+    override fun updateMode(newMode: SearchMode) {
+        modeLabel.text = newMode.prefix
+        modeLabel.tooltip = Tooltip(newMode.tooltipText)
+    }
+
     override fun handle(event: KeyEvent) {
         when (event.code) {
             KeyCode.ENTER -> onEnter(event)
             KeyCode.TAB -> {
                 switchModeHandler?.invoke()
                 event.consume()
+            }
+
+            KeyCode.DIGIT1, KeyCode.NUMPAD1 -> {
+                if (event.isControlDown) {
+                    switchToSpecificModeHandler?.invoke(SearchMode.GLOBAL)
+                    event.consume()
+                } else {
+                    onKeyReleased(event)
+                }
+            }
+
+            KeyCode.DIGIT2, KeyCode.NUMPAD2 -> {
+                if (event.isControlDown) {
+                    switchToSpecificModeHandler?.invoke(SearchMode.CURRENT)
+                    event.consume()
+                } else {
+                    onKeyReleased(event)
+                }
+            }
+
+            KeyCode.DIGIT3, KeyCode.NUMPAD3 -> {
+                if (event.isControlDown) {
+                    switchToSpecificModeHandler?.invoke(SearchMode.LLM)
+                    event.consume()
+                } else {
+                    onKeyReleased(event)
+                }
             }
 
             else -> onKeyReleased(event)

@@ -1,8 +1,7 @@
 package io.github.nonoas.worktools.platform.ui.component
 
-import github.nonoas.jfx.flat.ui.stage.AppStage
 import javafx.scene.image.Image
-import java.util.Collections
+import java.util.*
 
 /**
  * 程序通用窗口，设置了一系列通用的样式和参数

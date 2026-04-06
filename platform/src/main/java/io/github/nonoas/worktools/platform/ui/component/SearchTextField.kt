@@ -10,9 +10,13 @@ interface SearchTextField {
 
     fun bindModeSwitcher(onSwitchMode: () -> Unit)
 
+    fun bindModeSwitcher(onSwitchMode: (SearchMode) -> Unit)
+
     fun syncText(value: String)
 
     fun focusInput()
+
+    fun updateMode(newMode: SearchMode)
 }
 
 enum class SearchMode(
