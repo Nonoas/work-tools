@@ -1,7 +1,6 @@
-import org.gradle.kotlin.dsl.version
-import org.openjfx.gradle.JavaFXOptions
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.gradle.internal.os.OperatingSystem
+import org.jetbrains.dokka.gradle.DokkaTask
+import org.openjfx.gradle.JavaFXOptions
 
 plugins {
     kotlin("jvm")
@@ -25,11 +24,11 @@ val javafxClassifier = when {
 group = "io.github.nonoas"
 version = platformVersion
 
-repositories {
-    maven("https://mirrors.huaweicloud.com/repository/maven/")
-    maven("https://maven.aliyun.com/repository/central/")
-    mavenCentral()
-}
+//repositories {
+//    maven("https://mirrors.huaweicloud.com/repository/maven/")
+//    maven("https://maven.aliyun.com/repository/central/")
+//    mavenCentral()
+//}
 
 java {
     withSourcesJar()

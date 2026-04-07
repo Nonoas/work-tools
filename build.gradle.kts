@@ -1,11 +1,13 @@
 import io.github.fvarrui.javapackager.gradle.PackageTask
-import org.gradle.kotlin.dsl.version
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.openjfx.gradle.JavaFXOptions
 
 buildscript {
     repositories {
+        maven("https://central.sonatype.com/repository/maven-snapshots/")
+        maven("https://mirrors.huaweicloud.com/repository/maven/")
+        maven("https://maven.aliyun.com/repository/central/")
         mavenLocal()
         mavenCentral()
     }
@@ -127,9 +129,9 @@ println("Selected optional modules: $selectedModules")
 
 dependencies {
     implementation(project(":$platformName"))
-//    selectedModules.forEach {
-//        implementation(project(it))
-//    }
+    selectedModules.forEach {
+        implementation(project(it))
+    }
 }
 
 tasks.named<JavaExec>("run") {
