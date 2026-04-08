@@ -4,20 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import github.nonoas.jfx.flat.ui.concurrent.TaskHandler;
 import github.nonoas.jfx.flat.ui.stage.ToastQueue;
-import io.github.nonoas.worktools.platform.ext.FuncPane;
-import io.github.nonoas.worktools.platform.ui.component.FXAlert;
 import indi.yiyi.stockmonitor.data.Stock;
 import indi.yiyi.stockmonitor.data.StockGroup;
 import indi.yiyi.stockmonitor.data.StockRow;
 import indi.yiyi.stockmonitor.utils.AppConfig;
-import indi.yiyi.stockmonitor.utils.FileUtil;
 import indi.yiyi.stockmonitor.utils.GroupConfig;
 import indi.yiyi.stockmonitor.utils.UIUtil;
-import indi.yiyi.stockmonitor.view.AIStage;
 import indi.yiyi.stockmonitor.view.StockColorSettingsDialog;
 import indi.yiyi.stockmonitor.view.StockSearchDialog;
 import indi.yiyi.stockmonitor.view.StockTab;
 import indi.yiyi.stockmonitor.view.StockTableView;
+import io.github.nonoas.worktools.platform.ext.FuncPane;
+import io.github.nonoas.worktools.platform.ui.component.FXAlert;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -36,7 +34,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -159,27 +156,10 @@ public class StockMonitorPane extends FuncPane {
                 }
         );
 
-        MenuItem miAi = new MenuItem("Ai助手");
-        miAi.setOnAction(actionEvent -> {
-//            AIStage aiStage = new AIStage(System.getenv("DEEPSEEK_API_KEY"), getStocksOfCurrentGroup());
-            String kimiApiKey = System.getenv("KIMI_API_KEY");
-            if (StringUtils.isEmpty(kimiApiKey)) {
-                try {
-                    kimiApiKey = FileUtil.readTextFromProjectRelativePath("config/apikey");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            AIStage aiStage = new AIStage(kimiApiKey, getStocksOfCurrentGroup());
-            aiStage.getStage().initOwner(stageSupplier.get());
-            aiStage.show();
-        });
 
         Menu menu = new Menu("菜单", null, addItem, addGroupItem, colorSetting);
-        Menu menuAi = new Menu("点我看看", null, miAi);
 
-
-        MenuBar menuBar = new MenuBar(menu, menuAi);
+        MenuBar menuBar = new MenuBar(menu);
         menuBar.setPadding(new Insets(5, 10, 5, 10));
         return menuBar;
     }

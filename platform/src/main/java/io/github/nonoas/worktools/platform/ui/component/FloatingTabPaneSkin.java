@@ -1,6 +1,5 @@
 package io.github.nonoas.worktools.platform.ui.component;
 
-import javafx.animation.FadeTransition;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -14,7 +13,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
-import javafx.util.Duration;
 
 public class FloatingTabPaneSkin extends SkinBase<TabPane> {
 
@@ -68,30 +66,6 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
         pane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> showContent(newTab));
 
         showContent(pane.getSelectionModel().getSelectedItem());
-    }
-
-    private void rebuildHeaders() {
-        headerBar.getChildren().clear();
-        TabPane pane = getSkinnable();
-
-        for (Tab tab : pane.getTabs()) {
-            Button btn = new Button(tab.getText());
-            btn.getStyleClass().add("floating-tab-button");
-
-            ContextMenu contextMenu = tab.getContextMenu();
-            if (contextMenu != null) {
-                contextMenu.setOnShowing(e -> menuShowing = true);
-                contextMenu.setOnHiding(e -> menuShowing = false);
-                btn.setContextMenu(contextMenu);
-                btn.setOnContextMenuRequested(e -> showHeader());
-            }
-
-            btn.setOnAction(e -> {
-                pane.getSelectionModel().select(tab);
-                hideHeader();
-            });
-            headerBar.getChildren().add(btn);
-        }
     }
 
     private void showContent(Tab tab) {
@@ -157,24 +131,55 @@ public class FloatingTabPaneSkin extends SkinBase<TabPane> {
         return false;
     }
 
-    private void showHeader() {
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(90), headerBar);
-        fadeIn.setToValue(1);
 
+    private void rebuildHeaders() {
+        headerBar.getChildren().clear();
+        TabPane pane = getSkinnable();
+
+        for (Tab tab : pane.getTabs()) {
+            Button btn = new Button(tab.getText());
+            btn.getStyleClass().add("floating-tab-button");
+
+            ContextMenu contextMenu = tab.getContextMenu();
+            if (contextMenu != null) {
+                contextMenu.setOnShowing(e -> menuShowing = true);
+                contextMenu.setOnHiding(e -> {
+                    menuShowing = false;
+                    refreshHeaderLayout();
+                });
+                btn.setContextMenu(contextMenu);
+                btn.setOnContextMenuRequested(e -> showHeader());
+            }
+
+            btn.setOnAction(e -> {
+                pane.getSelectionModel().select(tab);
+                hideHeader();
+            });
+
+            headerBar.getChildren().add(btn);
+        }
+
+        refreshHeaderLayout();
+    }
+
+    private void refreshHeaderLayout() {
+        headerBar.applyCss();
+        headerBar.autosize();
+        getSkinnable().requestLayout();
+    }
+
+    private void showHeader() {
         headerBar.setVisible(true);
-        fadeIn.playFromStart();
+        headerBar.setOpacity(1);
+        refreshHeaderLayout();
         headerShown = true;
     }
 
     private void hideHeader() {
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(80), headerBar);
-        fadeOut.setToValue(0);
-        fadeOut.playFromStart();
-        fadeOut.setOnFinished(ev -> {
-            if (!menuShowing && headerBar.getOpacity() == 0) {
-                headerBar.setVisible(false);
-            }
-        });
+        if (!menuShowing) {
+            headerBar.setVisible(false);
+            headerBar.setOpacity(0);
+        }
         headerShown = false;
     }
 
