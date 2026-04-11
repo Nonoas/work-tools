@@ -3,7 +3,7 @@ package io.github.nonoas.worktools.platform.ui.component
 import io.github.nonoas.worktools.platform.global.message.MsgBusManager
 import io.github.nonoas.worktools.platform.service.LlmSearchService
 import javafx.application.Platform
-import javafx.scene.input.KeyEvent
+import javafx.event.ActionEvent
 import kotlin.concurrent.thread
 
 class LlmSearchTextField : AbstractSearchTextField(SearchMode.LLM, "Enter提问，Tab切换模式") {
@@ -18,7 +18,7 @@ class LlmSearchTextField : AbstractSearchTextField(SearchMode.LLM, "Enter提问�
         }
     }
 
-    override fun onEnter(event: KeyEvent) {
+    override fun onEnter(event: ActionEvent) {
         val prompt = text.trim()
         if (prompt.isEmpty()) {
             publisher().onCleared()

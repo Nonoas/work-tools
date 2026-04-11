@@ -4,6 +4,7 @@ import io.github.nonoas.worktools.platform.common.CommonInsets
 import io.github.nonoas.worktools.platform.pojo.vo.ExecFileVo
 import io.github.nonoas.worktools.platform.pojo.vo.FuncSettingVo
 import io.github.nonoas.worktools.platform.ui.component.ExecFileButton
+import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.scene.control.Button
@@ -12,8 +13,9 @@ import javafx.scene.control.TitledPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.FlowPane
+import javafx.scene.layout.VBox
 import javafx.stage.Stage
-import java.util.*
+import java.util.LinkedList
 
 /**
  * 全局搜索框的返回结果面板
@@ -22,7 +24,7 @@ import java.util.*
  * @author Nonoas
  * @date 2024/5/28
  */
-class SearchResultPane private constructor() : javafx.scene.layout.VBox(), EventHandler<KeyEvent> {
+class SearchResultPane private constructor() : VBox(), EventHandler<KeyEvent> {
 
     private val tpScript = TitledPane("脚本", Label("脚本")).apply {
         styleClass.add("non-border")
@@ -77,20 +79,20 @@ class SearchResultPane private constructor() : javafx.scene.layout.VBox(), Event
                 event.consume()
             }
 
-            KeyCode.ENTER -> {
-                val peek = buttonList.peek() ?: return
-                peek.fire()
-                if (peek is ExecFileButton) {
-                    if (scene == null) {
-                        return
-                    }
-                    (scene.window as Stage).close()
-                }
-                event.consume()
-            }
-
             else -> return
         }
+    }
+
+    fun onEntered(event: ActionEvent) {
+        val peek = buttonList.peek() ?: return
+        peek.fire()
+        if (peek is ExecFileButton) {
+            if (scene == null) {
+                return
+            }
+            (scene.window as Stage).close()
+        }
+        event.consume()
     }
 
     class Builder {

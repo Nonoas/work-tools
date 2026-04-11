@@ -2,6 +2,7 @@ package io.github.nonoas.worktools.platform.ui.component
 
 import atlantafx.base.controls.CustomTextField
 import github.nonoas.jfx.flat.ui.theme.Styles
+import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
@@ -63,11 +64,10 @@ abstract class AbstractSearchTextField(
             onKeywordChanged(newValue.orEmpty())
         }
 
-        addEventHandler(KeyEvent.KEY_PRESSED) {
-            if (it.code == KeyCode.TAB) {
-                it.consume()
-            }
+        setOnAction {
+            onEnter(it)
         }
+
         addEventHandler(KeyEvent.KEY_RELEASED, this)
     }
 
@@ -100,7 +100,6 @@ abstract class AbstractSearchTextField(
 
     override fun handle(event: KeyEvent) {
         when (event.code) {
-            KeyCode.ENTER -> onEnter(event)
             KeyCode.TAB -> {
                 switchModeHandler?.invoke()
                 event.consume()
@@ -143,5 +142,5 @@ abstract class AbstractSearchTextField(
     protected open fun onKeyReleased(event: KeyEvent) {
     }
 
-    protected abstract fun onEnter(event: KeyEvent)
+    protected abstract fun onEnter(event: ActionEvent)
 }

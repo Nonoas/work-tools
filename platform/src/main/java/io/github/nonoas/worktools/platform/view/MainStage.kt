@@ -21,9 +21,16 @@ import io.github.nonoas.worktools.platform.ui.component.LlmSearchListener
 import io.github.nonoas.worktools.platform.ui.component.SearchListener
 import io.github.nonoas.worktools.platform.ui.component.SearchModeTextField
 import javafx.collections.ListChangeListener
+import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Pos
-import javafx.scene.control.*
+import javafx.scene.control.Button
+import javafx.scene.control.Menu
+import javafx.scene.control.MenuBar
+import javafx.scene.control.MenuItem
+import javafx.scene.control.ScrollPane
+import javafx.scene.control.Tab
+import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
@@ -244,8 +251,8 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
                     resultPane?.handle(event)
                 }
 
-                override fun onEntered(event: KeyEvent) {
-                    resultPane?.handle(event)
+                override fun onEntered(event: ActionEvent) {
+                    resultPane?.onEntered(event)
                 }
             })
 

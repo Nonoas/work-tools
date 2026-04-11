@@ -1,15 +1,16 @@
 package indi.nonoas.worktools.website;
 
 import github.nonoas.jfx.flat.ui.AppState;
+import indi.nonoas.worktools.website.dao.WebsiteDataDao;
 import io.github.nonoas.worktools.platform.ext.FuncPane;
 import io.github.nonoas.worktools.platform.global.message.MsgBusManager;
 import io.github.nonoas.worktools.platform.ui.component.FXAlert;
 import io.github.nonoas.worktools.platform.ui.component.SearchListener;
 import io.github.nonoas.worktools.platform.utils.DesktopUtil;
-import indi.nonoas.worktools.website.dao.WebsiteDataDao;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -100,7 +101,7 @@ public class BootWebsitePane extends FuncPane {
             }
 
             @Override
-            public void onEntered(@NotNull KeyEvent event) {
+            public void onEntered(@NotNull ActionEvent event) {
                 ObservableList<WebsiteData> items = table.getItems();
                 if (items.isEmpty()) {
                     return;

@@ -1,6 +1,7 @@
 package io.github.nonoas.worktools.platform.ui.component
 
 import io.github.nonoas.worktools.platform.global.message.MessageBus
+import javafx.event.ActionEvent
 import javafx.scene.input.KeyEvent
 
 abstract class AbstractBusSearchTextField(
@@ -20,7 +21,7 @@ abstract class AbstractBusSearchTextField(
         publisher().onKeyPressed(event)
     }
 
-    override fun onEnter(event: KeyEvent) {
+    override fun onEnter(event: ActionEvent) {
         publisher().onEntered(event)
     }
 }

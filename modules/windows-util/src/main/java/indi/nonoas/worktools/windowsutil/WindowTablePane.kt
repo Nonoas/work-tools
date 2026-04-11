@@ -25,7 +25,6 @@ import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.image.ImageView
-import javafx.scene.input.KeyEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
@@ -197,7 +196,7 @@ class WindowTablePane private constructor() : FuncPane() {
                     queryFilter(keyword)
                 }
 
-                override fun onEntered(event: KeyEvent) {
+                override fun onEntered(event: ActionEvent) {
                 }
             })
         return root
