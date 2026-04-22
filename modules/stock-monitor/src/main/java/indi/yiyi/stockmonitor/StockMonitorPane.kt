@@ -1,475 +1,642 @@
-package indi.yiyi.stockmonitor;
+package indi.yiyi.stockmonitor
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import github.nonoas.jfx.flat.ui.concurrent.TaskHandler;
-import github.nonoas.jfx.flat.ui.stage.ToastQueue;
-import indi.yiyi.stockmonitor.data.Stock;
-import indi.yiyi.stockmonitor.data.StockGroup;
-import indi.yiyi.stockmonitor.data.StockRow;
-import indi.yiyi.stockmonitor.utils.AppConfig;
-import indi.yiyi.stockmonitor.utils.GroupConfig;
-import indi.yiyi.stockmonitor.utils.UIUtil;
-import indi.yiyi.stockmonitor.view.StockColorSettingsDialog;
-import indi.yiyi.stockmonitor.view.StockSearchDialog;
-import indi.yiyi.stockmonitor.view.StockTab;
-import indi.yiyi.stockmonitor.view.StockTableView;
-import io.github.nonoas.worktools.platform.ext.FuncPane;
-import io.github.nonoas.worktools.platform.ui.component.FXAlert;
-import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.geometry.Insets;
-import javafx.geometry.Side;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import github.nonoas.jfx.flat.ui.stage.ToastQueue
+import indi.yiyi.stockmonitor.data.StockGroup
+import indi.yiyi.stockmonitor.data.StockRow
+import indi.yiyi.stockmonitor.utils.AppConfig
+import indi.yiyi.stockmonitor.utils.GroupConfig
+import indi.yiyi.stockmonitor.utils.UIUtil
+import indi.yiyi.stockmonitor.view.StockColorSettingsDialog
+import indi.yiyi.stockmonitor.view.StockSearchDialog
+import indi.yiyi.stockmonitor.view.StockTab
+import io.github.nonoas.worktools.platform.ext.FuncPane
+import io.github.nonoas.worktools.platform.ui.component.FXAlert
+import javafx.application.Platform
+import javafx.beans.value.ChangeListener
+import javafx.geometry.Insets
+import javafx.geometry.Side
+import javafx.scene.Parent
+import javafx.scene.control.Alert
+import javafx.scene.control.ButtonType
+import javafx.scene.control.ContextMenu
+import javafx.scene.control.Menu
+import javafx.scene.control.MenuBar
+import javafx.scene.control.MenuItem
+import javafx.scene.control.Tab
+import javafx.scene.control.TabPane
+import javafx.scene.control.TextInputDialog
+import javafx.scene.layout.BorderPane
+import javafx.stage.Stage
+import org.apache.commons.lang3.StringUtils
+import org.apache.logging.log4j.LogManager
+import org.jetbrains.annotations.NotNull
+import java.io.IOException
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.Optional
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
+import java.util.function.Supplier
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
+class StockMonitorPane : FuncPane() {
 
-/**
- * @author Nonoas
- * @date 2025/8/20
- * @since 1.0.0
- */
-public class StockMonitorPane extends FuncPane {
-    private static final DateTimeFormatter SOURCE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    private static final DateTimeFormatter SOURCE_TIME_WITH_SECONDS_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private static final DateTimeFormatter DISPLAY_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyMMdd HH:mm:ss");
+    companion object {
+        private val LOG = LogManager.getLogger(StockMonitorPane::class.java)
+        private val TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+        private val HTTP_TIMEOUT: Duration = Duration.ofSeconds(8)
+        private const val REFRESH_INTERVAL_SECONDS = 3L
+    }
 
-    private static final Logger LOG = LogManager.getLogger(StockMonitorPane.class);
-    private final TabPane tabPane = new TabPane();
-    private ScheduledExecutorService scheduler;
-    private final Map<String, StockGroup> groups = new ConcurrentHashMap<>();
+    private val root = BorderPane()
+    private val tabPane = TabPane()
+    private val groups: MutableMap<String, StockGroup> = ConcurrentHashMap()
+    private val marketDict = mapOf(
+        "0" to "SZ",
+        "1" to "SH"
+    )
 
-    private final BorderPane root = new BorderPane();
+    /**
+     * 防止同一只股票重复并发请求
+     * key = groupName_marketCode_stockCode
+     */
+    private val inFlightRequests: MutableMap<String, Boolean> = ConcurrentHashMap()
 
-    private final Map<String, String> marketDict = Map.of(
-            "0", "SZ",
-            "1", "SH"
-    );
+    private val http: HttpClient = HttpClient.newBuilder()
+        .connectTimeout(HTTP_TIMEOUT)
+        .version(HttpClient.Version.HTTP_1_1)
+        .build()
 
-    private final HttpClient http = HttpClient.newBuilder()
-            .connectTimeout(java.time.Duration.ofSeconds(8))
-            .build();
+    private val mapper = ObjectMapper()
+    private val stageSupplier = Supplier { root.scene.window as Stage }
+    private val refreshVersion = AtomicLong(0)
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private var scheduler: ScheduledExecutorService? = null
+    private var currentRefreshTask: ScheduledFuture<*>? = null
+    @Volatile
+    private var currentSession: RefreshSession? = null
 
-    private final Supplier<Stage> stageSupplier = () -> (Stage) root.getScene().getWindow();
-    private final ChangeListener<Tab> tabSelectionListener = new ChangeListener<>() {
-        @Override
-        public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
-            if (newValue != null && scheduler != null) {
-                TaskHandler.backRun(() -> fetchAndUpdate());
-            }
+    private var initialized = false
+    @Volatile
+    private var disposed = false
+
+    private val tabSelectionListener = ChangeListener<Tab?> { _, _, newValue ->
+        if (newValue == null || disposed) {
+            return@ChangeListener
         }
-    };
-    private boolean initialized;
-    private volatile boolean disposed;
+        switchToGroup(newValue.text)
+    }
+
+    private class RefreshSession(
+        val groupName: String,
+        val version: Long
+    ) {
+        @Volatile
+        var active: Boolean = true
+
+        fun deactivate() {
+            active = false
+        }
+    }
 
     @NotNull
-    private MenuBar getMenuBar() {
+    private fun getMenuBarInternal(): MenuBar {
+        val addItem = MenuItem("添加股票")
+        addItem.setOnAction {
+            showAddStockDialog(stageSupplier.get())
+        }
 
-        MenuItem addItem = new MenuItem("添加股票");
-        addItem.setOnAction(e -> showAddStockDialog(stageSupplier.get()));
+        val addGroupItem = MenuItem("添加分组")
+        addGroupItem.setOnAction {
+            val stage = stageSupplier.get()
+            val dialog = TextInputDialog()
+            dialog.initOwner(stage)
+            dialog.title = "添加分组"
+            dialog.headerText = "请输入新分组名称"
+            dialog.contentText = "分组名称:"
 
-        MenuItem addGroupItem = new MenuItem("添加分组");
-        addGroupItem.setOnAction(e -> {
-            Stage stage = stageSupplier.get();
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.initOwner(stage);
-            dialog.setTitle("添加分组");
-            dialog.setHeaderText("请输入新分组名称");
-            dialog.setContentText("分组名称:");
-            dialog.initOwner(stage);
-
-            dialog.showAndWait().ifPresent(name -> {
-                String groupName = name.trim();
+            dialog.showAndWait().ifPresent { name ->
+                val groupName = name?.trim().orEmpty()
                 if (groupName.isEmpty()) {
-                    FXAlert.info(stage, "输入无效", "分组名称不能为空！");
-                    return;
+                    FXAlert.info(stage, "输入无效", "分组名称不能为空！")
+                    return@ifPresent
                 }
-                // 添加到配置并检查是否已存在
                 if (!GroupConfig.addGroup(groupName)) {
-                    FXAlert.info(stage, "添加失败", "分组【" + groupName + "】已存在！");
-                    return;
+                    FXAlert.info(stage, "添加失败", "分组【$groupName】已存在！")
+                    return@ifPresent
                 }
-                // 界面新增 Tab
-                addGroupTab(groupName);
-            });
-        });
+                addGroupTab(groupName)
+            }
+        }
 
-        MenuItem colorSetting = new MenuItem("颜色设置");
-        colorSetting.setOnAction(
-                e -> {
-                    // 1. 创建对话框实例，传入当前的颜色设置
-                    StockColorSettingsDialog dialog = new StockColorSettingsDialog();
-                    dialog.initOwner(stageSupplier.get());
-                    // 2. 显示对话框并等待结果
-                    dialog.showAndWait().ifPresent(newColors -> {
-                        // 获取并转换颜色值
-                        String upColorStyle = UIUtil.toWebColor(newColors.getUpColor());
-                        String downColorStyle = UIUtil.toWebColor(newColors.getDownColor());
+        val colorSetting = MenuItem("颜色设置")
+        colorSetting.setOnAction {
+            val dialog = StockColorSettingsDialog()
+            dialog.initOwner(stageSupplier.get())
+            dialog.showAndWait().ifPresent { newColors ->
+                val upColorStyle = UIUtil.toWebColor(newColors.upColor)
+                val downColorStyle = UIUtil.toWebColor(newColors.downColor)
 
-                        AppConfig.getConfigManager().set("color.up", upColorStyle);
-                        AppConfig.getConfigManager().set("color.down", downColorStyle);
+                AppConfig.getConfigManager().set("color.up", upColorStyle)
+                AppConfig.getConfigManager().set("color.down", downColorStyle)
 
-                        // 3. 核心：合并样式字符串
-                        String mergedStyle = String.format(
-                                "-stock-up-color: %s; -stock-down-color: %s;",
-                                upColorStyle,
-                                downColorStyle
-                        );
+                applyTabPaneColorStyle(upColorStyle, downColorStyle)
+            }
+        }
 
-                        tabPane.setStyle(mergedStyle);
-                    });
-                }
-        );
-
-
-        Menu menu = new Menu("菜单", null, addItem, addGroupItem, colorSetting);
-
-        MenuBar menuBar = new MenuBar(menu);
-        menuBar.setPadding(new Insets(5, 10, 5, 10));
-        return menuBar;
-    }
-
-    private void initGroups() {
-        for (GroupConfig.Group g : GroupConfig.getGroups()) {
-            addGroupTab(g.getName());
+        val menu = Menu("菜单", null, addItem, addGroupItem, colorSetting)
+        return MenuBar(menu).apply {
+            padding = Insets(5.0, 10.0, 5.0, 10.0)
         }
     }
 
-    private void addGroupTab(String groupName) {
-        StockGroup group = new StockGroup(groupName);
-        groups.put(groupName, group);
+    private fun applyCurrentColorStyle() {
+        applyTabPaneColorStyle(
+            AppConfig.getConfigManager().get("color.up", "#e53935"),
+            AppConfig.getConfigManager().get("color.down", "#1d9f3e")
+        )
+    }
 
-        Tab tab = new StockTab(group);
-        // 右键菜单：删除分组
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem deleteItem = new MenuItem("删除分组");
-        deleteItem.setOnAction(e -> {
-            if (tabPane.getTabs().size() == 1) {
-                FXAlert.info(stageSupplier.get(), "删除分组", "无法删除唯一的分组");
-                return;
+    private fun applyTabPaneColorStyle(upColor: String, downColor: String) {
+        val mergedStyle = "-stock-up-color: $upColor; -stock-down-color: $downColor;"
+        tabPane.style = mergedStyle
+    }
+
+    private fun initSchedulerIfNeeded() {
+        if (scheduler != null && !scheduler!!.isShutdown) {
+            return
+        }
+        scheduler = Executors.newSingleThreadScheduledExecutor { r ->
+            Thread(r, "stock-refresh-scheduler").apply {
+                isDaemon = true
             }
-            FXAlert.confirm(stageSupplier.get(), "删除分组", "确认删除分组【" + groupName + "】吗？\n删除后无法恢复！")
-                    .ifPresent(btn -> {
-                        if (btn == ButtonType.OK) {
-                            // 删除数据
-                            GroupConfig.removeGroup(groupName);
-                            // 删除 UI
-                            tabPane.getTabs().remove(tab);
-                            groups.remove(groupName);
+        }
+    }
+
+    private fun initGroups() {
+        for (g in GroupConfig.getGroups()) {
+            addGroupTab(g.name)
+        }
+        tabPane.selectionModel.selectFirst()
+    }
+
+    private fun addGroupTab(groupName: String) {
+        val group = StockGroup(groupName)
+        groups[groupName] = group
+
+        val tab = StockTab(group).apply {
+            isClosable = false
+            contextMenu = createGroupContextMenu(this, groupName)
+        }
+
+        tabPane.tabs.add(tab)
+        tabPane.selectionModel.select(tab)
+    }
+
+    private fun createGroupContextMenu(tab: Tab, groupName: String): ContextMenu {
+        val contextMenu = ContextMenu()
+        val deleteItem = MenuItem("删除分组")
+
+        deleteItem.setOnAction {
+            if (tabPane.tabs.size == 1) {
+                FXAlert.info(stageSupplier.get(), "删除分组", "无法删除唯一的分组")
+                return@setOnAction
+            }
+
+            FXAlert.confirm(stageSupplier.get(), "删除分组", "确认删除分组【$groupName】吗？\n删除后无法恢复！")
+                .ifPresent { btn ->
+                    if (btn != ButtonType.OK) {
+                        return@ifPresent
+                    }
+
+                    val deletingCurrent = isCurrentTab(groupName)
+
+                    GroupConfig.removeGroup(groupName)
+                    groups.remove(groupName)
+                    tabPane.tabs.remove(tab)
+
+                    if (deletingCurrent) {
+                        stopCurrentRefreshSession()
+                        val selected = tabPane.selectionModel.selectedItem
+                        if (selected != null) {
+                            switchToGroup(selected.text)
                         }
-                    });
-        });
-        contextMenu.getItems().add(deleteItem);
-        tab.setContextMenu(contextMenu);
-        tab.setClosable(false);
-        tabPane.getTabs().add(tab);
-
-        tabPane.getSelectionModel().select(tab);
-    }
-
-    private void fetchAndUpdate() {
-        try {
-            if (disposed) return;
-
-            Tab selected = tabPane.getSelectionModel().getSelectedItem();
-            if (selected == null) return;
-
-            String groupName = selected.getText();
-            StockGroup group = groups.get(groupName);
-            if (group == null) return;
-
-            List<Stock> stocks = GroupConfig.getStocksOf(groupName);
-            List<CompletableFuture<Optional<StockRow>>> futures = stocks.stream()
-                    .map(s -> CompletableFuture.supplyAsync(() -> getSocketData(s.marketCode(), s.stockCode())))
-                    .toList();
-
-            List<Optional<StockRow>> results = futures.stream()
-                    .map(CompletableFuture::join)
-                    .toList();
-
-            Platform.runLater(() -> {
-                if (disposed) return;
-
-                StockTableView table = group.getTableView();
-                for (Optional<StockRow> opt : results) {
-                    if (opt.isEmpty()) continue;
-                    StockRow row = opt.get();
-                    String key = row.getMarketCode() + "_" + row.getRawCode();
-                    if (!table.getRowByKey().containsKey(key)) {
-                        table.getRowByKey().put(key, row);
-                        row.setIndex(table.getItems().size() + 1);
-                        table.getItems().add(row);
-                    } else {
-                        StockRow existed = table.getRowByKey().get(key);
-                        existed.setName(row.getName());
-                        existed.setLastUpdateTime(row.getLastUpdateTime());
-                        existed.setPrice(row.getPrice());
-                        existed.setChangeRate(row.getChangeRate());
-                        existed.setChangeRateStr(row.getChangeRateStr());
-                        existed.setChangeAmt(row.getChangeAmt());
                     }
                 }
-            });
-        } catch (Exception e) {
-            LOG.error("fetch error: {}", e.getMessage());
+        }
+
+        contextMenu.items.add(deleteItem)
+        return contextMenu
+    }
+
+    private fun isCurrentTab(groupName: String): Boolean {
+        val selected = tabPane.selectionModel.selectedItem
+        return selected != null && selected.text == groupName
+    }
+
+    private fun switchToGroup(groupName: String) {
+        if (disposed) return
+
+        stopCurrentRefreshSession()
+        prepareRowsForGroup(groupName)
+
+        val session = RefreshSession(groupName, refreshVersion.incrementAndGet())
+        currentSession = session
+
+        refreshSessionOnce(session)
+
+        val localScheduler = scheduler
+        if (localScheduler != null && !localScheduler.isShutdown) {
+            currentRefreshTask = localScheduler.scheduleAtFixedRate(
+                { refreshSessionOnce(session) },
+                REFRESH_INTERVAL_SECONDS,
+                REFRESH_INTERVAL_SECONDS,
+                TimeUnit.SECONDS
+            )
         }
     }
 
-    private List<Stock> getStocksOfCurrentGroup() {
-        Tab selected = tabPane.getSelectionModel().getSelectedItem();
-        if (selected == null) return Collections.emptyList();
+    private fun stopCurrentRefreshSession() {
+        val oldSession = currentSession
+        currentSession = null
 
-        String groupName = selected.getText();
-        StockGroup group = groups.get(groupName);
-        if (group == null) return Collections.emptyList();
+        currentRefreshTask?.cancel(false)
+        currentRefreshTask = null
 
-        return GroupConfig.getStocksOf(groupName);
-    }
-
-
-    /**
-     * 拉取单只股票数据并计算涨跌幅/额
-     */
-    private Optional<StockRow> getSocketData(String marketCode, String stockCode) {
-        try {
-            String url = "https://push2.eastmoney.com/api/qt/stock/trends2/get?secid="
-                    + marketCode + "." + stockCode
-                    + "&fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13"
-                    + "&fields2=f51,f52,f53,f54,f55,f56,f57,f58";
-
-            HttpRequest req = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(java.time.Duration.ofSeconds(8))
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
-                    .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
-                    .GET()
-                    .build();
-
-            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-            if (resp.statusCode() != 200) return Optional.empty();
-
-            JsonNode root = mapper.readTree(resp.body());
-            JsonNode dataNode = root.path("data");
-            if (dataNode.isMissingNode()) return Optional.empty();
-
-            String name = dataNode.path("name").asText("");
-            double preClose = dataNode.path("preClose").asDouble();
-
-            JsonNode trends = dataNode.path("trends");
-            if (trends.isMissingNode() || !trends.isArray() || trends.isEmpty()) return Optional.empty();
-
-            String last = trends.get(trends.size() - 1).asText(); // "... , price , ..."
-            String[] arr = last.split(",");
-            if (arr.length < 3) return Optional.empty();
-
-            String lastUpdateTime = formatLastUpdateTime(arr[0]);
-            double currPrice = Double.parseDouble(arr[2]);
-            double changeRate = (preClose == 0) ? 0 : (currPrice - preClose) / preClose;
-            double changeAmt = currPrice - preClose;
-
-            String codeShown = marketDict.getOrDefault(marketCode, "") + stockCode;
-            String changeRateStr = String.format(Locale.CHINA, "%.2f%%", changeRate * 100);
-
-            StockRow row = new StockRow(
-                    0,
-                    marketCode,
-                    stockCode,
-                    codeShown,
-                    name,
-                    lastUpdateTime,
-                    currPrice,
-                    changeRate,
-                    changeRateStr,
-                    changeAmt
-            );
-            return Optional.of(row);
-        } catch (IOException | InterruptedException ex) {
-            return Optional.empty();
-        } catch (Exception ex) {
-            System.err.println("parse error: " + ex.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    private String formatLastUpdateTime(String rawTime) {
-        try {
-            DateTimeFormatter sourceFormatter = rawTime.length() > 16
-                    ? SOURCE_TIME_WITH_SECONDS_FORMATTER
-                    : SOURCE_TIME_FORMATTER;
-            return LocalDateTime.parse(rawTime, sourceFormatter).format(DISPLAY_TIME_FORMATTER);
-        } catch (Exception ex) {
-            return rawTime;
-        }
-    }
-
-
-    private void showAddStockDialog(Stage owner) {
-        StockSearchDialog dialog = new StockSearchDialog();
-        dialog.initOwner(owner);
-        dialog.showAndWait().ifPresent(suggestion -> {
-            String codeVar = suggestion.getCode();
-            String marketVar;
-            if (codeVar.startsWith("SZ")) {
-                marketVar = "0";
-                codeVar = codeVar.replace("SZ", "");
-            } else if (codeVar.startsWith("SH")) {
-                marketVar = "1";
-                codeVar = codeVar.replace("SH", "");
-            } else {
-                FXAlert.info(owner, "股票不支持", "暂不支持添加此类型");
-                return;
-            }
-            String market = marketVar;
-            String code = codeVar;
-
-            // === 先查重 ===
-            if (!GroupConfig.addStock(getCurrGroup().getName(), market, code)) {
-                // addStock 内部去重：如果已存在则不写盘并返回 false
-                new Alert(Alert.AlertType.INFORMATION, "这只股票已经在列表里啦～").showAndWait();
-                return;
-            }
-
-            // === 校验存在性 ===
-            Alert waiting = new Alert(Alert.AlertType.INFORMATION, "正在校验这只股票是否存在，请稍候…");
-            waiting.setHeaderText(null);
-            waiting.initOwner(owner);
-            UIUtil.setDialogIcon(waiting, owner);
-            Node okBtnV = waiting.getDialogPane().lookupButton(ButtonType.OK);
-            okBtnV.setDisable(true);
-            waiting.show();
-
-            validateStock(market, code).whenComplete((opt, err) -> Platform.runLater(() -> {
-                okBtnV.setDisable(false);
-                if (err != null || opt.isEmpty() || opt.get().getName() == null || opt.get().getName().isBlank()) {
-                    // 回滚 CSV
-                    waiting.setContentText("抱歉，没有找到" + code + "这只股票的有效行情（可能代码错误/无数据/停牌）。");
-                    return;
-                }
-                StockTableView table = getCurrGroup().getTableView();
-                // 校验通过：更新表格（立即展示这条）
-                StockRow row = opt.get();
-                String key = row.getMarketCode() + "_" + row.getRawCode();
-                synchronized (table) {
-                    StockRow existed = table.getRowByKey().get(key);
-                    if (existed == null) {
-                        row.setIndex(table.getItems().size() + 1);
-                        table.getRowByKey().put(key, row);
-                        table.getItems().add(row);
-                    } else {
-                        existed.setName(row.getName());
-                        existed.setLastUpdateTime(row.getLastUpdateTime());
-                        existed.setPrice(row.getPrice());
-                        existed.setChangeRate(row.getChangeRate());
-                        existed.setChangeRateStr(row.getChangeRateStr());
-                        existed.setChangeAmt(row.getChangeAmt());
-                    }
-                }
-                waiting.close();
-                ToastQueue.show(stageSupplier.get(), "添加成功：" + (market.equals("0") ? "SZ" : "SH") + code + " · " + row.getName(),
-                        2000);
-            }));
-        });
-    }
-
-    private StockGroup getCurrGroup() {
-        StockTab selectedItem = (StockTab) tabPane.getSelectionModel().getSelectedItem();
-        return selectedItem.getStockGroup();
+        oldSession?.deactivate()
     }
 
     /**
-     * 校验股票是否存在：能从接口拿到名称/价格即认为存在，返回最新行数据
+     * 首次进入 tab 先铺满占位行
      */
-    private CompletableFuture<Optional<StockRow>> validateStock(String market, String code) {
-        // 后台校验，避免卡 UI
-        return CompletableFuture.supplyAsync(() -> getSocketData(market, code));
+    private fun prepareRowsForGroup(groupName: String) {
+        val group = groups[groupName] ?: return
+        val stocks = GroupConfig.getStocksOf(groupName)
+
+        Platform.runLater {
+            if (disposed) return@runLater
+
+            val table = group.tableView
+            table.items.clear()
+            table.rowByKey.clear()
+
+            var index = 1
+            for (stock in stocks) {
+                val row = createPlaceholderRow(index++, stock.marketCode(), stock.stockCode())
+                val key = buildRowKey(stock.marketCode(), stock.stockCode())
+                table.rowByKey[key] = row
+                table.items.add(row)
+            }
+        }
     }
 
+    private fun createPlaceholderRow(index: Int, marketCode: String, stockCode: String): StockRow {
+        val codeShown = marketDict[marketCode].orEmpty() + stockCode
+        return StockRow(
+            index,
+            marketCode,
+            stockCode,
+            codeShown,
+            "",
+            "--:--:--",
+            0.0,
+            0.0,
+            "--",
+            0.0
+        )
+    }
+
+    /**
+     * 每只股票独立刷新
+     */
+    private fun refreshSessionOnce(session: RefreshSession) {
+        if (!isSessionValid(session)) return
+
+        val stocks = GroupConfig.getStocksOf(session.groupName)
+        for (stock in stocks) {
+            val requestKey = "${session.groupName}_${stock.marketCode()}_${stock.stockCode()}"
+            if (inFlightRequests.putIfAbsent(requestKey, true) != null) {
+                continue
+            }
+
+            fetchStockRowAsync(stock.marketCode(), stock.stockCode())
+                .whenComplete { opt, ex ->
+                    inFlightRequests.remove(requestKey)
+
+                    if (ex != null) {
+                        val msg = ex.cause?.message ?: ex.message
+                        LOG.debug("request stock failed: {}.{} -> {}", stock.marketCode(), stock.stockCode(), msg)
+                        return@whenComplete
+                    }
+
+                    if (opt == null || opt.isEmpty) {
+                        return@whenComplete
+                    }
+
+                    val latestRow = opt.get()
+                    Platform.runLater {
+                        applyRowUpdateIfSessionValid(session, latestRow)
+                    }
+                }
+        }
+    }
+
+    private fun isSessionValid(session: RefreshSession?): Boolean {
+        if (disposed || session == null || !session.active) {
+            return false
+        }
+
+        val current = currentSession
+        if (current == null || current.version != session.version) {
+            return false
+        }
+
+        val selected = tabPane.selectionModel.selectedItem
+        return selected != null && selected.text == session.groupName
+    }
+
+    private fun applyRowUpdateIfSessionValid(session: RefreshSession, latestRow: StockRow) {
+        if (!isSessionValid(session)) return
+
+        val group = groups[session.groupName] ?: return
+        val table = group.tableView
+        val key = buildRowKey(latestRow.marketCode, latestRow.rawCode)
+        val existed = table.rowByKey[key] ?: return
+
+        existed.name = latestRow.name
+        existed.lastUpdateTime = latestRow.lastUpdateTime
+        existed.price = latestRow.price
+        existed.changeRate = latestRow.changeRate
+        existed.changeRateStr = latestRow.changeRateStr
+        existed.changeAmt = latestRow.changeAmt
+    }
+
+    private fun buildRowKey(marketCode: String, stockCode: String): String {
+        return "${marketCode}_${stockCode}"
+    }
+
+    private fun showAddStockDialog(owner: Stage) {
+        val dialog = StockSearchDialog()
+        dialog.initOwner(owner)
+
+        dialog.showAndWait().ifPresent { suggestion ->
+            var codeVar = suggestion.code
+            val marketVar: String
+
+            when {
+                codeVar.startsWith("SZ") -> {
+                    marketVar = "0"
+                    codeVar = codeVar.replace("SZ", "")
+                }
+                codeVar.startsWith("SH") -> {
+                    marketVar = "1"
+                    codeVar = codeVar.replace("SH", "")
+                }
+                else -> {
+                    FXAlert.info(owner, "股票不支持", "暂不支持添加此类型")
+                    return@ifPresent
+                }
+            }
+
+            val market = marketVar
+            val code = codeVar
+
+            if (!GroupConfig.addStock(currGroup.name, market, code)) {
+                Alert(Alert.AlertType.INFORMATION, "这只股票已经在列表里啦～").showAndWait()
+                return@ifPresent
+            }
+
+            val waiting = Alert(Alert.AlertType.INFORMATION, "正在校验这只股票是否存在，请稍候…")
+            waiting.headerText = null
+            waiting.initOwner(owner)
+            UIUtil.setDialogIcon(waiting, owner)
+
+            val okBtn = waiting.dialogPane.lookupButton(ButtonType.OK)
+            okBtn.isDisable = true
+            waiting.show()
+
+            validateStock(market, code).whenComplete { opt, err ->
+                Platform.runLater {
+                    okBtn.isDisable = false
+
+                    if (err != null || opt == null || opt.isEmpty || StringUtils.isBlank(opt.get().name)) {
+                        waiting.contentText = "抱歉，没有找到$code 这只股票的有效行情（可能代码错误/无数据/停牌）。"
+                        return@runLater
+                    }
+
+                    val row = opt.get()
+                    val table = currGroup.tableView
+                    val key = buildRowKey(row.marketCode, row.rawCode)
+
+                    synchronized(table) {
+                        val existed = table.rowByKey[key]
+                        if (existed == null) {
+                            row.index = table.items.size + 1
+                            table.rowByKey[key] = row
+                            table.items.add(row)
+                        } else {
+                            existed.name = row.name
+                            existed.lastUpdateTime = row.lastUpdateTime
+                            existed.price = row.price
+                            existed.changeRate = row.changeRate
+                            existed.changeRateStr = row.changeRateStr
+                            existed.changeAmt = row.changeAmt
+                        }
+                    }
+
+                    waiting.close()
+                    ToastQueue.show(
+                        stageSupplier.get(),
+                        "添加成功：" + if (market == "0") "SZ$code · ${row.name}" else "SH$code · ${row.name}",
+                        2000
+                    )
+
+                    val session = currentSession
+                    if (session != null && isCurrentTab(currGroup.name)) {
+                        refreshSessionOnce(session)
+                    }
+                }
+            }
+        }
+    }
+
+    private val currGroup: StockGroup
+        get() = (tabPane.selectionModel.selectedItem as StockTab).stockGroup
+
+    private fun validateStock(market: String, code: String): CompletableFuture<Optional<StockRow>> {
+        return fetchStockRowAsync(market, code)
+    }
+
+    /**
+     * 单只股票异步请求，失败后轻量重试一次
+     */
+    private fun fetchStockRowAsync(marketCode: String, stockCode: String): CompletableFuture<Optional<StockRow>> {
+        return fetchStockRowAsync(marketCode, stockCode, 1)
+    }
+
+    private fun fetchStockRowAsync(
+        marketCode: String,
+        stockCode: String,
+        retryCount: Int
+    ): CompletableFuture<Optional<StockRow>> {
+        val request = buildQuoteRequest(marketCode, stockCode)
+
+        return http.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApply { response ->
+                parseStockResponse(response, marketCode, stockCode)
+            }
+            .handle { result, ex ->
+                if (ex == null) {
+                    CompletableFuture.completedFuture(result)
+                } else {
+                    if (retryCount > 0) {
+                        CompletableFuture.supplyAsync(
+                            { null },
+                            CompletableFuture.delayedExecutor(300, TimeUnit.MILLISECONDS)
+                        ).thenCompose {
+                            fetchStockRowAsync(marketCode, stockCode, retryCount - 1)
+                        }
+                    } else {
+                        CompletableFuture.completedFuture(Optional.empty())
+                    }
+                }
+            }
+            .thenCompose { it }
+    }
+
+    private fun buildQuoteRequest(marketCode: String, stockCode: String): HttpRequest {
+        val url = "https://push2.eastmoney.com/api/qt/stock/trends2/get?secid=" +
+                "$marketCode.$stockCode" +
+                "&fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13" +
+                "&fields2=f51,f52,f53,f54,f55,f56,f57,f58"
+
+        return HttpRequest.newBuilder(URI.create(url))
+            .timeout(HTTP_TIMEOUT)
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
+            .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+            .GET()
+            .build()
+    }
+
+    private fun parseStockResponse(
+        response: HttpResponse<String>?,
+        marketCode: String,
+        stockCode: String
+    ): Optional<StockRow> {
+        try {
+            if (response == null || response.statusCode() != 200) {
+                return Optional.empty()
+            }
+
+            val rootNode: JsonNode = mapper.readTree(response.body())
+            val dataNode = rootNode.path("data")
+            if (dataNode.isMissingNode) {
+                return Optional.empty()
+            }
+
+            val name = dataNode.path("name").asText("")
+            val preClose = dataNode.path("preClose").asDouble()
+
+            val trends = dataNode.path("trends")
+            if (trends.isMissingNode || !trends.isArray || trends.isEmpty) {
+                return Optional.empty()
+            }
+
+            val latestTrend = trends[trends.size() - 1].asText()
+            val arr = latestTrend.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            if (arr.size < 3) {
+                return Optional.empty()
+            }
+
+            val currentPrice = arr[2].toDouble()
+            val changeRate = if (preClose == 0.0) 0.0 else (currentPrice - preClose) / preClose
+            val changeAmount = currentPrice - preClose
+
+            val codeShown = marketDict[marketCode].orEmpty() + stockCode
+            val changeRateStr = String.format(Locale.CHINA, "%.2f%%", changeRate * 100)
+            val lastUpdateTime = LocalDateTime.now().format(TIME_FORMATTER)
+
+            val row = StockRow(
+                0,
+                marketCode,
+                stockCode,
+                codeShown,
+                name,
+                lastUpdateTime,
+                currentPrice,
+                changeRate,
+                changeRateStr,
+                changeAmount
+            )
+            return Optional.of(row)
+        } catch (e: IOException) {
+            LOG.debug("parse stock response io error: {}.{}", marketCode, stockCode)
+            return Optional.empty()
+        } catch (e: Exception) {
+            LOG.error("parse stock response error: {}.{}", marketCode, stockCode, e)
+            return Optional.empty()
+        }
+    }
 
     @NotNull
-    @Override
-    public Parent getRootView() {
+    override fun getRootView(): Parent {
         if (initialized) {
-            return root;
+            return root
         }
-        disposed = false;
-        initialized = true;
 
-        root.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
-        MenuBar menuBar = getMenuBar();
+        disposed = false
+        initialized = true
 
-        tabPane.setSide(Side.BOTTOM);
-        tabPane.getSelectionModel().selectedItemProperty().addListener(tabSelectionListener);
+        initSchedulerIfNeeded()
 
-        /* 股票下跌色 (默认绿色) */
-        String mergedStyle = String.format(
-                "-stock-up-color: %s; -stock-down-color: %s;",
-                AppConfig.getConfigManager().get("color.up", "#e53935"),
-                AppConfig.getConfigManager().get("color.down", "#1d9f3e;")
-        );
-        tabPane.setStyle(mergedStyle);
+        root.stylesheets.add(javaClass.getResource("/css/style.css")!!.toExternalForm())
 
-        // 加载分组中的股票
-        initGroups();
+        val menuBar = getMenuBarInternal()
+        tabPane.side = Side.BOTTOM
+        tabPane.selectionModel.selectedItemProperty().addListener(tabSelectionListener)
 
-        root.setCenter(tabPane);
-        root.setTop(menuBar);
+        applyCurrentColorStyle()
+        initGroups()
 
-        // 启动定时抓取
-        scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "fetch-thread");
-            t.setDaemon(true);
-            return t;
-        });
-        scheduler.scheduleAtFixedRate(this::fetchAndUpdate, 0, 3, TimeUnit.SECONDS);
-        return root;
+        root.top = menuBar
+        root.center = tabPane
+
+        val selected = tabPane.selectionModel.selectedItem
+        if (selected != null) {
+            switchToGroup(selected.text)
+        }
+
+        return root
     }
 
-    @Override
-    public void dispose() {
-        disposed = true;
-        if (scheduler != null) {
-            scheduler.shutdownNow();
-            scheduler = null;
-        }
-        tabPane.getSelectionModel().selectedItemProperty().removeListener(tabSelectionListener);
-        tabPane.getTabs().clear();
-        groups.clear();
-        root.setCenter(null);
-        root.setTop(null);
-        initialized = false;
+    override fun dispose() {
+        disposed = true
+
+        stopCurrentRefreshSession()
+
+        scheduler?.shutdownNow()
+        scheduler = null
+
+        inFlightRequests.clear()
+
+        tabPane.selectionModel.selectedItemProperty().removeListener(tabSelectionListener)
+        tabPane.tabs.clear()
+        groups.clear()
+        root.center = null
+        root.top = null
+
+        initialized = false
     }
 }
