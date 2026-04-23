@@ -3,7 +3,6 @@ package io.github.nonoas.worktools.platform
 import com.melloware.jintellitype.JIntellitype
 import github.nonoas.jfx.flat.ui.AppState
 import github.nonoas.jfx.flat.ui.AutoReleaseApplication
-import github.nonoas.jfx.flat.ui.ResourceManager
 import github.nonoas.jfx.flat.ui.theme.LightTheme
 import io.github.nonoas.worktools.platform.common.Identifier
 import io.github.nonoas.worktools.platform.config.DBConfigEnum
@@ -16,7 +15,6 @@ import io.github.nonoas.worktools.platform.ui.component.ExceptionAlter
 import io.github.nonoas.worktools.platform.ui.component.MyAlert
 import io.github.nonoas.worktools.platform.utils.DBUtil
 import io.github.nonoas.worktools.platform.view.MainStage
-import javafx.application.Application
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.scene.Scene
@@ -84,40 +82,44 @@ class App : AutoReleaseApplication() {
 
     @Throws(Exception::class)
     override fun init() {
-        PluginManager.loadPlugins()
-        DBUtil.init()
+        try {
+            PluginManager.loadPlugins()
+            DBUtil.init()
+        } catch (e: Exception) {
+            LOG.error("未知异常", e)
+        }
     }
 
     @Throws(Exception::class)
     override fun start(primaryStage: Stage) {
-        Thread.currentThread().uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e ->
-            ExceptionAlter.Companion.error(e)
+        try {
+            Platform.setImplicitExit(false)
+            if (isRunning()) {
+                MyAlert(Alert.AlertType.WARNING, "程序已经在运行了！").showAndWait()
+                hasRun = true
+                stop()
+                return
+            }
+
+            dbMigrate()
+            syncPluginStates()
+
+            jIntellitype = JIntellitype.getInstance()
+
+            setUserAgentStylesheet(LightTheme().userAgentStylesheet)
+            initPrimaryStage(primaryStage)
+
+            val stage: BaseStage = MainStage.instance as BaseStage
+            AppState.setStage(stage.stage)
+
+            // 设置系统托盘
+            setSystemTray(stage)
+            setGlobalHotKeys(stage)
+            stage.show()
+        } catch (e: Exception) {
             LOG.error("未知异常", e)
+            ExceptionAlter.error(e)
         }
-
-        Platform.setImplicitExit(false)
-        if (isRunning()) {
-            MyAlert(Alert.AlertType.WARNING, "程序已经在运行了！").showAndWait()
-            hasRun = true
-            stop()
-            return
-        }
-
-        dbMigrate()
-        syncPluginStates()
-
-        jIntellitype = JIntellitype.getInstance()
-
-        setUserAgentStylesheet(LightTheme().userAgentStylesheet)
-        initPrimaryStage(primaryStage)
-
-        val stage: BaseStage = MainStage.instance as BaseStage
-        AppState.setStage(stage.stage)
-
-        // 设置系统托盘
-        setSystemTray(stage)
-        setGlobalHotKeys(stage)
-        stage.show()
     }
 
     /**
@@ -260,6 +262,7 @@ class App : AutoReleaseApplication() {
             channel?.let { fileLock = channel!!.lock() }
             false
         } else {
+            LOG.warn("程序已经运行")
             true
         }
     }
