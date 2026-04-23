@@ -92,6 +92,11 @@ class App : AutoReleaseApplication() {
 
     @Throws(Exception::class)
     override fun start(primaryStage: Stage) {
+        Thread.currentThread().uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, e ->
+            ExceptionAlter.error(e)
+            LOG.error("全局未知异常", e)
+        }
+
         try {
             Platform.setImplicitExit(false)
             if (isRunning()) {

@@ -16,6 +16,7 @@ import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.MenuItem
+import javafx.scene.control.TextInputDialog
 import javafx.scene.control.Tooltip
 import javafx.scene.image.ImageView
 import javafx.scene.input.DragEvent
@@ -103,12 +104,16 @@ class RecentTouchPane private constructor() : FuncPane() {
                     }
 
                     // 右键菜单
+                    val menuRename = MenuItem("重命名")
+                    menuRename.onAction = EventHandler {
+                        showRenameDialog(item)
+                    }
                     val menuDel = MenuItem("删除")
                     menuDel.onAction = EventHandler {
                         items.remove(item)
                         TaskHandler.Companion.backRun { RtpLinkListDao.delById(item.id!!) }
                     }
-                    contextMenu = ContextMenu(menuDel)
+                    contextMenu = ContextMenu(menuRename, menuDel)
                 }
 
             }
@@ -186,6 +191,27 @@ class RecentTouchPane private constructor() : FuncPane() {
             .handle()
 
         return true
+    }
+
+    private fun showRenameDialog(item: RtpLinkListVo) {
+        val oldName = item.name?.trim().orEmpty()
+        val dialog = TextInputDialog(oldName).apply {
+            title = "重命名"
+            headerText = "请输入新的展示名称"
+            contentText = "名称:"
+            lv.scene?.window?.let { initOwner(it) }
+        }
+
+        dialog.showAndWait().ifPresent { input ->
+            val newName = input.trim()
+            if (newName.isEmpty() || newName == oldName) {
+                return@ifPresent
+            }
+
+            item.name = newName
+            lv.refresh()
+            TaskHandler.Companion.backRun { RtpLinkListDao.replace(item) }
+        }
     }
 
     companion object {
