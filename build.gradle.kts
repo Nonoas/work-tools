@@ -1,4 +1,8 @@
+import groovy.lang.Closure
 import io.github.fvarrui.javapackager.gradle.PackageTask
+import io.github.fvarrui.javapackager.model.HeaderType
+import io.github.fvarrui.javapackager.model.WindowsConfig
+import io.github.fvarrui.javapackager.model.WindowsExeCreationTool
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.openjfx.gradle.JavaFXOptions
@@ -44,6 +48,24 @@ val platformVersion: String by project
 val publishPlatform = providers.gradleProperty("publishPlatform")
     .map(String::toBoolean)
     .orElse(false)
+val appDisplayName = "WorkTools"
+val appExecutableName = "worktools.exe"
+val winFileVersion = appVersion
+    .substringBefore("-")
+    .split(".")
+    .map { it.toIntOrNull()?.coerceAtLeast(0)?.toString() ?: "0" }
+    .let { (it + listOf("0", "0", "0", "0")).take(4).joinToString(".") }
+val winIconFile = layout.projectDirectory.file("assets/windows/worktools.ico").asFile
+
+fun windowsConfig(action: WindowsConfig.() -> Unit): Closure<WindowsConfig> =
+    object : Closure<WindowsConfig>(Unit) {
+        @Suppress("unused")
+        fun doCall(): WindowsConfig {
+            val config = delegate as WindowsConfig
+            config.action()
+            return config
+        }
+    }
 
 the<JavaFXOptions>().apply {
     version = jfxVersion
@@ -143,6 +165,11 @@ tasks.named<JavaExec>("run") {
 tasks.register<PackageTask>("packageMyApp") {
     dependsOn(tasks.clean)
 
+    displayName = appDisplayName
+    appDescription = "$appDisplayName desktop application"
+    appName = "worktools"
+    organizationName = "nonoas"
+
     vmArgs = listOf(
         "-Djavafx.enablePreview=true",
         "--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
@@ -175,8 +202,24 @@ tasks.register<PackageTask>("packageMyApp") {
     isBundleJre = true
     isGenerateInstaller = false
     isAdministratorRequired = false
+    isCreateZipball = true
 
-    winConfig.apply {
-        isCreateZipball = true
-    }
+    winConfig(windowsConfig {
+        headerType = HeaderType.gui
+        exeCreationTool = WindowsExeCreationTool.winrun4j
+        icoFile = winIconFile
+
+        fileDescription = appDisplayName
+        productName = appDisplayName
+        internalName = "worktools"
+        originalFilename = appExecutableName
+        companyName = "nonoas"
+
+        fileVersion = winFileVersion
+        productVersion = winFileVersion
+        txtFileVersion = appVersion
+        txtProductVersion = appVersion
+
+        shortcutName = appDisplayName
+    })
 }

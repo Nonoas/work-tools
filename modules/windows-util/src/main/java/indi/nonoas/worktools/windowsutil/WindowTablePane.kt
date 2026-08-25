@@ -6,6 +6,7 @@ import com.sun.jna.platform.win32.WinDef.HWND
 import github.nonoas.jfx.flat.ui.concurrent.TaskHandler
 import github.nonoas.jfx.flat.ui.control.Switch
 import io.github.nonoas.worktools.platform.ext.FuncPane
+import io.github.nonoas.worktools.platform.global.message.MessageBus
 import io.github.nonoas.worktools.platform.global.message.MsgBusManager
 import io.github.nonoas.worktools.platform.ui.component.SearchListener
 import io.github.nonoas.worktools.platform.ui.component.SearchListener.Companion.TOPIC
@@ -45,6 +46,8 @@ class WindowTablePane private constructor() : FuncPane() {
     private val refreshBtn = Button("刷新列表")
 
     private var viewInitialized = false
+
+    private var msgBusConnection: MessageBus.Connection? = null
 
     private fun refreshWindowList() {
         windowList.clear()
@@ -191,18 +194,23 @@ class WindowTablePane private constructor() : FuncPane() {
 
         MsgBusManager.getCurrentBus()
             .connect(this)
-            .subscribe(TOPIC, object : SearchListener {
-                override fun onTextChange(keyword: String) {
-                    queryFilter(keyword)
-                }
+            .apply {
+                msgBusConnection = this
+                subscribe(TOPIC, object : SearchListener {
+                    override fun onTextChange(keyword: String) {
+                        queryFilter(keyword)
+                    }
 
-                override fun onEntered(event: ActionEvent) {
-                }
-            })
+                    override fun onEntered(event: ActionEvent) {
+                    }
+                })
+            }
         return root
     }
 
     override fun dispose() {
+        msgBusConnection?.dispose()
+        msgBusConnection = null
         table.items = FXCollections.observableArrayList()
         root.children.clear()
     }

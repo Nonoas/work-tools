@@ -1,6 +1,5 @@
 package io.github.nonoas.worktools.platform.ui
 
-import javafx.concurrent.Task
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Executors
 import java.util.function.Consumer
@@ -61,6 +60,13 @@ class TaskHandler<T> {
          */
         fun backRun(run: () -> Unit) {
             THREAD_POOL.execute(run)
+        }
+
+        /**
+         * 关闭线程池，应在应用退出时调用
+         */
+        fun shutdown() {
+            THREAD_POOL.shutdown()
         }
     }
 }

@@ -3,7 +3,7 @@ package io.github.nonoas.worktools.platform
 import com.melloware.jintellitype.JIntellitype
 import github.nonoas.jfx.flat.ui.AppState
 import github.nonoas.jfx.flat.ui.AutoReleaseApplication
-import github.nonoas.jfx.flat.ui.theme.LightTheme
+import github.nonoas.jfx.flat.ui.theme.PrimerLight
 import io.github.nonoas.worktools.platform.common.Identifier
 import io.github.nonoas.worktools.platform.config.DBConfigEnum
 import io.github.nonoas.worktools.platform.config.FlyWayMigration
@@ -111,7 +111,7 @@ class App : AutoReleaseApplication() {
 
             jIntellitype = JIntellitype.getInstance()
 
-            setUserAgentStylesheet(LightTheme().userAgentStylesheet)
+            setUserAgentStylesheet(PrimerLight().userAgentStylesheet)
             initPrimaryStage(primaryStage)
 
             val stage: BaseStage = MainStage.instance as BaseStage
@@ -147,6 +147,7 @@ class App : AutoReleaseApplication() {
             exitProcess(0)
         }
         PluginManager.shutdown()
+        TaskHandler.shutdown()
         fileLock?.release()
         channel?.close()
         // 清楚系统全局热键
