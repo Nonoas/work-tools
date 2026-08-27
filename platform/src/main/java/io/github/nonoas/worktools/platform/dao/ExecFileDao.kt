@@ -38,4 +38,14 @@ object ExecFileDao {
         }
         return DBUtil.use().del(TABLE_NAME, "id", vo.id)
     }
+
+    fun updateNameByUniqueKey(vo: ExecFileVo, name: String): Int {
+        val entity = Entity.create(TABLE_NAME).set("NAME", name)
+        val where = if (vo.id == 0L) {
+            Entity.create(TABLE_NAME).set("LINK", vo.link)
+        } else {
+            Entity.create(TABLE_NAME).set("ID", vo.id)
+        }
+        return DBUtil.use().update(entity, where)
+    }
 }

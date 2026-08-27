@@ -3,11 +3,13 @@ package io.github.nonoas.worktools.platform.ui.component
 import github.nonoas.jfx.flat.ui.theme.Styles
 import io.github.nonoas.worktools.platform.dao.ExecFileDao
 import io.github.nonoas.worktools.platform.pojo.vo.ExecFileVo
+import io.github.nonoas.worktools.platform.ui.TaskHandler
 import io.github.nonoas.worktools.platform.utils.DesktopUtil
 import io.github.nonoas.worktools.platform.utils.UIUtil
 import javafx.event.EventHandler
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
+import javafx.scene.control.TextInputDialog
 import javafx.scene.control.Tooltip
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Pane
@@ -27,9 +29,8 @@ class ExecFileButton : FileLinkButton {
     }
 
     constructor(vo: ExecFileVo) : this() {
-        text = vo.name?.substringBeforeLast('.')
+        updateDisplayName(vo.name)
         graphic = ImageView(UIUtil.getFileIcon(vo.link))
-        Tooltip.install(this, Tooltip(text))
         onAction = EventHandler {
             val file = File(vo.link)
             if (!file.exists()) {
@@ -39,12 +40,42 @@ class ExecFileButton : FileLinkButton {
             DesktopUtil.open(file)
         }
 
+        val miRename = MenuItem("重命名")
+        miRename.onAction = EventHandler {
+            showRenameDialog(vo)
+        }
         val miDel = MenuItem("删除")
         miDel.onAction= EventHandler {
             (parent as Pane).children.remove(this)
             ExecFileDao.delByUniqueKey(vo)
         }
-        val ctMenu = ContextMenu(miDel)
+        val ctMenu = ContextMenu(miRename, miDel)
         contextMenu = ctMenu
+    }
+
+    private fun showRenameDialog(vo: ExecFileVo) {
+        val oldName = vo.name?.trim().orEmpty()
+        val dialog = TextInputDialog(oldName).apply {
+            title = "重命名"
+            headerText = "请输入新的展示名称"
+            contentText = "名称:"
+            this@ExecFileButton.scene?.window?.let { initOwner(it) }
+        }
+
+        dialog.showAndWait().ifPresent { input ->
+            val newName = input.trim()
+            if (newName.isEmpty() || newName == oldName) {
+                return@ifPresent
+            }
+
+            vo.name = newName
+            updateDisplayName(newName)
+            TaskHandler.backRun { ExecFileDao.updateNameByUniqueKey(vo, newName) }
+        }
+    }
+
+    private fun updateDisplayName(name: String?) {
+        text = name?.substringBeforeLast('.')
+        tooltip = Tooltip(text)
     }
 }
