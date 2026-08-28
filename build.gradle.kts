@@ -56,6 +56,15 @@ val winFileVersion = appVersion
     .map { it.toIntOrNull()?.coerceAtLeast(0)?.toString() ?: "0" }
     .let { (it + listOf("0", "0", "0", "0")).take(4).joinToString(".") }
 val winIconFile = layout.projectDirectory.file("assets/windows/worktools.ico").asFile
+val appJvmMinHeap = providers.gradleProperty("appJvmMinHeap").orElse("64m")
+val appJvmMaxHeap = providers.gradleProperty("appJvmMaxHeap").orElse("256m")
+
+fun appJvmArgs() = listOf(
+    "-Xms${appJvmMinHeap.get()}",
+    "-Xmx${appJvmMaxHeap.get()}",
+    "-Djavafx.enablePreview=true",
+    "--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
+)
 
 fun windowsConfig(action: WindowsConfig.() -> Unit): Closure<WindowsConfig> =
     object : Closure<WindowsConfig>(Unit) {
@@ -127,16 +136,7 @@ subprojects {
 
 application {
     mainClass.set(myMainClassName)
-    applicationDefaultJvmArgs = listOf(
-        "-Djavafx.enablePreview=true"
-    )
-}
-
-tasks.withType<JavaExec> {
-    systemProperty("javafx.enablePreview", "true")
-    jvmArgs(
-        "--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
-    )
+    applicationDefaultJvmArgs = appJvmArgs()
 }
 
 // 命令行指定要打包的可选模块
@@ -170,10 +170,7 @@ tasks.register<PackageTask>("packageMyApp") {
     appName = "worktools"
     organizationName = "nonoas"
 
-    vmArgs = listOf(
-        "-Djavafx.enablePreview=true",
-        "--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
-    )
+    vmArgs = appJvmArgs()
 
     // 打包哪些模块：platform 必选 + 可选模块
     val modulesToInclude = listOf(":platform") + selectedModules

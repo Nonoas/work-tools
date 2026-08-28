@@ -3,6 +3,8 @@ package io.github.nonoas.worktools.platform.view
 import github.nonoas.jfx.flat.ui.control.Switch
 import io.github.nonoas.worktools.platform.common.CommonInsets
 import io.github.nonoas.worktools.platform.dao.FuncSettingDao
+import io.github.nonoas.worktools.platform.ext.FuncPaneFactory
+import io.github.nonoas.worktools.platform.ext.Plugin
 import io.github.nonoas.worktools.platform.ext.PluginLoader
 import io.github.nonoas.worktools.platform.ext.PluginManager
 import io.github.nonoas.worktools.platform.pojo.vo.FuncSettingVo
@@ -125,19 +127,70 @@ class PluginSettingStage : BaseStage() {
         TaskHandler<List<FuncSettingVo>>()
             .whenCall {
                 val settingMap = FuncSettingDao().getAll().associate { it.funcCode to it.isEnableFlag }
-                val allPlugin = PluginManager.getAll()
-                vos = allPlugin.map {
-                    FuncSettingVo.covertFrom(it).apply {
-                        val enabled = settingMap[it.id] ?: it.isEnabled
-                        setEnableFlag(enabled)
-                    }
-                }
+                vos = buildFuncSettings(PluginManager.getAll(), settingMap)
                 vos
             }
             .andThen { data ->
                 listView.items = FXCollections.observableArrayList(data)
             }
             .handle()
+    }
+
+    /**
+     * 根据插件扩展构建设置窗口展示的功能列表。
+     *
+     * 主界面展示的是 `FuncPaneFactory` 提供的功能卡片，而不是插件描述文件
+     * 本身。一个插件可能注册多个功能，例如平台插件同时包含 JDK 版本管理、
+     * SQL 转换、待办和文件编码，因此设置窗口必须把插件展开成具体功能项。
+     * 每一项使用 `FuncPaneFactory.getCode()` 作为持久化编码，保证设置窗口、
+     * 主界面卡片、全局搜索和面板路由使用同一个功能标识。
+     *
+     * @param plugins 所有已加载插件，包括当前被禁用的插件，确保旧配置仍可展示并重新启用
+     * @param settingMap 从 `func_setting` 读取的启用状态，优先按功能编码匹配，同时兼容旧插件 id
+     * @return 去重后的功能设置项，顺序保持插件发现顺序和插件内部扩展声明顺序
+     */
+    private fun buildFuncSettings(
+        plugins: List<Plugin>,
+        settingMap: Map<String, Boolean>
+    ): List<FuncSettingVo> {
+        val result = LinkedHashMap<String, FuncSettingVo>()
+        plugins.forEach { plugin ->
+            plugin.getExtensionByType(FuncPaneFactory::class.java).forEach { function ->
+                result.putIfAbsent(
+                    function.getCode(),
+                    FuncSettingVo(
+                        function.getCode(),
+                        function.getName(),
+                        resolveFuncEnabled(plugin, function, settingMap)
+                    )
+                )
+            }
+        }
+        return result.values.toList()
+    }
+
+    /**
+     * 解析单个功能在设置窗口中应显示的开关状态。
+     *
+     * 新版本按 `FuncPaneFactory.getCode()` 保存配置，使同一个插件下的多个功能
+     * 可以独立控制。旧版本可能按插件 id 保存，例如
+     * `io.github.nonoas.worktools.platform`；只有当功能级记录不存在时，才使用
+     * 这个旧值作为兜底。若功能级和插件级记录都不存在，则使用插件当前运行态，
+     * 也就是插件加载后的默认启用状态。
+     *
+     * @param plugin 功能所属插件
+     * @param function 设置行对应的功能工厂
+     * @param settingMap 从 `func_setting` 读取的持久化启用状态
+     * @return 开关控件应展示的启用状态
+     */
+    private fun resolveFuncEnabled(
+        plugin: Plugin,
+        function: FuncPaneFactory,
+        settingMap: Map<String, Boolean>
+    ): Boolean {
+        return settingMap[function.getCode()]
+            ?: settingMap[plugin.id]
+            ?: plugin.isEnabled
     }
 
     private fun onApply() {
@@ -152,7 +205,7 @@ class PluginSettingStage : BaseStage() {
                 if (result != 0) result else null
             }
             .andThen {
-                PluginManager.applyEnableStates(vos.associate { vo -> vo.getFuncCode() to vo.isEnableFlag() })
+                PluginManager.applyFunctionEnableStates(vos.associate { vo -> vo.getFuncCode() to vo.isEnableFlag() })
                 close()
                 MainStage.instance?.reInit()
             }
@@ -164,7 +217,7 @@ class PluginSettingStage : BaseStage() {
             .whenCall {
                 PluginManager.reloadExternalPlugins()
                 val enableStates = FuncSettingDao().getAll().associate { it.funcCode to it.isEnableFlag }
-                PluginManager.applyEnableStates(enableStates)
+                PluginManager.applyFunctionEnableStates(enableStates)
             }
             .andThen {
                 loadPlugins()
@@ -182,7 +235,7 @@ class PluginSettingStage : BaseStage() {
                     val installedPlugins = PluginLoader.installPluginArchive(archive.toPath())
                     PluginManager.reloadExternalPlugins()
                     val enableStates = FuncSettingDao().getAll().associate { it.funcCode to it.isEnableFlag }
-                    PluginManager.applyEnableStates(enableStates)
+                    PluginManager.applyFunctionEnableStates(enableStates)
                     PluginInstallResult(installedPlugins = installedPlugins)
                 } catch (e: Exception) {
                     PluginInstallResult(errorMessage = e.message ?: "插件安装失败")

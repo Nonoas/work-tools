@@ -46,7 +46,35 @@ worktools/
 ./gradlew packageMyApp
 ```
 
-打包结果位于 `build/launch/` 目录下。
+打包结果位于 `build/worktools/` 目录下。
+
+### 修改打包后 JVM 参数
+
+Windows exe 使用 WinRun4J 启动，JVM 参数在安装目录的 `worktools.ini` 中配置。参数必须使用连续编号的 `vmarg.N`，不能直接追加裸参数行，并且要放在 `[ErrorMessages]` 段之前。
+
+示例：
+
+```properties
+vmarg.1=-Xms64m
+vmarg.2=-Xmx256m
+vmarg.3=-Djavafx.enablePreview=true
+vmarg.4=--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+```
+
+修改后需要完全退出应用并重新打开 `worktools.exe`。`-Xmx` 只限制 Java 堆上限，任务管理器看到的进程内存还包含 JRE、JavaFX、元空间、线程栈和本地库占用。
+
+打包时的默认堆大小可在 `gradle.properties` 中调整：
+
+```properties
+appJvmMinHeap=64m
+appJvmMaxHeap=256m
+```
+
+也可以临时覆盖：
+
+```bash
+./gradlew packageMyApp -PappJvmMinHeap=64m -PappJvmMaxHeap=512m
+```
 
 ## 开发指南
 

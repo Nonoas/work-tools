@@ -7,11 +7,11 @@ import github.nonoas.jfx.flat.ui.theme.Styles
 import io.github.nonoas.worktools.platform.common.CommonInsets
 import io.github.nonoas.worktools.platform.dao.FuncSettingDao
 import io.github.nonoas.worktools.platform.ext.FuncPaneFactory
+import io.github.nonoas.worktools.platform.ext.Plugin
 import io.github.nonoas.worktools.platform.ext.PluginManager
 import io.github.nonoas.worktools.platform.ext.Searchable
 import io.github.nonoas.worktools.platform.global.ExtensionManager
 import io.github.nonoas.worktools.platform.global.message.MsgBusManager
-import io.github.nonoas.worktools.platform.pojo.dto.FuncSettingDto
 import io.github.nonoas.worktools.platform.pojo.params.FuncSettingQry
 import io.github.nonoas.worktools.platform.pojo.vo.ExecFileVo
 import io.github.nonoas.worktools.platform.service.impl.FuncSettingService
@@ -77,7 +77,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     /**
      * 功能代码保存
      */
-    private var funcEnabledMap = HashMap<String, FuncPaneFactory>()
+    private var funcEnabledMap = LinkedHashMap<String, FuncPaneFactory>()
 
     /**
      * 当前功能代码索引，当前切换到 funcCodeList 的第几个元素
@@ -280,22 +280,30 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     }
 
     /**
-     * 刷新功能面板
+     * 刷新主界面展示的功能卡片。
+     *
+     * 功能是否展示由 `func_setting.func_code` 控制，编码取自每个功能控制器的
+     * `FuncPaneFactory.getCode()`，而不是插件 id。这样可以正确处理一个插件
+     * 发布多个功能的情况，例如平台插件同时包含 JDK 版本管理、SQL 转换、待办
+     * 和文件编码。每个功能会独立判断启用状态，并使用同一个功能编码注册到
+     * `funcEnabledMap`，确保全局搜索和 Tab 路由能打开正确页面。
      */
     private fun refreshFuncPane() {
         fpFuncList.children.clear()
-        val settingMaps = getSettingMap().filterValues { it.isEnableFlag }
-        settingMaps.values.forEach { plugDto ->
-            val plugin = PluginManager.getPluginById(plugDto.funcCode) ?: return
-
+        funcEnabledMap.clear()
+        val settingMap = getSettingMap()
+        PluginManager.getAll().forEach { plugin ->
             val funcPanes = plugin.getExtensionByType(FuncPaneFactory::class.java)
             funcPanes?.forEach { func ->
+                if (!isFuncEnabled(plugin, func, settingMap)) {
+                    return@forEach
+                }
                 val myCard = Card(func.getName(), func.getDescription(), func.getGraphic()).apply {
                     prefWidth = 20.0
                     prefHeight = 90.0
                     onMouseClicked = EventHandler { routeCenter(func) }
                 }
-                funcEnabledMap[plugDto.funcCode] = func
+                funcEnabledMap[func.getCode()] = func
                 fpFuncList.children.add(myCard)
             }
 
@@ -334,15 +342,40 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
     }
 
     /**
-     * 获取工具栏配置
-     * @return K:菜单编码 V:配置数据对象
+     * 读取持久化的功能可见性配置。
+     *
+     * 返回结果以功能编码为主，也就是主界面路由和搜索使用的
+     * `FuncPaneFactory.getCode()`。旧版本保存的插件 id 记录不会在这里过滤掉，
+     * 因为 `isFuncEnabled` 需要用它们为已有用户提供兼容兜底。
+     *
+     * @return 持久化启用状态，键可能是功能编码，也可能是旧版本插件 id
      */
-    private fun getSettingMap(): Map<String, FuncSettingDto> {
-        val settingMap = FuncSettingDao()
+    private fun getSettingMap(): Map<String, Boolean> {
+        return FuncSettingDao()
             .getAll()
-            .associateBy { it.funcCode }
-            .toMutableMap()
-        return settingMap
+            .associate { it.funcCode to it.isEnableFlag }
+    }
+
+    /**
+     * 判断某个功能是否应该渲染到主界面。
+     *
+     * 查找顺序与插件设置窗口保持一致：功能级记录优先；功能级记录不存在时，
+     * 使用旧版本插件级记录；两者都不存在时，使用插件当前运行态。这样既能让
+     * 新版本保存功能级配置，又能兼容已经存在的插件级配置。
+     *
+     * @param plugin 功能所属插件
+     * @param function 用于创建卡片和页面的功能工厂
+     * @param settingMap 从 `func_setting` 读取的持久化启用状态
+     * @return `true` 表示功能卡片应显示
+     */
+    private fun isFuncEnabled(
+        plugin: Plugin,
+        function: FuncPaneFactory,
+        settingMap: Map<String, Boolean>
+    ): Boolean {
+        return settingMap[function.getCode()]
+            ?: settingMap[plugin.id]
+            ?: plugin.isEnabled
     }
 
     /**

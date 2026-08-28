@@ -137,7 +137,7 @@ class App : AutoReleaseApplication() {
 
     private fun syncPluginStates() {
         val enableStates = FuncSettingDao().getAll().associate { it.funcCode to it.isEnableFlag }
-        PluginManager.applyEnableStates(enableStates)
+        PluginManager.applyFunctionEnableStates(enableStates)
     }
 
     @Throws(Exception::class)
