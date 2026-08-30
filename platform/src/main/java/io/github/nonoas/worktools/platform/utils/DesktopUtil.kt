@@ -65,6 +65,47 @@ object DesktopUtil {
     }
 
     /**
+     * 在系统文件管理器中定位文件。
+     *
+     * @param file 要定位的文件或目录
+     */
+    @JvmStatic
+    fun revealInFileManager(file: File?) {
+        try {
+            if (file == null) {
+                return
+            }
+
+            val osName = System.getProperty("os.name").lowercase()
+            when {
+                osName.contains("windows") -> {
+                    when {
+                        file.isDirectory -> Desktop.getDesktop().open(file)
+                        file.exists() -> ProcessBuilder("explorer.exe", "/select,", file.absoluteFile.toString()).start()
+                        file.parentFile?.exists() == true -> Desktop.getDesktop().open(file.parentFile)
+                        else -> return
+                    }
+                }
+
+                osName.contains("mac") -> {
+                    if (file.exists()) {
+                        ProcessBuilder("open", "-R", file.absolutePath).start()
+                    } else if (file.parentFile?.exists() == true) {
+                        Desktop.getDesktop().open(file.parentFile)
+                    }
+                }
+
+                else -> {
+                    val target = if (file.isDirectory) file else file.parentFile
+                    Desktop.getDesktop().open(target)
+                }
+            }
+        } catch (e: Exception) {
+            ExceptionAlter.error(e)
+        }
+    }
+
+    /**
      * 使用系统浏览器打开指定链接。
      *
      * @param url 目标链接

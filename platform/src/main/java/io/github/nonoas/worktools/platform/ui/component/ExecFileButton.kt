@@ -44,12 +44,22 @@ class ExecFileButton : FileLinkButton {
         miRename.onAction = EventHandler {
             showRenameDialog(vo)
         }
+        val miReveal = MenuItem("打开所在位置")
+        miReveal.onAction = EventHandler {
+            val file = File(vo.link)
+            val parent = file.parentFile
+            if (!file.exists() && (parent == null || !parent.exists())) {
+                UIUtil.error("文件${vo.link}不存在")
+                return@EventHandler
+            }
+            DesktopUtil.revealInFileManager(file)
+        }
         val miDel = MenuItem("删除")
         miDel.onAction= EventHandler {
             (parent as Pane).children.remove(this)
             ExecFileDao.delByUniqueKey(vo)
         }
-        val ctMenu = ContextMenu(miRename, miDel)
+        val ctMenu = ContextMenu(miReveal, miRename, miDel)
         contextMenu = ctMenu
     }
 

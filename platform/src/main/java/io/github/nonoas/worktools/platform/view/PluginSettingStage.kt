@@ -68,7 +68,7 @@ class PluginSettingStage : BaseStage() {
         }
 
         val root = VBox(listView, hBox).apply {
-            padding = Insets(40.0, 10.0, 20.0, 10.0)
+            padding = Insets(20.0, 10.0, 20.0, 10.0)
         }
 
         setContentView(root)

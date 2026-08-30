@@ -219,4 +219,19 @@ tasks.register<PackageTask>("packageMyApp") {
 
         shortcutName = appDisplayName
     })
+
+    doLast {
+        val runnableJarName = "worktools-$appVersion-runnable.jar"
+        val packageDir = layout.buildDirectory.dir("worktools").get().asFile
+        val iniFile = packageDir.resolve("worktools.ini")
+
+        delete(packageDir.resolve(runnableJarName))
+        if (iniFile.exists()) {
+            iniFile.writeText(
+                iniFile.readLines()
+                    .filterNot { it == "classpath.2=$runnableJarName" }
+                    .joinToString(System.lineSeparator()) + System.lineSeparator()
+            )
+        }
+    }
 }

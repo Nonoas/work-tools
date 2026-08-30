@@ -138,3 +138,30 @@
 .floating-tab-button:hover {
     -fx-background-color: -color-bg-subtle;
 }
+
+.context-menu.tray-context-menu {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 2px;
+    -fx-background-insets: 0;
+    -fx-border-color: #c8c8c8;
+    -fx-border-radius: 2px;
+    -fx-border-width: 1px;
+    -fx-padding: 2px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.24), 6, 0, 1, 2);
+}
+
+.context-menu.tray-context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 6px 30px 6px 24px;
+}
+
+.context-menu.tray-context-menu .menu-item:focused,
+.context-menu.tray-context-menu .menu-item:hover {
+    -fx-background-color: #e5f3ff;
+}
+
+.context-menu.tray-context-menu .menu-item:focused .label,
+.context-menu.tray-context-menu .menu-item:hover .label {
+    -fx-text-fill: #000000;
+}

@@ -177,7 +177,9 @@ class App : AutoReleaseApplication() {
         val miExit = MenuItem("退出").apply {
             onAction = EventHandler { Platform.exit() }
         }
-        val contextMenu = ContextMenu(miOpen, miExit)
+        val contextMenu = ContextMenu(miOpen, miExit).apply {
+            styleClass.add("tray-context-menu")
+        }
 
         trayIcon = TrayIcon(image).apply {
             toolTip = "WorkTools\n按 ALT+SHIFT+M 显示/隐藏"
@@ -216,7 +218,9 @@ class App : AutoReleaseApplication() {
      */
     private fun initPrimaryStage(primaryStage: Stage) {
         this.primaryStage = primaryStage.apply {
-            scene = Scene(Pane(), 1.0, 1.0)
+            scene = Scene(Pane(), 1.0, 1.0).apply {
+                stylesheets.add("css/platform.css")
+            }
             initStyle(StageStyle.UTILITY)
             x = Double.MAX_VALUE
             show()
