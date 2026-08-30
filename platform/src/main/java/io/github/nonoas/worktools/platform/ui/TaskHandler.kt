@@ -2,6 +2,7 @@ package io.github.nonoas.worktools.platform.ui
 
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 /**
@@ -66,7 +67,14 @@ class TaskHandler<T> {
          * 关闭线程池，应在应用退出时调用
          */
         fun shutdown() {
-            THREAD_POOL.shutdown()
+            THREAD_POOL.shutdownNow()
+            try {
+                if (!THREAD_POOL.awaitTermination(2, TimeUnit.SECONDS)) {
+                    LOG.warn("TaskHandler thread pool did not terminate in time")
+                }
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
         }
     }
 }

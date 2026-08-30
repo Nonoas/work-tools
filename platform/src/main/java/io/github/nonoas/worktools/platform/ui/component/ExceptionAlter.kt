@@ -16,7 +16,7 @@ import java.io.StringWriter
  * @author Nonoas
  * @datetime 2021/12/22 21:44
  */
-class ExceptionAlter(e: Throwable) : javafx.scene.control.Alert(AlertType.ERROR, e.message) {
+class ExceptionAlter(e: Throwable) : Alert(AlertType.ERROR, e.message) {
     init {
         initView(e)
     }

@@ -9,6 +9,7 @@ import io.github.nonoas.worktools.platform.config.DBConfigEnum
 import io.github.nonoas.worktools.platform.config.FlyWayMigration
 import io.github.nonoas.worktools.platform.dao.FuncSettingDao
 import io.github.nonoas.worktools.platform.ext.PluginManager
+import io.github.nonoas.worktools.platform.global.Disposer
 import io.github.nonoas.worktools.platform.ui.TaskHandler
 import io.github.nonoas.worktools.platform.ui.component.BaseStage
 import io.github.nonoas.worktools.platform.ui.component.ExceptionAlter
@@ -82,12 +83,6 @@ class App : AutoReleaseApplication() {
 
     @Throws(Exception::class)
     override fun init() {
-        try {
-            PluginManager.loadPlugins()
-            DBUtil.init()
-        } catch (e: Exception) {
-            LOG.error("未知异常", e)
-        }
     }
 
     @Throws(Exception::class)
@@ -106,7 +101,9 @@ class App : AutoReleaseApplication() {
                 return
             }
 
+            DBUtil.init()
             dbMigrate()
+            PluginManager.loadPlugins()
             syncPluginStates()
 
             jIntellitype = JIntellitype.getInstance()
@@ -124,6 +121,7 @@ class App : AutoReleaseApplication() {
         } catch (e: Exception) {
             LOG.error("未知异常", e)
             ExceptionAlter.error(e)
+            stop()
         }
     }
 
@@ -143,18 +141,23 @@ class App : AutoReleaseApplication() {
     @Throws(Exception::class)
     override fun stop() {
         super.stop()
-        if (hasRun) {
+        if (!hasRun) {
+            Disposer.clear()
+            PluginManager.shutdown()
+            TaskHandler.shutdown()
+            DBUtil.shutdown()
+            fileLock?.release()
+            channel?.close()
+            // 清楚系统全局热键
+            clearGlobalHotKeys()
+            // 删除系统托盘
+            systemTray?.remove(trayIcon)
+            systemTray = null
+            trayIcon = null
+        }
+        if (hasRun || !Platform.isImplicitExit()) {
             exitProcess(0)
         }
-        PluginManager.shutdown()
-        TaskHandler.shutdown()
-        fileLock?.release()
-        channel?.close()
-        // 清楚系统全局热键
-        clearGlobalHotKeys()
-        // 删除系统托盘
-        systemTray?.remove(trayIcon)
-        systemTray = null
     }
 
     /**

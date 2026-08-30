@@ -21,6 +21,9 @@ object DBUtil {
     private lateinit var ds: DataSource
 
     fun init() {
+        if (::ds.isInitialized) {
+            shutdown()
+        }
         // 数据源配置
         val config = HikariConfig()
         config.jdbcUrl = DBConfigEnum.WORKTOOLS.url
@@ -38,6 +41,12 @@ object DBUtil {
 
     fun getConnection(): Connection {
         return ds.connection
+    }
+
+    fun shutdown() {
+        if (::ds.isInitialized && ds is HikariDataSource) {
+            (ds as HikariDataSource).close()
+        }
     }
 
     inline fun <T> useConnection(block: (Connection) -> T): T {
