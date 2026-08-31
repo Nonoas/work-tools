@@ -63,6 +63,8 @@ fun appJvmArgs() = listOf(
     "-Xms${appJvmMinHeap.get()}",
     "-Xmx${appJvmMaxHeap.get()}",
     "-Djavafx.enablePreview=true",
+    "-Dprism.lcdtext=false",
+    "-Dprism.text=t2k",
     "--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
 )
 
