@@ -3,10 +3,13 @@ package indi.nonoas.worktools.recenttouch
 import io.github.nonoas.worktools.platform.common.CommonInsets
 import io.github.nonoas.worktools.platform.dao.RtpLinkListDao
 import io.github.nonoas.worktools.platform.ext.FuncPane
+import io.github.nonoas.worktools.platform.global.message.MessageBus
+import io.github.nonoas.worktools.platform.global.message.MsgBusManager
 import io.github.nonoas.worktools.platform.pojo.po.RtpLinkListPo
 import io.github.nonoas.worktools.platform.pojo.vo.RtpLinkListVo
 import io.github.nonoas.worktools.platform.ui.TaskHandler
 import io.github.nonoas.worktools.platform.ui.component.ExceptionAlter
+import io.github.nonoas.worktools.platform.ui.component.SearchListener
 import io.github.nonoas.worktools.platform.utils.UIUtil
 import javafx.event.EventHandler
 import javafx.geometry.Pos
@@ -29,6 +32,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.awt.Desktop
 import java.io.File
+import java.util.Locale
 
 /**
  * 临时存放最近使用的文件，方便快捷打开
@@ -39,6 +43,9 @@ import java.io.File
 class RecentTouchPane private constructor() : FuncPane() {
 
     private val root = VBox(10.0)
+    private val allItems = ArrayList<RtpLinkListVo>()
+    private var currentKeyword = ""
+    private var msgBusConnection: MessageBus.Connection? = null
 
     private val lv = ListView<RtpLinkListVo>().apply {
         setCellFactory { lv ->
@@ -50,13 +57,15 @@ class RecentTouchPane private constructor() : FuncPane() {
                             val item = item ?: return@EventHandler
 
                             Desktop.getDesktop().open(File(item.link))
-                            items.remove(item)
-                            items.add(0, item)
+                        items.remove(item)
+                        allItems.remove(item)
+                        allItems.add(0, item)
+                        refreshView()
 
-                            item.lastUseTimestamp = System.currentTimeMillis()
-                            TaskHandler.Companion.backRun { RtpLinkListDao.replace(item) }
-                        }
+                        item.lastUseTimestamp = System.currentTimeMillis()
+                        TaskHandler.Companion.backRun { RtpLinkListDao.replace(item) }
                     }
+                }
                 }
 
                 override fun updateItem(item: RtpLinkListVo?, empty: Boolean) {
@@ -110,7 +119,8 @@ class RecentTouchPane private constructor() : FuncPane() {
                     }
                     val menuDel = MenuItem("删除")
                     menuDel.onAction = EventHandler {
-                        items.remove(item)
+                        allItems.remove(item)
+                        refreshView()
                         TaskHandler.Companion.backRun { RtpLinkListDao.delById(item.id!!) }
                     }
                     contextMenu = ContextMenu(menuRename, menuDel)
@@ -125,14 +135,30 @@ class RecentTouchPane private constructor() : FuncPane() {
     private val logger: Logger = LogManager.getLogger(RecentTouchPane::class.java)
 
     private fun initFromDB() {
-        lv.items.clear()
+        allItems.clear()
         TaskHandler<MutableList<RtpLinkListPo>>()
             .whenCall { RtpLinkListDao.getAll() }
             .andThen { pos ->
                 for (po in pos) {
-                    lv.items.add(po.covertVo())
+                    allItems.add(po.covertVo())
                 }
+                refreshView()
             }.handle()
+    }
+
+    private fun refreshView() {
+        val keyword = currentKeyword.trim().lowercase(Locale.getDefault())
+        if (keyword.isBlank()) {
+            lv.items.setAll(allItems)
+            return
+        }
+
+        lv.items.setAll(
+            allItems.filter { vo ->
+                vo.name.orEmpty().lowercase(Locale.getDefault()).contains(keyword)
+                        || vo.link.lowercase(Locale.getDefault()).contains(keyword)
+            }
+        )
     }
 
 
@@ -167,12 +193,13 @@ class RecentTouchPane private constructor() : FuncPane() {
     }
 
     private fun addFileLink(vo: RtpLinkListVo): Boolean {
-        for (item in lv.items) {
+        for (item in allItems) {
             if (vo.link == item.link) {
                 return false
             }
         }
-        lv.items.add(vo)
+        allItems.add(vo)
+        refreshView()
         TaskHandler<Int>()
             .whenCall {
                 logger.info("添加按钮${vo.name}")
@@ -209,8 +236,23 @@ class RecentTouchPane private constructor() : FuncPane() {
             }
 
             item.name = newName
-            lv.refresh()
+            refreshView()
             TaskHandler.Companion.backRun { RtpLinkListDao.replace(item) }
+        }
+    }
+
+    private fun initSearchListener() {
+        msgBusConnection?.dispose()
+        msgBusConnection = MsgBusManager.getCurrentBus().connect(this).apply {
+            subscribe(SearchListener.TOPIC, object : SearchListener {
+                override fun onTextChange(keyword: String) {
+                    currentKeyword = keyword
+                    refreshView()
+                }
+
+                override fun onEntered(event: javafx.event.ActionEvent) {
+                }
+            })
         }
     }
 
@@ -229,11 +271,16 @@ class RecentTouchPane private constructor() : FuncPane() {
         root.children.setAll(lv)
         VBox.setVgrow(lv, Priority.ALWAYS)
         initFromDB()
+        initSearchListener()
         return root
     }
 
     override fun dispose() {
+        msgBusConnection?.dispose()
+        msgBusConnection = null
         lv.items.clear()
+        allItems.clear()
+        currentKeyword = ""
         root.children.clear()
     }
 
