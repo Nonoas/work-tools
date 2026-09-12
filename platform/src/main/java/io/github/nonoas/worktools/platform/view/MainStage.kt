@@ -20,7 +20,6 @@ import io.github.nonoas.worktools.platform.ui.component.BaseStage
 import io.github.nonoas.worktools.platform.ui.component.LlmSearchListener
 import io.github.nonoas.worktools.platform.ui.component.SearchListener
 import io.github.nonoas.worktools.platform.ui.component.SearchModeTextField
-import javafx.collections.ListChangeListener
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Pos
@@ -29,7 +28,6 @@ import javafx.scene.control.Menu
 import javafx.scene.control.MenuBar
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
-import javafx.scene.control.Tab
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
@@ -59,12 +57,14 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
 
     private val fpFuncListPane = ScrollPane()
 
-    private val funcTabPane = MainFuncPane().apply {
-        tabs.addListener(ListChangeListener { change ->
-            if (change.list.isEmpty()) {
-                rootPane.center = fpFuncListPane
-            }
-        })
+    private val funcPane = MainFuncPane().apply {
+        setOnEmpty {
+            rootPane.center = fpFuncListPane
+            title = TITLE
+        }
+        activeFuncCodeProperty().addListener { _, _, newCode ->
+            title = openPages.firstOrNull { it.funcCode == newCode }?.funcName ?: TITLE
+        }
     }
 
     /**
@@ -151,6 +151,10 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
         // 设置
         val menuSetting = Menu(null, UIFactory.createMenuButton())
 
+        val itemStatus = MenuItem("插件状态").apply {
+            onAction = EventHandler { PluginStatusStage(this@MainStage).show() }
+        }
+
         val itemFunc = MenuItem("插件管理").apply {
             onAction = EventHandler { PluginSettingStage().show() }
         }
@@ -162,7 +166,7 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
             onAction = EventHandler { /* todo */ }
         }
 
-        menuSetting.items.addAll(itemFunc, itemUpgrade, itemAbout)
+        menuSetting.items.addAll(itemStatus, itemFunc, itemUpgrade, itemAbout)
 
         menuBar.menus.add(menuSetting)
         menuBar.isFocusTraversable = false
@@ -319,26 +323,23 @@ class MainStage private constructor() : BaseStage(), Reinitializable {
      * 切换主面板
      */
     private fun routeCenter(factory: FuncPaneFactory) {
-        val name = factory.getName()
-        val code = factory.getCode()
+        rootPane.center = funcPane
+        val page = funcPane.openOrSelect(factory)
+        title = page.funcName
+    }
 
-        rootPane.center = funcTabPane
+    fun getOpenFuncPages() = funcPane.openPages
 
-        var tabCurr: Tab? = null
-        for (tab in funcTabPane.tabs) {
-            if (tab.userData == code) {
-                tabCurr = tab
-                break
-            }
+    fun selectOpenFuncPage(funcCode: String): Boolean {
+        val selected = funcPane.selectPage(funcCode)
+        if (selected) {
+            rootPane.center = funcPane
         }
+        return selected
+    }
 
-        if (tabCurr == null) {
-            tabCurr = funcTabPane.open(factory)
-            tabCurr.userData = code
-        }
-
-        funcTabPane.selectionModel.select(tabCurr)
-        title = name
+    fun closeOpenFuncPage(funcCode: String): Boolean {
+        return funcPane.closePage(funcCode)
     }
 
     /**
