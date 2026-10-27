@@ -170,4 +170,11 @@ dependencies {
     implementation("org.yaml:snakeyaml:2.2")
     implementation("dev.langchain4j:langchain4j-open-ai:1.0.0-beta3")
     implementation("dev.langchain4j:langchain4j:1.0.0-beta3")
+
+    testImplementation(kotlin("test-junit5"))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }

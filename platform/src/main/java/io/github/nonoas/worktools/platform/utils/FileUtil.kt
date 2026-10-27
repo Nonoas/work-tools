@@ -1,7 +1,18 @@
 package io.github.nonoas.worktools.platform.utils
 
 import org.mozilla.universalchardet.UniversalDetector
-import java.io.*
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileReader
+import java.io.FileWriter
+import java.io.IOException
+import java.io.InputStreamReader
+import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -100,22 +111,85 @@ object FileUtil {
     }
 
     fun detectCharset(file: File): String? {
+        if (!file.isFile || file.length() == 0L) return null
+
+        detectBom(file)?.let { return it }
+
         FileInputStream(file).use { fis ->
             val buffer = ByteArray(4096)
             var bytesRead: Int
-            // 创建 UniversalDetector 实例
             val detector = UniversalDetector(null)
-            // 循环读取文件内容并交给 UniversalDetector 处理
             while (fis.read(buffer).also { bytesRead = it } != -1 && !detector.isDone) {
                 detector.handleData(buffer, 0, bytesRead)
             }
-            // 完成处理
             detector.dataEnd()
-            // 获取检测到的编码
-            val charset: String? = detector.detectedCharset
-            // 重置 UniversalDetector
-            detector.reset()
-            return charset
+            detector.detectedCharset?.let { return it }
+        }
+
+        if (canDecodeAsText(file, StandardCharsets.UTF_8)) {
+            return StandardCharsets.UTF_8.name()
+        }
+
+        val gbk = Charset.forName("GBK")
+        if (canDecodeAsText(file, gbk, requireHanCharacter = true)) {
+            return gbk.name()
+        }
+
+        return null
+    }
+
+    private fun detectBom(file: File): String? {
+        val bom = ByteArray(4)
+        val length = FileInputStream(file).use { it.read(bom) }
+        if (length >= 4) {
+            if (bom[0] == 0x00.toByte() && bom[1] == 0x00.toByte() &&
+                bom[2] == 0xFE.toByte() && bom[3] == 0xFF.toByte()
+            ) return "UTF-32BE"
+            if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() &&
+                bom[2] == 0x00.toByte() && bom[3] == 0x00.toByte()
+            ) return "UTF-32LE"
+        }
+        if (length >= 3 && bom[0] == 0xEF.toByte() &&
+            bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte()
+        ) return StandardCharsets.UTF_8.name()
+        if (length >= 2) {
+            if (bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte()) return StandardCharsets.UTF_16BE.name()
+            if (bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte()) return StandardCharsets.UTF_16LE.name()
+        }
+        return null
+    }
+
+    private fun canDecodeAsText(
+        file: File,
+        charset: Charset,
+        requireHanCharacter: Boolean = false
+    ): Boolean {
+        val decoder = charset.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+        var hasCharacter = false
+        var hasHanCharacter = false
+
+        return try {
+            InputStreamReader(FileInputStream(file), decoder).use { reader ->
+                val buffer = CharArray(4096)
+                var count: Int
+                while (reader.read(buffer).also { count = it } != -1) {
+                    for (index in 0 until count) {
+                        val char = buffer[index]
+                        hasCharacter = true
+                        if (Character.isISOControl(char) && char != '\r' && char != '\n' && char != '\t') {
+                            return false
+                        }
+                        if (char in '\u3400'..'\u4DBF' || char in '\u4E00'..'\u9FFF' || char in '\uF900'..'\uFAFF') {
+                            hasHanCharacter = true
+                        }
+                    }
+                }
+            }
+            hasCharacter && (!requireHanCharacter || hasHanCharacter)
+        } catch (_: CharacterCodingException) {
+            false
         }
     }
 

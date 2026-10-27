@@ -9,7 +9,6 @@ import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.scene.Parent
 import javafx.scene.control.Alert
-import javafx.scene.control.ComboBox
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.scene.layout.HBox
@@ -18,6 +17,7 @@ import javafx.scene.layout.VBox
 import javafx.stage.DirectoryChooser
 import java.io.File
 import java.nio.charset.Charset
+import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicBoolean
 import io.github.nonoas.worktools.platform.utils.FileUtil as FU
 
@@ -56,9 +56,14 @@ class FileEncodePane : FuncPane() {
             appendLog("路径不存在: ${file.absolutePath}")
             return
         }
-        appendLog("开始转换: ${file.absolutePath} -> 目标编码 ${ccb_tarCharset.value?.displayName() ?: "未选择"}")
+        val targetCharset = ccb_tarCharset.value
+        if (targetCharset == null) {
+            appendLog("请选择目标编码")
+            return
+        }
+        appendLog("开始转换: ${file.absolutePath} -> 目标编码 ${targetCharset.displayName()}")
         TaskHandler<Unit>()
-            .whenCall { convertFile(file) }
+            .whenCall { convertFile(file, targetCharset) }
             .andThen {
                 appendLog("转换完成")
                 MyAlert(Alert.AlertType.INFORMATION, "转换成功").show()
@@ -66,15 +71,24 @@ class FileEncodePane : FuncPane() {
             .handle()
     }
 
-    private fun convertFile(file: File) {
+    private fun convertFile(file: File, targetCharset: Charset) {
         if (file.isFile) {
-            val charsetName = FU.detectCharset(file)
-            FileUtil.convertCharset(file, CharsetUtil.charset(charsetName), ccb_tarCharset.value)
-            appendLog("已转换: ${file.absolutePath} (${charsetName} -> ${ccb_tarCharset.value})")
+            val detectedCharsetName = FU.detectCharset(file)
+            if (detectedCharsetName == null) {
+                appendLog("已跳过: ${file.absolutePath} (无法识别编码)")
+                return
+            }
+            val sourceCharset = CharsetUtil.charset(detectedCharsetName)
+            if (sourceCharset == targetCharset) {
+                appendLog("已跳过: ${file.absolutePath} (已是 ${targetCharset})")
+                return
+            }
+            FileUtil.convertCharset(file, sourceCharset, targetCharset)
+            appendLog("已转换: ${file.absolutePath} (${sourceCharset} -> ${targetCharset})")
             return
         }
         // 处理文件夹（为空判空）
-        file.listFiles()?.forEach { f -> convertFile(f) }
+        file.listFiles()?.forEach { f -> convertFile(f, targetCharset) }
     }
 
     // ====== 优化后的日志追加与批量刷新 ======
